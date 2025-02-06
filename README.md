@@ -1,2 +1,2 @@
 # Mining-Game
-Terrain Destruction Game using SDL, written in C++
+Terrain Destruction Game using SDL2, written in C++
