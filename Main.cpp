@@ -5,7 +5,6 @@
 #include "WindowRenderer.h"
 #include "InputManager.h"
 #include <iostream>
-#include <windows.h>
 #include <chrono>
 using namespace std::chrono;
 
@@ -24,14 +23,14 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Could not initialise SDL: %s\n", SDL_GetError());
         exit(-1);
     }
-    srand(time(0));
-    World world(200, 200, 200, 15, 0);
+    srand(now());
+    World world(200, 200, 200, 30, 50);
     Player player(&world);
 
     WindowRenderer renderer(&world, &player, 800, 600);
     InputManager inputManager(&world, &player, &renderer);
 
-    // renderer.Discover(player.x + (player.y * world.Width));
+    renderer.Discover();
     world.tiles[(int)player.x][(int)player.y] = AIR;
 
     int64_t time = now();
@@ -47,7 +46,7 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-        if (now() - time >= 20)
+        if (now() - time >= 30)
         {
 
             time = now();

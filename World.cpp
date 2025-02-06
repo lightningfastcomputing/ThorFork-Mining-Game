@@ -37,7 +37,7 @@ World::World(int width, int height, int nugget_count, int stone_thickness, int e
         this->encapsulate(stone_thickness, STONE, nugget_arr[i]);
     delete[] nugget_arr;
 
-    sprinkle(explosive_count, EXPLOSIVE, false, NULL);
+    sprinkle(explosive_count, EXPLOSIVE, true, NULL);
 }
 World::~World()
 {
@@ -59,8 +59,7 @@ void World::sprinkle(int count, tile tile, bool overwrite, int indexes[])
     int i = 0;
     while (i < count)
     {
-        int randX = rand() % Width;
-        int randY = rand() % Height;
+        int randX = rand() % Width, randY = rand() % Height;
         if (this->tiles[randX][randY] == AIR)
         {
             this->tiles[randX][randY] = tile;
@@ -109,7 +108,7 @@ int World::DestroyTile(int x, int y)
     case STONE:
         this->tiles[x][y] = AIR;
         break;
-    case EXPLOSIVE:
+    case EXPLOSIVE: //obsolete, needs to be fixed
         int adjacents[8];
         adjacents[0] = index - 1;
         adjacents[1] = index + 1;

@@ -3,7 +3,7 @@
 
 #include "World.h"
 #include "Player.h"
-#include "./src/include/SDL2/SDL.h"
+#include <SDL2/SDL.h>
 
 class WindowRenderer
 {

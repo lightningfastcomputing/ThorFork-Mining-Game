@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -Wall -g
-SDLFLAGS = -I ./src/include -L ./src/lib -lmingw32 -lSDL2main -lSDL2
+SDLFLAGS = -I ./src/include -L ./src/lib -lSDL2main -lSDL2 -ggdb -O0
 
 all:
 	$(CC) -c World.cpp 

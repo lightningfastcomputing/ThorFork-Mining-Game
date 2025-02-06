@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "World.h"
-#include "./src/include/SDL2/SDL.h"
+#include <SDL2/SDL.h>
 
 typedef enum direction_t
 {

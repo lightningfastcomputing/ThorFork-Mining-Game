@@ -145,7 +145,7 @@ void WindowRenderer::RenderFrame()
 void WindowRenderer::ClearFrame()
 {
     SDL_RenderClear(Renderer);
-    system("cls");
+    system("clear");
 }
 
 void WindowRenderer::ToggleDebug() { debug = !debug; }
@@ -187,7 +187,7 @@ void WindowRenderer::DrawAndStoreSelectedTile(int minX, int minY)
     MouseWorldX = x + minX;
     MouseWorldY = y + minY;
 
-    if (Discovered[MouseWorldX][MouseWorldY])
+    if ( _World->IsInBounds(MouseWorldX, MouseWorldY) && Discovered[MouseWorldX][MouseWorldY])
     {
         SDL_RenderDrawLine(Renderer, rendX, rendY, rendX + TileLength, rendY);
         SDL_RenderDrawLine(Renderer, rendX, rendY, rendX, rendY + TileLength);
