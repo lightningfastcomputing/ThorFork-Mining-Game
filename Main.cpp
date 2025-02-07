@@ -24,10 +24,10 @@ int main(int argc, char *argv[])
         exit(-1);
     }
     srand(now());
-    World world(200, 200, 200, 30, 50);
+    World world(200, 200, 200, 30, 1000);
     Player player(&world);
 
-    WindowRenderer renderer(&world, &player, 800, 600);
+    WindowRenderer renderer(&world, &player, 1920, 1080);
     InputManager inputManager(&world, &player, &renderer);
 
     renderer.Discover();
