@@ -12,7 +12,9 @@ Compiling is described in the Makefile and requires gcc, gdb, and SDL2 packages
 Run these commands in the terminal to install:
 
 sudo apt install gcc
+
 sudo apt install gdb
+
 sudo apt-get install libsdl2-2.0-0 (this will install SDL2 system-wide)
 
 # Future Plans
