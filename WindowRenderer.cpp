@@ -29,7 +29,7 @@ WindowRenderer::WindowRenderer(World *world, Player *player, int width, int heig
         horizontalTileCount = Width % TileLength;
         verticalTileCount = Height % TileLength;
     }
-    debug = true;
+    debug = false;
     Init_Window("Mining Game");
     Init_Renderer();
 }
@@ -41,7 +41,13 @@ WindowRenderer::~WindowRenderer()
         SDL_DestroyRenderer(Renderer);
     delete[] Discovered;
 }
-void WindowRenderer::Reveal() { memset(Discovered, true, _World->Width * _World->Height); }
+void WindowRenderer::Reveal()
+{
+    for (int i = 0; i < _World->Width; i++) {
+        memset(Discovered[i], true, _World->Height);
+    }
+    
+}
 void WindowRenderer::Discover()
 {
     int x = _Player->x, y = _Player->y;
@@ -187,7 +193,7 @@ void WindowRenderer::DrawAndStoreSelectedTile(int minX, int minY)
     MouseWorldX = x + minX;
     MouseWorldY = y + minY;
 
-    if ( _World->IsInBounds(MouseWorldX, MouseWorldY) && Discovered[MouseWorldX][MouseWorldY])
+    if (_World->IsInBounds(MouseWorldX, MouseWorldY) && Discovered[MouseWorldX][MouseWorldY])
     {
         SDL_RenderDrawLine(Renderer, rendX, rendY, rendX + TileLength, rendY);
         SDL_RenderDrawLine(Renderer, rendX, rendY, rendX, rendY + TileLength);

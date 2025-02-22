@@ -1,9 +1,10 @@
 #include "InputManager.h"
 
+//dst = sqrt((x-x0)^2 + (y-y0^2))
 float Distance(int x0, int y0, int x1, int y1)
 {
     float distance = SDL_sqrtf(((x1 - x0) * (x1 - x0)) + ((y1 - y0) * (y1 - y0)));
-    printf("DISTANCE: %f\n", distance);
+    //printf("DISTANCE: %f\n", distance);
     return distance;
 }
 

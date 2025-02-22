@@ -35,6 +35,5 @@ public:
     void RenderFrame();
     void ClearFrame();
     void ToggleDebug();
-    std::tuple<int, int> GetMouseWorldCoordinates();
 };
 #endif

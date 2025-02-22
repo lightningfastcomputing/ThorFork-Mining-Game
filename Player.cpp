@@ -8,7 +8,7 @@ Player::Player(World *world)
     this->_World = world;
     this->x = _World->Width / 2;
     this->y = _World->Height / 2;
-    speed = 0.4f;               //tiles per tick, 0 < speed < 1;
+    speed = 0.2f;               //tiles per tick, 0 < speed < 1;
     size = 0.6f;                //0 < size < 1;
     dir = NONE;
     score = 0;
