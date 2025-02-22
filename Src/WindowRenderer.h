@@ -27,6 +27,7 @@ private:
     void DrawPlayerVector(int tileLength, int xRem);
 
 public:
+    bool Running;
     int MouseX, MouseY;
     int MouseWorldX, MouseWorldY;
     WindowRenderer();

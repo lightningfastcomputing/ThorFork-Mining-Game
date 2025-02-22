@@ -16,8 +16,9 @@ enum tile
 class World
 {
 private:
+    //"sprinkle" a tile around the map
     void Sprinkle(int count, tile tile, bool overwrite, int indexes[]);
-
+    //encapsulate a specific tile with a material
     void Encapsulate(int count, tile tile, int index);
 
 public:

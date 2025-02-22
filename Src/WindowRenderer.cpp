@@ -3,7 +3,6 @@
 WindowRenderer::WindowRenderer() {}
 WindowRenderer::WindowRenderer(World *world, Player *player, int width, int height)
 {
-
     _World = world;
     _Player = player;
     Width = width;
@@ -23,13 +22,8 @@ WindowRenderer::WindowRenderer(World *world, Player *player, int width, int heig
             Discovered[i][j] = false;
     }
 
-    // while (horizontalTileCount % 2 == 0 && verticalTileCount % 2 == 0)
-    // {
-    //     this->TileLength++;
-    //     horizontalTileCount = Width % TileLength;
-    //     verticalTileCount = Height % TileLength;
-    // }
     Debug = false;
+    Running = true;
     Init_Display("Mining Game");
 }
 WindowRenderer::~WindowRenderer()
@@ -44,6 +38,13 @@ WindowRenderer::~WindowRenderer()
         delete[] Discovered[i];
     }
     delete[] Discovered;
+    for (int i = 0; i < 4; i++)
+    {
+        if (Textures[i])
+        {
+            SDL_DestroyTexture(Textures[i]);
+        }
+    }
 }
 void WindowRenderer::Init_Display(const char *windowTitle)
 {
@@ -51,13 +52,13 @@ void WindowRenderer::Init_Display(const char *windowTitle)
     if (!Window)
     {
         printf("SDL_CreateWindow failed: %s\n", SDL_GetError());
-        exit(1);
+        Running = false;
     }
     Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_SOFTWARE);
     if (!Renderer)
     {
         printf("SDL_CreateRenderer failed: %s\n", SDL_GetError());
-        exit(1);
+        Running = false;
     }
 
     Textures[AIR] = IMG_LoadTexture(Renderer, "Textures/grass.png");
@@ -71,7 +72,7 @@ void WindowRenderer::Init_Display(const char *windowTitle)
         {
             printf("Textures not properly loaded: %s\n", SDL_GetError());
             IMG_Quit();
-            exit(1);
+            Running = false;
         }
     }
 }

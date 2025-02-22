@@ -14,6 +14,7 @@ InputManager::InputManager(World *world, Player *player, WindowRenderer *rendere
     _Player = player;
     _Renderer = renderer;
     Keys = SDL_GetKeyboardState(NULL);
+    Running = true;
 }
 
 InputManager::InputManager()
@@ -55,7 +56,7 @@ void InputManager::ManageInput()
     if (Keys[SDL_SCANCODE_F1])
         _Renderer->ToggleDebug();
     if (Keys[SDL_SCANCODE_ESCAPE])
-        exit(0);
+        Running = false;
 
     if (Distance(_Player->x, _Player->y, _Renderer->MouseWorldX, _Renderer->MouseWorldY) <= _Player->MiningRadius)
         _Player->CanMine = true;

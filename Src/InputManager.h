@@ -19,5 +19,6 @@ public:
     InputManager(World *world, Player *player, WindowRenderer *renderer);
     ~InputManager();
     void ManageInput();
+    bool Running;
 };
 #endif
