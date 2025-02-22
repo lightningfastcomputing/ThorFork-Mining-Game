@@ -8,42 +8,34 @@
 
 typedef enum direction_t
 {
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN,
-    UPLEFT,
-    UPRIGHT,
-    DOWNLEFT,
-    DOWNRIGHT,
+    WEST,
+    EAST,
+    NORTH,
+    SOUTH,
+    NORTHWEST,
+    NORTHEAST,
+    SOUTHWEST,
+    SOUTHEAST,
     NONE
 } direction;
 
-typedef struct BoundingBox_t
-{
+struct Vec2F {
     float x;
     float y;
-    float width;
-    float height;
-} BoundingBox;
-
-typedef struct Vector2_t {
-    float x;
-    float y;
-} Vec2;
+};
 
 class Player
 {
 private:
     World *_World;
 public:
-    float size;
+    float Size;
     float x, y;
-    float speed;
-    direction dir;
-    int score;
-    bool canMine;
-    float reach;
+    float Speed;
+    direction Direction;
+    int Score;
+    bool CanMine;
+    float MiningRadius;
 
     Player(World *World);
     ~Player();

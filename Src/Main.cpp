@@ -19,15 +19,16 @@ int main(int argc, char *argv[])
     WindowRenderer renderer(&world, &player, 800, 600);
     InputManager inputManager(&world, &player, &renderer);
 
-    renderer.Discover();
+    
     world.tiles[(int)player.x][(int)player.y] = AIR;
+    renderer.Discover();
 
     srand(SDL_GetTicks64());
 
     SDL_Event window_event;
 
     bool running = true;
-    const Uint64 FRAME_DELAY = 16; //one frame every 16 ms ~= 60 fps
+    const Uint64 frameDelay = 1000/60; //one frame every 16 ms ~= 60 fps
     while (running)
     {
         Uint64 frameStart = SDL_GetTicks64();
@@ -44,9 +45,9 @@ int main(int argc, char *argv[])
         inputManager.ManageInput();
 
         Uint64 frameTime = SDL_GetTicks64() - frameStart;
-        if (frameTime < FRAME_DELAY)
+        if (frameTime < frameDelay)
         {
-            SDL_Delay(FRAME_DELAY - frameTime);
+            SDL_Delay(frameDelay - frameTime);
         }
     }
     SDL_Quit();

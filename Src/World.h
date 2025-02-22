@@ -5,20 +5,20 @@
 #include <vector>
 #include <cstring>
 
-typedef enum tile_t
+enum tile
 {
     AIR,
     STONE,
     GOLD,
     EXPLOSIVE,
-} tile;
+};
 
 class World
 {
 private:
-    void sprinkle(int count, tile tile, bool overwrite, int indexes[]);
+    void Sprinkle(int count, tile tile, bool overwrite, int indexes[]);
 
-    void encapsulate(int count, tile tile, int index);
+    void Encapsulate(int count, tile tile, int index);
 
 public:
     tile **tiles;
@@ -27,7 +27,7 @@ public:
 
     World();
 
-    World(int width, int height, int nugget_count, int stone_thickness, int explosive_count);
+    World(int width, int height, int nuggetCount, int stoneThickness, int explosiveCount);
 
     ~World();
 

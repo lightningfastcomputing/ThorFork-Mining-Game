@@ -23,15 +23,14 @@ WindowRenderer::WindowRenderer(World *world, Player *player, int width, int heig
             Discovered[i][j] = false;
     }
 
-    while (horizontalTileCount % 2 == 0 && verticalTileCount % 2 == 0)
-    {
-        this->TileLength++;
-        horizontalTileCount = Width % TileLength;
-        verticalTileCount = Height % TileLength;
-    }
-    debug = false;
-    Init_Window("Mining Game");
-    Init_Renderer();
+    // while (horizontalTileCount % 2 == 0 && verticalTileCount % 2 == 0)
+    // {
+    //     this->TileLength++;
+    //     horizontalTileCount = Width % TileLength;
+    //     verticalTileCount = Height % TileLength;
+    // }
+    Debug = false;
+    Init_Display("Mining Game");
 }
 WindowRenderer::~WindowRenderer()
 {
@@ -39,14 +38,50 @@ WindowRenderer::~WindowRenderer()
         SDL_DestroyWindow(Window);
     if (Renderer)
         SDL_DestroyRenderer(Renderer);
+
+    for (int i = 0; i < _World->Width; i++)
+    {
+        delete[] Discovered[i];
+    }
     delete[] Discovered;
 }
+void WindowRenderer::Init_Display(const char *windowTitle)
+{
+    Window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Width, Height, SDL_WINDOW_ALLOW_HIGHDPI);
+    if (!Window)
+    {
+        printf("SDL_CreateWindow failed: %s\n", SDL_GetError());
+        exit(1);
+    }
+    Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_SOFTWARE);
+    if (!Renderer)
+    {
+        printf("SDL_CreateRenderer failed: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    Textures[AIR] = IMG_LoadTexture(Renderer, "Textures/grass.png");
+    Textures[STONE] = IMG_LoadTexture(Renderer, "Textures/stone.png");
+    Textures[GOLD] = IMG_LoadTexture(Renderer, "Textures/gold.png");
+    Textures[EXPLOSIVE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (!Textures[i])
+        {
+            printf("Textures not properly loaded: %s\n", SDL_GetError());
+            IMG_Quit();
+            exit(1);
+        }
+    }
+}
+
 void WindowRenderer::Reveal()
 {
-    for (int i = 0; i < _World->Width; i++) {
+    for (int i = 0; i < _World->Width; i++)
+    {
         memset(Discovered[i], true, _World->Height);
     }
-    
 }
 void WindowRenderer::Discover()
 {
@@ -68,6 +103,11 @@ void WindowRenderer::Discover()
         }
     }
 }
+
+bool WindowRenderer::IsDiscovered(int x, int y)
+{
+    return Discovered[x][y];
+}
 void WindowRenderer::RenderFrame()
 {
     int horizontalTileCount = Width / TileLength;
@@ -79,13 +119,15 @@ void WindowRenderer::RenderFrame()
     int xMin = (int)_Player->x - horizontalTileCount / 2;
     int yMin = (int)_Player->y - verticalTileCount / 2;
 
-    SDL_FRect rect;
-    rect.x = -xOffset;
-    rect.y = -yOffset;
-    rect.w = (float)TileLength;
-    rect.h = (float)TileLength;
+    SDL_Rect rect;
+    rect.x = -(int)xOffset;
+    rect.y = -(int)yOffset;
+    rect.w = TileLength;
+    rect.h = TileLength;
 
     Discover();
+
+    int textureIdx = 0;
 
     for (int i = xMin; i < xMin + horizontalTileCount + 2; i++)
     {
@@ -94,29 +136,32 @@ void WindowRenderer::RenderFrame()
             if (i < 0 || j < 0 || i > _World->Width - 1 || j > _World->Height - 1 || !Discovered[i][j])
             {
                 SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+                SDL_RenderFillRect(Renderer, &rect);
             }
             else
             {
                 // printf("x %d y %d\n", i, j);
-                switch (_World->tiles[i][j])
-                {
-                case AIR:
-                    SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
-                    break;
-                case STONE:
-                    SDL_SetRenderDrawColor(Renderer, 75, 75, 75, 255);
-                    break;
-                case EXPLOSIVE:
-                    SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
-                    break;
-                case GOLD:
-                    SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
-                    break;
-                default:
-                    SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
-                }
+                // switch (_World->tiles[i][j])
+                // {
+                // case AIR:
+                //     SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
+                //     break;
+                // case STONE:
+                //     SDL_SetRenderDrawColor(Renderer, 75, 75, 75, 255);
+                //     break;
+                // case EXPLOSIVE:
+                //     SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
+                //     break;
+                // case GOLD:
+                //     SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
+                //     break;
+                // default:
+                //     SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
+                // }
+                textureIdx = _World->tiles[i][j];
+                SDL_RenderCopy(Renderer, Textures[textureIdx], nullptr, &rect);
             }
-            SDL_RenderFillRectF(Renderer, &rect);
+            // SDL_RenderFillRect(Renderer, &rect);
             rect.y += TileLength;
         }
         rect.x += TileLength;
@@ -125,19 +170,19 @@ void WindowRenderer::RenderFrame()
 
     rect.x = horizontalTileCount / 2 * TileLength;
     rect.y = verticalTileCount / 2 * TileLength;
-    rect.w = _Player->size * TileLength;
-    rect.h = _Player->size * TileLength;
+    rect.w = _Player->Size * TileLength;
+    rect.h = _Player->Size * TileLength;
 
     SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-    SDL_RenderFillRectF(Renderer, &rect);
+    SDL_RenderFillRect(Renderer, &rect);
     DrawAndStoreSelectedTile(xMin, yMin);
 
-    if (debug)
+    if (Debug)
     {
 
         printf("(%f,%f) GAME\n", this->_Player->x, this->_Player->y);
         printf("(%d,%d) (%d,%d) MOUSE\n", MouseX, MouseY, MouseWorldX + xMin, MouseWorldY + yMin);
-        printf("SCORE: %d\n", this->_Player->score);
+        printf("SCORE: %d\n", this->_Player->Score);
         printf("\n");
         printf("TILELENGTH = %d\n", TileLength);
         printf("xCOUNT = %d, yCOUNT = %d\n", horizontalTileCount, verticalTileCount);
@@ -154,26 +199,7 @@ void WindowRenderer::ClearFrame()
     system("clear");
 }
 
-void WindowRenderer::ToggleDebug() { debug = !debug; }
-void WindowRenderer::Init_Window(const char *title)
-{
-    Window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Width, Height, SDL_WINDOW_ALLOW_HIGHDPI);
-    if (!Window)
-    {
-        printf("SDL_CreateWindow failed: %s\n", SDL_GetError());
-        exit(1);
-    }
-}
-
-void WindowRenderer::Init_Renderer()
-{
-    Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_SOFTWARE);
-    if (!Renderer)
-    {
-        printf("SDL_CreateRenderer failed: %s\n", SDL_GetError());
-        exit(1);
-    }
-}
+void WindowRenderer::ToggleDebug() { Debug = !Debug; }
 
 void WindowRenderer::DrawPlayer()
 {
@@ -185,7 +211,7 @@ void WindowRenderer::DrawAndStoreSelectedTile(int minX, int minY)
     int x = (MouseX + xOffset) / TileLength, y = (MouseY + yOffset) / TileLength;
     int rendX = x * TileLength - xOffset, rendY = y * TileLength - yOffset;
 
-    if (_Player->canMine)
+    if (_Player->CanMine)
         SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
     else
         SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
@@ -208,7 +234,7 @@ void WindowRenderer::DrawPlayerBoundingBox(int TileLength, int xRem)
 
 void WindowRenderer::DrawPlayerCollisionBox(int tileLength, int xRem)
 {
-    float x = _Player->x, y = _Player->y, size = _Player->size;
+    float x = _Player->x, y = _Player->y, size = _Player->Size;
     int xStart = (int)SDL_floorf(x);
     int yStart = (int)SDL_floorf(y);
     int xEnd = (int)SDL_floorf(x + size);

@@ -8,6 +8,7 @@ https://www.youtube.com/watch?v=Xjp7c8JEtJ8
 
 # This game was made on WSL2 Ubuntu
 Compiling is described in the Makefile and requires gcc, gdb, and SDL2 packages
+Cross-Platform building will be implemented later
 
 Run these commands in the terminal to install:
 
@@ -15,7 +16,9 @@ sudo apt install gcc
 
 sudo apt install gdb
 
-sudo apt-get install libsdl2-2.0-0 (this will install SDL2 system-wide)
+sudo apt-get install libsdl2-2.0-0 
+
+sudo apt-get install libsdl2-image-2.0-0
 
 # Future Plans
 The game is extremely primitive with a hardcoded physics engine only applying to the player character and primitive graphics. 

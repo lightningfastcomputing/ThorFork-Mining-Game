@@ -1,10 +1,11 @@
 CC = g++
 CFLAGS = -Wall -g
-SDLFLAGS = -I ./src/include -L ./src/lib -lSDL2main -lSDL2 -ggdb -O0
+SDLFLAGS = -lSDL2main -lSDL2 -lSDL2_image -ggdb -O0
+SRCDIR = Src/
 
 all:
-	$(CC) -c World.cpp 
-	$(CC) -c Player.cpp
-	$(CC) -c WindowRenderer.cpp
-	$(CC) -c InputManager.cpp
-	$(CC) Main.cpp -o Main.exe World.o Player.o WindowRenderer.o InputManager.o $(SDLFLAGS)
+	$(CC) -c $(SRCDIR)World.cpp 
+	$(CC) -c $(SRCDIR)Player.cpp
+	$(CC) -c $(SRCDIR)WindowRenderer.cpp -lSDL2_image
+	$(CC) -c $(SRCDIR)InputManager.cpp
+	$(CC) $(SRCDIR)Main.cpp -o Main.exe World.o Player.o WindowRenderer.o InputManager.o $(SDLFLAGS)

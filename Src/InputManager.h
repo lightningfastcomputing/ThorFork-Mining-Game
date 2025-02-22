@@ -12,7 +12,7 @@ private:
     World *_World;
     Player *_Player;
     WindowRenderer *_Renderer;
-    const Uint8* keys;
+    const Uint8* Keys;
 
 public:
     InputManager();

@@ -17,7 +17,7 @@ World::World()
     }
 };
 
-World::World(int width, int height, int nugget_count, int stone_thickness, int explosive_count)
+World::World(int width, int height, int nuggetCount, int stoneThickness, int explosiveCount)
 {
     this->Width = width;
     this->Height = height;
@@ -30,14 +30,14 @@ World::World(int width, int height, int nugget_count, int stone_thickness, int e
             this->tiles[i][j] = AIR;
     }
 
-    int *nugget_arr = new int[nugget_count];
-    sprinkle(nugget_count, GOLD, false, nugget_arr);
-    sprinkle(nugget_count, GOLD, false, NULL);
-    for (int i = 0; i < nugget_count; i++)
-        this->encapsulate(stone_thickness, STONE, nugget_arr[i]);
-    delete[] nugget_arr;
+    int *nuggets = new int[nuggetCount];
+    Sprinkle(nuggetCount, GOLD, false, nuggets);
+    Sprinkle(nuggetCount, GOLD, false, nullptr);
+    for (int i = 0; i < nuggetCount; i++)
+        this->Encapsulate(stoneThickness, STONE, nuggets[i]);
+    delete[] nuggets;
 
-    sprinkle(explosive_count, EXPLOSIVE, true, NULL);
+    Sprinkle(explosiveCount, EXPLOSIVE, true, NULL);
 }
 World::~World()
 {
@@ -54,13 +54,13 @@ void World::ChangeTile(int x, int y, tile tile)
         this->tiles[x][y] = tile;
 }
 
-void World::sprinkle(int count, tile tile, bool overwrite, int indexes[])
+void World::Sprinkle(int count, tile tile, bool overwrite, int indexes[])
 {
     int i = 0;
     while (i < count)
     {
         int randX = rand() % Width, randY = rand() % Height;
-        if (this->tiles[randX][randY] == AIR)
+        if (this->tiles[randX][randY] == AIR || overwrite)
         {
             this->tiles[randX][randY] = tile;
             if (indexes)
@@ -72,7 +72,7 @@ void World::sprinkle(int count, tile tile, bool overwrite, int indexes[])
     }
 }
 
-void World::encapsulate(int count, tile tile, int index)
+void World::Encapsulate(int count, tile tile, int index)
 {
     if (count == 0)
         return;
@@ -86,13 +86,13 @@ void World::encapsulate(int count, tile tile, int index)
     for (int i = 0; i < 4; i++)
     {
         int x = adjacents[i] % Width, y = adjacents[i] / Width;
-        if (x < Width && y < Height && x >= 0 && y >= 0 && this->tiles[x][y] == AIR)
+        if (IsInBounds(x, y) && this->tiles[x][y] == AIR)
         {
             this->tiles[x][y] = tile;
         }
     }
 
-    this->encapsulate(count - 1, tile, adjacents[rand() % 4]);
+    this->Encapsulate(count - 1, tile, adjacents[rand() % 4]);
 }
 
 int World::DestroyTile(int x, int y)

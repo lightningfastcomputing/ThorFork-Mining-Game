@@ -8,12 +8,12 @@ Player::Player(World *world)
     this->_World = world;
     this->x = _World->Width / 2;
     this->y = _World->Height / 2;
-    speed = 0.2f;               //tiles per tick, 0 < speed < 1;
-    size = 0.6f;                //0 < size < 1;
-    dir = NONE;
-    score = 0;
-    canMine = false;
-    reach = 2.0f;
+    Speed = 0.1f;               //tiles per tick, 0 < speed < 1;
+    Size = 0.6f;                //0 < size < 1;
+    Direction = NONE;
+    Score = 0;
+    CanMine = false;
+    MiningRadius = 2.0f;
 
 }
 
@@ -23,33 +23,33 @@ Player::~Player()
 
 void Player::TryMove(direction dir)
 {
-    Vec2 velocity;
-    this->dir = dir;
+    struct Vec2F velocity;
+    this->Direction = dir;
     switch (dir)
     {
-    case LEFT:
-        velocity = {-speed, 0};
+    case WEST:
+        velocity = {-Speed, 0};
         break;
-    case RIGHT:
-        velocity = {speed, 0};
+    case EAST:
+        velocity = {Speed, 0};
         break;
-    case UP:
-        velocity = {0, -speed};
+    case NORTH:
+        velocity = {0, -Speed};
         break;
-    case DOWN:
-        velocity = {0, speed};
+    case SOUTH:
+        velocity = {0, Speed};
         break;
-    case UPLEFT:
-        velocity = {-speed * 0.7071f, -speed * 0.7071f};
+    case NORTHWEST:
+        velocity = {-Speed * 0.7071f, -Speed * 0.7071f};
         break;
-    case UPRIGHT:
-        velocity = {speed * 0.7071f, -speed * 0.7071f};
+    case NORTHEAST:
+        velocity = {Speed * 0.7071f, -Speed * 0.7071f};
         break;
-    case DOWNLEFT:
-        velocity = {-speed * 0.7071f, speed * 0.7071f};
+    case SOUTHWEST:
+        velocity = {-Speed * 0.7071f, Speed * 0.7071f};
         break;
-    case DOWNRIGHT:
-        velocity = {speed * 0.7071f, speed * 0.7071f};
+    case SOUTHEAST:
+        velocity = {Speed * 0.7071f, Speed * 0.7071f};
         break;
     }
     bool NW, NE, SW, SE;
@@ -61,8 +61,8 @@ void Player::TryMove(direction dir)
 
         xStart = (int)SDL_floorf(x);
         yStart = (int)SDL_floorf(y);
-        xEnd = (int)SDL_floorf(x + size);
-        yEnd = (int)SDL_floorf(y + size);
+        xEnd = (int)SDL_floorf(x + Size);
+        yEnd = (int)SDL_floorf(y + Size);
 
         if (xStart < 0)
         {
@@ -70,7 +70,7 @@ void Player::TryMove(direction dir)
         }
         else if (xEnd > _World->Width - 1)
         {
-            x = _World->Width - size - EPSILON;
+            x = _World->Width - Size - EPSILON;
         }
         else
         {
@@ -86,7 +86,7 @@ void Player::TryMove(direction dir)
             }
             else if (NE || SE)
             {
-                x = (float)xEnd - size - EPSILON;
+                x = (float)xEnd - Size - EPSILON;
             }
         }
     }
@@ -97,8 +97,8 @@ void Player::TryMove(direction dir)
 
         xStart = (int)SDL_floorf(x);
         yStart = (int)SDL_floorf(y);
-        xEnd = (int)SDL_floorf(x + size);
-        yEnd = (int)SDL_floorf(y + size);
+        xEnd = (int)SDL_floorf(x + Size);
+        yEnd = (int)SDL_floorf(y + Size);
 
         if (yStart < 0)
         {
@@ -106,7 +106,7 @@ void Player::TryMove(direction dir)
         }
         else if (yEnd > _World->Height - 1)
         {
-            y = _World->Height - size - EPSILON;
+            y = _World->Height - Size - EPSILON;
         }
         else
         {
@@ -121,17 +121,8 @@ void Player::TryMove(direction dir)
             }
             else if (SW || SE)
             {
-                y = (float)yEnd - size - EPSILON;
+                y = (float)yEnd - Size - EPSILON;
             }
         }
     }
-}
-
-bool Collide(BoundingBox b0, BoundingBox b1)
-{
-    if (b0.x + b0.width < b1.x || b1.x + b1.width < b0.x)
-        return true;
-    if (b0.y + b0.height < b1.y || b1.y + b1.height < b0.y)
-        return true;
-    return false;
 }
