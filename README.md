@@ -16,13 +16,19 @@ sudo apt install gcc
 
 sudo apt install gdb
 
-sudo apt-get install libsdl2-2.0-0 
+sudo apt-get install libsdl2-dev
 
-sudo apt-get install libsdl2-image-2.0-0
+sudo apt-get install libsdl2-image-dev
 
-# Future Plans
-The game is extremely primitive with a hardcoded physics engine only applying to the player character and primitive graphics. 
-Work will be done to generalize certain aspects of the game in order to make features easier to implement.
+# TODO
+improve collision function on entitymanager to allow for objects larger than 1f size, and fix tunneling that happens with high enough speeds
+add a queue to the world class that sequences actions done to it (cascading explosions, falling rocks, etc)
+
+when physics are improved, replace bounding boxes with SDL_RECTs to take advantage of the library's utilities
+
+either standardize Vec2F/Vec2 coordinates or just use float coordinates, Vec2 could come in handly for raycasting later though
+
+
 
 
 
