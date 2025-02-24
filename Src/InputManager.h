@@ -9,14 +9,14 @@
 class InputManager
 {
 private:
-    World *_World;
-    Player *_Player;
-    WindowRenderer *_Renderer;
+    World &_World;
+    Player &_Player;
+    WindowRenderer &_Renderer;
     const Uint8* Keys;
 
 public:
     InputManager();
-    InputManager(World *world, Player *player, WindowRenderer *renderer);
+    InputManager(World &world, Player &player, WindowRenderer &renderer);
     ~InputManager();
     void ManageInput();
     bool Running;

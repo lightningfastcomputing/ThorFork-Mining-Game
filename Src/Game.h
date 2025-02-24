@@ -10,14 +10,15 @@
 class Game
 {
 private:
-    World *_World;
-    InputManager *_InputManager;
-    Player *_Player;
-    WindowRenderer *_WindowRenderer;
+    World &_World;
+    InputManager &_InputManager;
+    Player &_Player;
+    WindowRenderer &_WindowRenderer;
     void Cycle();
+
 public:
     Uint64 FrameRate;
-    Game(Uint64 FrameRate);
+    Game(Uint64 frameRate, World &world, Player &player, InputManager &inputManager, WindowRenderer &windowRenderer);
     ~Game();
     void Start();
 };

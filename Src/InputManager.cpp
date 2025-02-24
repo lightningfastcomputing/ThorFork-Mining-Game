@@ -8,17 +8,11 @@ float Distance(int x0, int y0, int x1, int y1)
     return distance;
 }
 
-InputManager::InputManager(World *world, Player *player, WindowRenderer *renderer)
+InputManager::InputManager(World &world, Player &player, WindowRenderer &renderer) : _World(world), _Player(player), _Renderer(renderer)
 {
-    _World = world;
-    _Player = player;
-    _Renderer = renderer;
     Keys = SDL_GetKeyboardState(NULL);
     Running = true;
 }
-
-InputManager::InputManager()
-    : _World(), _Player() {}
 
 InputManager::~InputManager()
 {
@@ -27,11 +21,11 @@ InputManager::~InputManager()
 void InputManager::ManageInput()
 {
     SDL_PumpEvents();
-    int mouseState = SDL_GetMouseState(&(_Renderer->MouseX), &(_Renderer->MouseY));
-    int selectedX = _Renderer->MouseWorldX, selectedY = _Renderer->MouseWorldY;
-    if (SDL_BUTTON(mouseState) == 1 && _Player->CanMine && _Renderer->IsDiscovered(selectedX, selectedY))
+    int mouseState = SDL_GetMouseState(&(_Renderer.MouseX), &(_Renderer.MouseY));
+    int selectedX = _Renderer.MouseWorldX, selectedY = _Renderer.MouseWorldY;
+    if (SDL_BUTTON(mouseState) == 1 && _Player.CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
     {
-        _Player->Score += _World->DestroyTile(selectedX, selectedY);
+        _Player.Score += _World.DestroyTile(selectedX, selectedY);
     }
     direction move_dir = NONE;
     if (Keys[SDL_SCANCODE_W] && !(Keys[SDL_SCANCODE_A] || Keys[SDL_SCANCODE_D]))
@@ -50,16 +44,16 @@ void InputManager::ManageInput()
         move_dir = SOUTHWEST;
     else if (Keys[SDL_SCANCODE_S] && Keys[SDL_SCANCODE_D])
         move_dir = SOUTHEAST;
-    _Player->TryMove(move_dir);
+    _Player.TryMove(move_dir);
     if (Keys[SDL_SCANCODE_TAB])
-        _Renderer->Reveal();
+        _Renderer.Reveal();
     if (Keys[SDL_SCANCODE_F1])
-        _Renderer->ToggleDebug();
+        _Renderer.ToggleDebug();
     if (Keys[SDL_SCANCODE_ESCAPE])
         Running = false;
 
-    if (Distance(_Player->x, _Player->y, _Renderer->MouseWorldX, _Renderer->MouseWorldY) <= _Player->MiningRadius)
-        _Player->CanMine = true;
+    if (Distance(_Player.x, _Player.y, _Renderer.MouseWorldX, _Renderer.MouseWorldY) <= _Player.MiningRadius)
+        _Player.CanMine = true;
     else
-        _Player->CanMine = false;
+        _Player.CanMine = false;
 }

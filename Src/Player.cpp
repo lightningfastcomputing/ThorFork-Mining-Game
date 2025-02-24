@@ -3,11 +3,10 @@
 
 #define SQRT2INV 0.7071f; //diagonal movements
 #define EPSILON 0.001f; //collision tolerance due to floating point precision errors: collisions to the right will not work if you don't use epsilon
-Player::Player(World *world)
+Player::Player(World &world) : _World(world)
 {
-    this->_World = world;
-    this->x = _World->Width / 2;
-    this->y = _World->Height / 2;
+    this->x = _World.Width / 2;
+    this->y = _World.Height / 2;
     Speed = 0.1f;               //tiles per tick, 0 < speed < 1;
     Size = 0.6f;                //0 < size < 1;
     Direction = NONE;
@@ -68,17 +67,17 @@ void Player::TryMove(direction dir)
         {
             x = EPSILON;
         }
-        else if (xEnd > _World->Width - 1)
+        else if (xEnd > _World.Width - 1)
         {
-            x = _World->Width - Size - EPSILON;
+            x = _World.Width - Size - EPSILON;
         }
         else
         {
 
-            NW = _World->tiles[xStart][yStart] != AIR;
-            NE = _World->tiles[xEnd][yStart] != AIR;
-            SW = _World->tiles[xStart][yEnd] != AIR;
-            SE = _World->tiles[xEnd][yEnd] != AIR;
+            NW = _World.tiles[xStart][yStart] != AIR;
+            NE = _World.tiles[xEnd][yStart] != AIR;
+            SW = _World.tiles[xStart][yEnd] != AIR;
+            SE = _World.tiles[xEnd][yEnd] != AIR;
 
             if (NW || SW)
             {
@@ -104,16 +103,16 @@ void Player::TryMove(direction dir)
         {
             y = EPSILON;
         }
-        else if (yEnd > _World->Height - 1)
+        else if (yEnd > _World.Height - 1)
         {
-            y = _World->Height - Size - EPSILON;
+            y = _World.Height - Size - EPSILON;
         }
         else
         {
-            NW = _World->tiles[xStart][yStart] != AIR;
-            NE = _World->tiles[xEnd][yStart] != AIR;
-            SW = _World->tiles[xStart][yEnd] != AIR;
-            SE = _World->tiles[xEnd][yEnd] != AIR;
+            NW = _World.tiles[xStart][yStart] != AIR;
+            NE = _World.tiles[xEnd][yStart] != AIR;
+            SW = _World.tiles[xStart][yEnd] != AIR;
+            SE = _World.tiles[xEnd][yEnd] != AIR;
 
             if (NW || NE)
             {

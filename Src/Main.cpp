@@ -10,11 +10,15 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    Game* game = new Game(1000/60);
+    World world(200, 200, 200, 30, 1000);
+    Player player(world);
+    WindowRenderer windowRenderer(world, player, 800, 600);
+    InputManager inputManager(world, player, windowRenderer);
 
-    game->Start();
+    Uint64 frameRate = 1000 / 60;
+    Game game(frameRate, world, player, inputManager, windowRenderer);
 
-    delete game;
-    
+    game.Start();
+
     SDL_Quit();
 }

@@ -13,12 +13,13 @@ private:
     SDL_Renderer *Renderer;
     SDL_Texture *Textures[4] = {NULL};
 
+    World &_World;
+    Player &_Player;
+
     bool **Discovered, Debug;
     int Width, Height;
     int TileLength;
     float xOffset, yOffset;
-    World *_World;
-    Player *_Player;
     void Init_Display(const char *windowTitle);
     void DrawPlayer();
     void DrawAndStoreSelectedTile(int minX, int minY);
@@ -31,7 +32,7 @@ public:
     int MouseX, MouseY;
     int MouseWorldX, MouseWorldY;
     WindowRenderer();
-    WindowRenderer(World *world, Player *player, int width, int height);
+    WindowRenderer(World &world, Player &player, int width, int height);
     ~WindowRenderer();
     void Reveal();
     void Discover();

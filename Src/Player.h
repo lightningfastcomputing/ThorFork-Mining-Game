@@ -27,7 +27,7 @@ struct Vec2F {
 class Player
 {
 private:
-    World *_World;
+    World &_World;
 public:
     float Size;
     float x, y;
@@ -37,7 +37,7 @@ public:
     bool CanMine;
     float MiningRadius;
 
-    Player(World *World);
+    Player(World &World);
     ~Player();
     void TryMove(direction dir);
 };

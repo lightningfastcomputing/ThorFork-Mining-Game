@@ -1,10 +1,7 @@
 #include "WindowRenderer.h"
 
-WindowRenderer::WindowRenderer() {}
-WindowRenderer::WindowRenderer(World *world, Player *player, int width, int height)
+WindowRenderer::WindowRenderer(World &world, Player &player, int width, int height) : _World(world), _Player(player)
 {
-    _World = world;
-    _Player = player;
     Width = width;
     Height = height;
     MouseX = 0;
@@ -14,8 +11,8 @@ WindowRenderer::WindowRenderer(World *world, Player *player, int width, int heig
     TileLength = 30;
     int horizontalTileCount = Width / TileLength;
     int verticalTileCount = Height / TileLength;
-    Discovered = new bool *[_World->Width];
-    for (int i = 0; i < _World->Width; i++)
+    Discovered = new bool *[_World.Width];
+    for (int i = 0; i < _World.Width; i++)
     {
         Discovered[i] = new bool[Height];
         for (int j = 0; j < Height; j++)
@@ -33,7 +30,7 @@ WindowRenderer::~WindowRenderer()
     if (Renderer)
         SDL_DestroyRenderer(Renderer);
 
-    for (int i = 0; i < _World->Width; i++)
+    for (int i = 0; i < _World.Width; i++)
     {
         delete[] Discovered[i];
     }
@@ -79,25 +76,25 @@ void WindowRenderer::Init_Display(const char *windowTitle)
 
 void WindowRenderer::Reveal()
 {
-    for (int i = 0; i < _World->Width; i++)
+    for (int i = 0; i < _World.Width; i++)
     {
-        memset(Discovered[i], true, _World->Height);
+        memset(Discovered[i], true, _World.Height);
     }
 }
 void WindowRenderer::Discover()
 {
-    int x = _Player->x, y = _Player->y;
+    int x = _Player.x, y = _Player.y;
     int xStart = x - 5, yStart = y - 5;
     int xEnd = x + 5, yEnd = y + 5;
     for (int i = xStart; i < xEnd; i++)
     {
         for (int j = yStart; j < yEnd; j++)
         {
-            if (_World->IsInBounds(i, j) &&
-                ((_World->IsInBounds(i - 1, j) && _World->tiles[i - 1][j] == AIR) ||
-                 (_World->IsInBounds(i + 1, j) && _World->tiles[i + 1][j] == AIR) ||
-                 (_World->IsInBounds(i, j - 1) && _World->tiles[i][j - 1] == AIR) ||
-                 (_World->IsInBounds(i, j + 1) && _World->tiles[i][j + 1] == AIR)))
+            if (_World.IsInBounds(i, j) &&
+                ((_World.IsInBounds(i - 1, j) && _World.tiles[i - 1][j] == AIR) ||
+                 (_World.IsInBounds(i + 1, j) && _World.tiles[i + 1][j] == AIR) ||
+                 (_World.IsInBounds(i, j - 1) && _World.tiles[i][j - 1] == AIR) ||
+                 (_World.IsInBounds(i, j + 1) && _World.tiles[i][j + 1] == AIR)))
             {
                 Discovered[i][j] = true;
             }
@@ -114,11 +111,11 @@ void WindowRenderer::RenderFrame()
     int horizontalTileCount = Width / TileLength;
     int verticalTileCount = Height / TileLength;
 
-    xOffset = (_Player->x - (int)_Player->x) * TileLength;
-    yOffset = (_Player->y - (int)_Player->y) * TileLength;
+    xOffset = (_Player.x - (int)_Player.x) * TileLength;
+    yOffset = (_Player.y - (int)_Player.y) * TileLength;
 
-    int xMin = (int)_Player->x - horizontalTileCount / 2;
-    int yMin = (int)_Player->y - verticalTileCount / 2;
+    int xMin = (int)_Player.x - horizontalTileCount / 2;
+    int yMin = (int)_Player.y - verticalTileCount / 2;
 
     SDL_Rect rect;
     rect.x = -(int)xOffset;
@@ -134,7 +131,7 @@ void WindowRenderer::RenderFrame()
     {
         for (int j = yMin; j < yMin + verticalTileCount + 2; j++)
         {
-            if (i < 0 || j < 0 || i > _World->Width - 1 || j > _World->Height - 1 || !Discovered[i][j])
+            if (i < 0 || j < 0 || i > _World.Width - 1 || j > _World.Height - 1 || !Discovered[i][j])
             {
                 SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
                 SDL_RenderFillRect(Renderer, &rect);
@@ -142,7 +139,7 @@ void WindowRenderer::RenderFrame()
             else
             {
                 // printf("x %d y %d\n", i, j);
-                // switch (_World->tiles[i][j])
+                // switch (_World.tiles[i][j])
                 // {
                 // case AIR:
                 //     SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
@@ -159,7 +156,7 @@ void WindowRenderer::RenderFrame()
                 // default:
                 //     SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
                 // }
-                textureIdx = _World->tiles[i][j];
+                textureIdx = _World.tiles[i][j];
                 SDL_RenderCopy(Renderer, Textures[textureIdx], nullptr, &rect);
             }
             // SDL_RenderFillRect(Renderer, &rect);
@@ -171,8 +168,8 @@ void WindowRenderer::RenderFrame()
 
     rect.x = horizontalTileCount / 2 * TileLength;
     rect.y = verticalTileCount / 2 * TileLength;
-    rect.w = _Player->Size * TileLength;
-    rect.h = _Player->Size * TileLength;
+    rect.w = _Player.Size * TileLength;
+    rect.h = _Player.Size * TileLength;
 
     SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
     SDL_RenderFillRect(Renderer, &rect);
@@ -181,9 +178,9 @@ void WindowRenderer::RenderFrame()
     if (Debug)
     {
 
-        printf("(%f,%f) GAME\n", this->_Player->x, this->_Player->y);
+        printf("(%f,%f) GAME\n", _Player.x, _Player.y);
         printf("(%d,%d) (%d,%d) MOUSE\n", MouseX, MouseY, MouseWorldX + xMin, MouseWorldY + yMin);
-        printf("SCORE: %d\n", this->_Player->Score);
+        printf("SCORE: %d\n", _Player.Score);
         printf("\n");
         printf("TILELENGTH = %d\n", TileLength);
         printf("xCOUNT = %d, yCOUNT = %d\n", horizontalTileCount, verticalTileCount);
@@ -212,7 +209,7 @@ void WindowRenderer::DrawAndStoreSelectedTile(int minX, int minY)
     int x = (MouseX + xOffset) / TileLength, y = (MouseY + yOffset) / TileLength;
     int rendX = x * TileLength - xOffset, rendY = y * TileLength - yOffset;
 
-    if (_Player->CanMine)
+    if (_Player.CanMine)
         SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
     else
         SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
@@ -220,7 +217,7 @@ void WindowRenderer::DrawAndStoreSelectedTile(int minX, int minY)
     MouseWorldX = x + minX;
     MouseWorldY = y + minY;
 
-    if (_World->IsInBounds(MouseWorldX, MouseWorldY) && Discovered[MouseWorldX][MouseWorldY])
+    if (_World.IsInBounds(MouseWorldX, MouseWorldY) && Discovered[MouseWorldX][MouseWorldY])
     {
         SDL_RenderDrawLine(Renderer, rendX, rendY, rendX + TileLength, rendY);
         SDL_RenderDrawLine(Renderer, rendX, rendY, rendX, rendY + TileLength);
@@ -235,7 +232,7 @@ void WindowRenderer::DrawPlayerBoundingBox(int TileLength, int xRem)
 
 void WindowRenderer::DrawPlayerCollisionBox(int tileLength, int xRem)
 {
-    float x = _Player->x, y = _Player->y, size = _Player->Size;
+    float x = _Player.x, y = _Player.y, size = _Player.Size;
     int xStart = (int)SDL_floorf(x);
     int yStart = (int)SDL_floorf(y);
     int xEnd = (int)SDL_floorf(x + size);
