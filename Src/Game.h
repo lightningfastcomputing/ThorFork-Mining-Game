@@ -3,8 +3,7 @@
 
 #include "WindowRenderer.h"
 #include "InputManager.h"
-#include "Player.h"
-#include "World.h"
+#include "EntityManager.h"
 #include <SDL2/SDL.h>
 
 class Game
@@ -12,13 +11,12 @@ class Game
 private:
     World &_World;
     InputManager &_InputManager;
-    Player &_Player;
     WindowRenderer &_WindowRenderer;
-    void Cycle();
+    EntityManager &_EntityManager;
 
 public:
     Uint64 FrameRate;
-    Game(Uint64 frameRate, World &world, Player &player, InputManager &inputManager, WindowRenderer &windowRenderer);
+    Game(Uint64 frameRate, World &world, EntityManager &entityManager, InputManager &inputManager, WindowRenderer &windowRenderer);
     ~Game();
     void Start();
 };

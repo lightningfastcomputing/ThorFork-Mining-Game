@@ -1,9 +1,8 @@
 #include "Game.h"
 
-Game::Game(Uint64 frameRate, World &world, Player &player, InputManager &inputManager, WindowRenderer &windowRenderer)
-    : _World(world), _Player(player), _WindowRenderer(windowRenderer), _InputManager(inputManager), FrameRate(frameRate)
+Game::Game(Uint64 frameRate, World &world, EntityManager &entityManager, InputManager &inputManager, WindowRenderer &windowRenderer)
+    : FrameRate(frameRate), _World(world), _EntityManager(entityManager), _InputManager(inputManager), _WindowRenderer(windowRenderer)
 {
-    _World.tiles[(int)_Player.x][(int)_Player.y] = AIR;
     _WindowRenderer.Discover();
 
     srand(SDL_GetTicks64());
@@ -11,6 +10,7 @@ Game::Game(Uint64 frameRate, World &world, Player &player, InputManager &inputMa
 Game::~Game()
 {
 }
+
 void Game::Start()
 {
     SDL_Event window_event;
@@ -30,6 +30,7 @@ void Game::Start()
         _WindowRenderer.ClearFrame();
         _WindowRenderer.RenderFrame();
         _InputManager.ManageInput();
+        _EntityManager.UpdatePlayerPosition();
 
         Uint64 frameTime = SDL_GetTicks64() - frameStart;
         if (frameTime < this->FrameRate)

@@ -27,24 +27,24 @@ void InputManager::ManageInput()
     {
         _Player.Score += _World.DestroyTile(selectedX, selectedY);
     }
-    direction move_dir = NONE;
+    Direction dir = NONE;
     if (Keys[SDL_SCANCODE_W] && !(Keys[SDL_SCANCODE_A] || Keys[SDL_SCANCODE_D]))
-        move_dir = NORTH;
+        dir = NORTH;
     else if (Keys[SDL_SCANCODE_S] && !(Keys[SDL_SCANCODE_A] || Keys[SDL_SCANCODE_D]))
-        move_dir = SOUTH;
+        dir = SOUTH;
     else if (Keys[SDL_SCANCODE_A] && !(Keys[SDL_SCANCODE_W] || Keys[SDL_SCANCODE_S]))
-        move_dir = WEST;
+        dir = WEST;
     else if (Keys[SDL_SCANCODE_D] && !(Keys[SDL_SCANCODE_W] || Keys[SDL_SCANCODE_S]))
-        move_dir = EAST;
+        dir = EAST;
     else if (Keys[SDL_SCANCODE_W] && Keys[SDL_SCANCODE_A])
-        move_dir = NORTHWEST;
+        dir = NORTHWEST;
     else if (Keys[SDL_SCANCODE_W] && Keys[SDL_SCANCODE_D])
-        move_dir = NORTHEAST;
+        dir = NORTHEAST;
     if (Keys[SDL_SCANCODE_S] && Keys[SDL_SCANCODE_A])
-        move_dir = SOUTHWEST;
+        dir = SOUTHWEST;
     else if (Keys[SDL_SCANCODE_S] && Keys[SDL_SCANCODE_D])
-        move_dir = SOUTHEAST;
-    _Player.TryMove(move_dir);
+        dir = SOUTHEAST;
+    _Player.UpdateVelocity(dir);
     if (Keys[SDL_SCANCODE_TAB])
         _Renderer.Reveal();
     if (Keys[SDL_SCANCODE_F1])

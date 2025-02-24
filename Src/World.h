@@ -1,28 +1,19 @@
 #ifndef WORLD_H
 #define WORLD_H
-
-#include <cstdlib>
-#include <vector>
 #include <cstring>
-
-enum tile
-{
-    AIR,
-    STONE,
-    GOLD,
-    EXPLOSIVE,
-};
+#include <cstdlib>
+#include "Types.h"
 
 class World
 {
 private:
     //"sprinkle" a tile around the map
-    void Sprinkle(int count, tile tile, bool overwrite, int indexes[]);
+    void Sprinkle(int count, Tile tile, bool overwrite, int indexes[]);
     //encapsulate a specific tile with a material
-    void Encapsulate(int count, tile tile, int index);
+    void Encapsulate(int count, Tile tile, int index);
 
 public:
-    tile **tiles;
+    Tile **tiles;
     int Width;
     int Height;
 
@@ -32,7 +23,7 @@ public:
 
     ~World();
 
-    void ChangeTile(int x, int y, tile tile);
+    void ChangeTile(int x, int y, Tile tile);
 
     int DestroyTile(int x, int y);
 

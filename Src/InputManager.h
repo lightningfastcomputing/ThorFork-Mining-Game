@@ -3,7 +3,6 @@
 #include "World.h"
 #include "Player.h"
 #include "WindowRenderer.h"
-#include <stdio.h>
 #include <SDL2/SDL.h>
 
 class InputManager

@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <array>
 #include "World.h"
 
 using namespace std;
@@ -8,11 +6,11 @@ World::World()
 {
     Width = 20;
     Height = 20;
-    this->tiles = new tile *[Width];
+    this->tiles = new Tile *[Width];
 
     for (int i = 0; i < Width; i++)
     {
-        this->tiles[i] = new tile[Height];
+        this->tiles[i] = new Tile[Height];
         memset(tiles[i], AIR, Height);
     }
 };
@@ -21,11 +19,11 @@ World::World(int width, int height, int nuggetCount, int stoneThickness, int exp
 {
     this->Width = width;
     this->Height = height;
-    this->tiles = new tile *[Width];
+    this->tiles = new Tile *[Width];
 
     for (int i = 0; i < Width; i++)
     {
-        this->tiles[i] = new tile[Height];
+        this->tiles[i] = new Tile[Height];
         for (int j = 0; j < Height; j++)
             this->tiles[i][j] = AIR;
     }
@@ -48,13 +46,13 @@ World::~World()
     delete[] tiles;
 }
 
-void World::ChangeTile(int x, int y, tile tile)
+void World::ChangeTile(int x, int y, Tile tile)
 {
     if (x > 0 && y > 0 && x < Width && y < Height)
         this->tiles[x][y] = tile;
 }
 
-void World::Sprinkle(int count, tile tile, bool overwrite, int indexes[])
+void World::Sprinkle(int count, Tile tile, bool overwrite, int indexes[])
 {
     int i = 0;
     while (i < count)
@@ -72,7 +70,7 @@ void World::Sprinkle(int count, tile tile, bool overwrite, int indexes[])
     }
 }
 
-void World::Encapsulate(int count, tile tile, int index)
+void World::Encapsulate(int count, Tile tile, int index)
 {
     if (count == 0)
         return;

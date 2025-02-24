@@ -1,45 +1,25 @@
 #ifndef PLAYER_H
 #define PLAYER_H
-
-#include <stdlib.h>
-#include <stdio.h>
-#include "World.h"
-#include <SDL2/SDL.h>
-
-typedef enum direction_t
-{
-    WEST,
-    EAST,
-    NORTH,
-    SOUTH,
-    NORTHWEST,
-    NORTHEAST,
-    SOUTHWEST,
-    SOUTHEAST,
-    NONE
-} direction;
-
-struct Vec2F {
-    float x;
-    float y;
-};
+#include "Types.h"
 
 class Player
 {
 private:
-    World &_World;
+
 public:
+    const float EPSILON = 0.001;
     float Size;
     float x, y;
     float Speed;
-    direction Direction;
+    Vec2F Velocity;
+    Direction Direction;
     int Score;
     bool CanMine;
     float MiningRadius;
 
-    Player(World &World);
+    Player();
     ~Player();
-    void TryMove(direction dir);
+    void UpdateVelocity(direction dir);
 };
 
 #endif
