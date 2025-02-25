@@ -23,9 +23,9 @@ sudo apt-get install libsdl2-image-dev
 
 # TODO
 
-<s>update collider for any size (square )object<s>
+~~update collider for any size (square )object~~
 
-<s>add button debouncing<s>
+~~add button debouncing~~
 
 update renderer and coordinates to properly display player in the exact middle
 
