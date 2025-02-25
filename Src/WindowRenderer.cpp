@@ -138,28 +138,9 @@ void WindowRenderer::RenderFrame()
             }
             else
             {
-                // printf("x %d y %d\n", i, j);
-                // switch (_World.tiles[i][j])
-                // {
-                // case AIR:
-                //     SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
-                //     break;
-                // case STONE:
-                //     SDL_SetRenderDrawColor(Renderer, 75, 75, 75, 255);
-                //     break;
-                // case EXPLOSIVE:
-                //     SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
-                //     break;
-                // case GOLD:
-                //     SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
-                //     break;
-                // default:
-                //     SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
-                // }
                 textureIdx = _World.tiles[i][j];
                 SDL_RenderCopy(Renderer, Textures[textureIdx], nullptr, &rect);
             }
-            // SDL_RenderFillRect(Renderer, &rect);
             rect.y += TileLength;
         }
         rect.x += TileLength;
@@ -177,7 +158,7 @@ void WindowRenderer::RenderFrame()
 
     if (Debug)
     {
-
+        DrawPlayerCollisionBox(xMin, yMin);
         printf("(%f,%f) GAME\n", _Player.x, _Player.y);
         printf("(%d,%d) (%d,%d) MOUSE\n", MouseX, MouseY, MouseWorldX + xMin, MouseWorldY + yMin);
         printf("SCORE: %d\n", _Player.Score);
@@ -230,7 +211,7 @@ void WindowRenderer::DrawPlayerBoundingBox(int TileLength, int xRem)
 {
 }
 
-void WindowRenderer::DrawPlayerCollisionBox(int tileLength, int xRem)
+void WindowRenderer::DrawPlayerCollisionBox(int minX, int minY)
 {
     float x = _Player.x, y = _Player.y, size = _Player.Size;
     int xStart = (int)SDL_floorf(x);
@@ -239,10 +220,10 @@ void WindowRenderer::DrawPlayerCollisionBox(int tileLength, int xRem)
     int yEnd = (int)SDL_floorf(y + size);
 
     SDL_SetRenderDrawColor(Renderer, 255, 20, 255, 255);
-    float rendX0 = xStart * tileLength + xRem;
-    float rendX1 = (xEnd + 1) * tileLength + xRem;
-    float rendY0 = yStart * tileLength;
-    float rendY1 = (yEnd + 1) * tileLength;
+    float rendX0 = (xStart - minX) * TileLength - xOffset;
+    float rendX1 = (xEnd + 1 - minX) * TileLength - xOffset;
+    float rendY0 = (yStart - minY) * TileLength - yOffset;
+    float rendY1 = (yEnd + 1 - minY) * TileLength - yOffset;
     SDL_RenderDrawLineF(Renderer, rendX0, rendY0, rendX1, rendY0);
     SDL_RenderDrawLineF(Renderer, rendX0, rendY0, rendX0, rendY1);
     SDL_RenderDrawLineF(Renderer, rendX1, rendY0, rendX1, rendY1);

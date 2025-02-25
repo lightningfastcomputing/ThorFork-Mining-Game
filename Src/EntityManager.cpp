@@ -4,13 +4,12 @@ EntityManager::EntityManager(World &world, Player &player) : _World(world), _Pla
 {
 }
 
-EntityManager::~EntityManager() {
-
+EntityManager::~EntityManager()
+{
 }
 
 void EntityManager::UpdatePlayerPosition()
 {
-    bool NW, NE, SW, SE;
     int xStart, yStart, xEnd, yEnd;
 
     Vec2F velocity = _Player.Velocity;
@@ -36,19 +35,21 @@ void EntityManager::UpdatePlayerPosition()
         }
         else
         {
-
-            NW = _World.tiles[xStart][yStart] != AIR;
-            NE = _World.tiles[xEnd][yStart] != AIR;
-            SW = _World.tiles[xStart][yEnd] != AIR;
-            SE = _World.tiles[xEnd][yEnd] != AIR;
-
-            if (NW || SW)
+            // West and East Collisions
+            for (int i = yStart; i <= yEnd; i++)
             {
-                x = (float)xStart + 1 + EPSILON;
-            }
-            else if (NE || SE)
-            {
-                x = (float)xEnd - size - EPSILON;
+                // West
+                if (_World.tiles[xStart][i] != AIR)
+                {
+                    x = (float)xStart + 1 + EPSILON;
+                    break;
+                }
+                // East
+                else if (_World.tiles[xEnd][i] != AIR)
+                {
+                    x = (float)xEnd - size - EPSILON;
+                    break;
+                }
             }
         }
     }
@@ -72,18 +73,20 @@ void EntityManager::UpdatePlayerPosition()
         }
         else
         {
-            NW = _World.tiles[xStart][yStart] != AIR;
-            NE = _World.tiles[xEnd][yStart] != AIR;
-            SW = _World.tiles[xStart][yEnd] != AIR;
-            SE = _World.tiles[xEnd][yEnd] != AIR;
-
-            if (NW || NE)
+            for (int i = xStart; i <= xEnd; i++)
             {
-                y = (float)yStart + 1 + EPSILON;
-            }
-            else if (SW || SE)
-            {
-                y = (float)yEnd - size - EPSILON;
+                // North
+                if (_World.tiles[i][yStart] != AIR)
+                {
+                    y = (float)yStart + 1 + EPSILON;
+                    break;
+                }
+                // East
+                else if (_World.tiles[i][yEnd] != AIR)
+                {
+                    y = (float)yEnd - size - EPSILON;
+                    break;
+                }
             }
         }
     }

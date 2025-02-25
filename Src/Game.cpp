@@ -5,7 +5,6 @@ Game::Game(Uint64 frameRate, World &world, EntityManager &entityManager, InputMa
 {
     _WindowRenderer.Discover();
 
-    srand(SDL_GetTicks64());
 }
 Game::~Game()
 {

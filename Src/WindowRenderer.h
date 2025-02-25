@@ -24,7 +24,7 @@ private:
     void DrawPlayer();
     void DrawAndStoreSelectedTile(int minX, int minY);
     void DrawPlayerBoundingBox(int tileLength, int xRem);
-    void DrawPlayerCollisionBox(int tileLength, int xRem);
+    void DrawPlayerCollisionBox(int minX, int minY);
     void DrawPlayerVector(int tileLength, int xRem);
 
 public:

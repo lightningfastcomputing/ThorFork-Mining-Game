@@ -12,7 +12,7 @@ public:
     float x, y;
     float Speed;
     Vec2F Velocity;
-    Direction Direction;
+    direction Direction;
     int Score;
     bool CanMine;
     float MiningRadius;

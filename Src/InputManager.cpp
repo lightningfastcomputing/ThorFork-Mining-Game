@@ -27,7 +27,7 @@ void InputManager::ManageInput()
     {
         _Player.Score += _World.DestroyTile(selectedX, selectedY);
     }
-    Direction dir = NONE;
+    direction dir = NONE;
     if (Keys[SDL_SCANCODE_W] && !(Keys[SDL_SCANCODE_A] || Keys[SDL_SCANCODE_D]))
         dir = NORTH;
     else if (Keys[SDL_SCANCODE_S] && !(Keys[SDL_SCANCODE_A] || Keys[SDL_SCANCODE_D]))

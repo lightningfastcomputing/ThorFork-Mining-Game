@@ -17,6 +17,7 @@ World::World()
 
 World::World(int width, int height, int nuggetCount, int stoneThickness, int explosiveCount)
 {
+    srand(time(0));
     this->Width = width;
     this->Height = height;
     this->tiles = new Tile *[Width];

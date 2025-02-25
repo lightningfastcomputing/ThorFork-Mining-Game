@@ -2,6 +2,7 @@
 #define WORLD_H
 #include <cstring>
 #include <cstdlib>
+#include <time.h>
 #include "Types.h"
 
 class World

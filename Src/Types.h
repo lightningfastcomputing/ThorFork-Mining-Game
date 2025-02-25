@@ -1,7 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-enum Direction
+enum direction
 {
     WEST,
     EAST,
@@ -25,6 +25,11 @@ enum Tile
 struct Vec2F {
     float x;
     float y;
+};
+
+struct Vec2 {
+    int x;
+    int y;
 };
 
 #endif

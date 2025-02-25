@@ -5,12 +5,12 @@ Player::Player()
     this->x = 0;
     this->y = 0;
     Speed = 0.1f;               //tiles per tick, 0 < speed < 1;
-    Size = 0.6f;                //0 < size < 1;
+    Size = 2.5f;                //0 < size < 1;
     Velocity = {0, 0};                
     Direction = NONE;
     Score = 0;
     CanMine = false;
-    MiningRadius = 2.0f;
+    MiningRadius = 10.0f;
 
 }
 
@@ -18,7 +18,7 @@ Player::~Player()
 {
 }
 
-void Player::UpdateVelocity(Direction dir)
+void Player::UpdateVelocity(direction dir)
 {
     this->Direction = dir;
     switch (dir)
