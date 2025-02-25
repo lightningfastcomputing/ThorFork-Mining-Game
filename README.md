@@ -23,6 +23,8 @@ sudo apt-get install libsdl2-image-dev
 
 # TODO
 
+add button debouncing
+
 update renderer to properly display player in the exact middle
 
 update renderer types so params arent needed (make better names or document)
