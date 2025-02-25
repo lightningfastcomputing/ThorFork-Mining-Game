@@ -3,7 +3,24 @@
 #include "World.h"
 #include "Player.h"
 #include "WindowRenderer.h"
+#include "Utils.h"
 #include <SDL2/SDL.h>
+#include <functional>
+
+struct Input
+{
+    SDL_Scancode ScanCode;
+    Uint64 MillisecondCooldown;
+    Uint64 LastTimePressed;
+    std::function<void()> Action;
+};
+
+struct MouseInputs {
+    Uint64 LeftCooldown;
+    Uint64 LeftLastTimePressed;
+    Uint64 RightCooldown;
+    Uint64 RightLastTimePressed;
+};
 
 class InputManager
 {
@@ -11,7 +28,18 @@ private:
     World &_World;
     Player &_Player;
     WindowRenderer &_Renderer;
-    const Uint8* Keys;
+    Input MovementInputs[4];
+    Input ActionInputs[3];
+    struct MouseInputs MouseInputs;
+    const Uint8 *Keys;
+    void HandleMouseInput();
+    void HandleMovement();
+    void PollAndUpdate(int actionIndex);
+    void UpdatePlayer();
+
+    void Reveal();
+    void ToggleDebug();
+    void Exit();
 
 public:
     InputManager();

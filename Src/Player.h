@@ -17,6 +17,9 @@ public:
     bool CanMine;
     float MiningRadius;
 
+    int xStart, xEnd;
+    int yStart, yEnd;
+
     Player();
     ~Player();
     void UpdateVelocity(direction dir);

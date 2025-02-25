@@ -10,7 +10,10 @@ EntityManager::~EntityManager()
 
 void EntityManager::UpdatePlayerPosition()
 {
-    int xStart, yStart, xEnd, yEnd;
+    int &xStart = _Player.xStart;
+    int &xEnd = _Player.xEnd;
+    int &yStart = _Player.yStart;
+    int &yEnd = _Player.yEnd;
 
     Vec2F velocity = _Player.Velocity;
     float &x = _Player.x, &y = _Player.y;
@@ -90,5 +93,11 @@ void EntityManager::UpdatePlayerPosition()
             }
         }
     }
+
+    xStart = (int)SDL_floorf(x);
+    yStart = (int)SDL_floorf(y);
+    xEnd = (int)SDL_floorf(x + size);
+    yEnd = (int)SDL_floorf(y + size);
+    
     _Player.Velocity = {0, 0};
 }

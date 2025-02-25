@@ -125,8 +125,6 @@ void WindowRenderer::RenderFrame()
 
     Discover();
 
-    int textureIdx = 0;
-
     for (int i = xMin; i < xMin + horizontalTileCount + 2; i++)
     {
         for (int j = yMin; j < yMin + verticalTileCount + 2; j++)
@@ -138,7 +136,7 @@ void WindowRenderer::RenderFrame()
             }
             else
             {
-                textureIdx = _World.tiles[i][j];
+                int textureIdx = _World.tiles[i][j];
                 SDL_RenderCopy(Renderer, Textures[textureIdx], nullptr, &rect);
             }
             rect.y += TileLength;
@@ -159,8 +157,11 @@ void WindowRenderer::RenderFrame()
     if (Debug)
     {
         DrawPlayerCollisionBox(xMin, yMin);
-        printf("(%f,%f) GAME\n", _Player.x, _Player.y);
-        printf("(%d,%d) (%d,%d) MOUSE\n", MouseX, MouseY, MouseWorldX + xMin, MouseWorldY + yMin);
+        printf("(%f,%f) PLAYER\n", _Player.x, _Player.y);
+        printf("(%f,%f) PLAYER (ADJUSTED TO MIDDLE OF HITBOX)\n", _Player.x + _Player.Size/2, _Player.y + _Player.Size/2);
+        printf("DISTANCE FROM SELECTED TILE AND PLAYER = %f\n", Utils::Distance(_Player.x + _Player.Size/2, _Player.y + _Player.Size/2, MouseWorldX, MouseWorldY));
+        printf("(%d,%d) (%d,%d) MOUSE\n", MouseX, MouseY, MouseWorldX, MouseWorldY);
+        printf("(%d,%d),(%d,%d) TILES COVERED\n", _Player.xStart, _Player.yStart, _Player.xEnd, _Player.yEnd);
         printf("SCORE: %d\n", _Player.Score);
         printf("\n");
         printf("TILELENGTH = %d\n", TileLength);
