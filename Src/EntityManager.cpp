@@ -2,6 +2,8 @@
 
 EntityManager::EntityManager(World &world, Player &player) : _World(world), _Player(player)
 {
+    _Player.x = _World.Width/2;
+    _Player.y = _World.Height/2;
 }
 
 EntityManager::~EntityManager()
@@ -17,40 +19,39 @@ void EntityManager::UpdatePlayerPosition()
 
     Vec2F velocity = _Player.Velocity;
     float &x = _Player.x, &y = _Player.y;
-    float size = _Player.Size, EPSILON = _Player.EPSILON;
+    float halfSize = _Player.HalfSize, EPSILON = _Player.EPSILON;
 
     if (velocity.x != 0)
     {
         x += velocity.x;
 
-        xStart = (int)SDL_floorf(x);
-        yStart = (int)SDL_floorf(y);
-        xEnd = (int)SDL_floorf(x + size);
-        yEnd = (int)SDL_floorf(y + size);
+        xStart = (int)SDL_floorf(x - halfSize);
+        yStart = (int)SDL_floorf(y - halfSize);
+        xEnd = (int)SDL_floorf(x + halfSize);
+        yEnd = (int)SDL_floorf(y + halfSize);
 
         if (xStart < 0)
         {
-            x = EPSILON;
+            x =  halfSize + EPSILON;
         }
         else if (xEnd > _World.Width - 1)
         {
-            x = _World.Width - size - EPSILON;
+            x = _World.Width - halfSize - EPSILON;
         }
         else
         {
-            // West and East Collisions
             for (int i = yStart; i <= yEnd; i++)
             {
-                // West
+                //West Collision
                 if (_World.tiles[xStart][i] != AIR)
                 {
-                    x = (float)xStart + 1 + EPSILON;
+                    x = (float)xStart + 1 + halfSize + EPSILON;
                     break;
                 }
-                // East
+                //East Collision
                 else if (_World.tiles[xEnd][i] != AIR)
                 {
-                    x = (float)xEnd - size - EPSILON;
+                    x = (float)xEnd - halfSize - EPSILON;
                     break;
                 }
             }
@@ -61,43 +62,41 @@ void EntityManager::UpdatePlayerPosition()
     {
         y += velocity.y;
 
-        xStart = (int)SDL_floorf(x);
-        yStart = (int)SDL_floorf(y);
-        xEnd = (int)SDL_floorf(x + size);
-        yEnd = (int)SDL_floorf(y + size);
+        xStart = (int)SDL_floorf(x - halfSize);
+        yStart = (int)SDL_floorf(y - halfSize);
+        xEnd = (int)SDL_floorf(x + halfSize);
+        yEnd = (int)SDL_floorf(y + halfSize);
 
         if (yStart < 0)
         {
-            y = EPSILON;
+            y = halfSize + EPSILON;
         }
         else if (yEnd > _World.Height - 1)
         {
-            y = _World.Height - size - EPSILON;
+            y = _World.Height - halfSize - EPSILON;
         }
         else
         {
             for (int i = xStart; i <= xEnd; i++)
             {
-                // North
                 if (_World.tiles[i][yStart] != AIR)
                 {
-                    y = (float)yStart + 1 + EPSILON;
+                    y = (float)yStart + 1 + halfSize + EPSILON;
                     break;
                 }
-                // East
                 else if (_World.tiles[i][yEnd] != AIR)
                 {
-                    y = (float)yEnd - size - EPSILON;
+                    y = (float)yEnd - halfSize - EPSILON;
                     break;
                 }
             }
         }
     }
 
-    xStart = (int)SDL_floorf(x);
-    yStart = (int)SDL_floorf(y);
-    xEnd = (int)SDL_floorf(x + size);
-    yEnd = (int)SDL_floorf(y + size);
+    xStart = (int)SDL_floorf(x - halfSize);
+    yStart = (int)SDL_floorf(y - halfSize);
+    xEnd = (int)SDL_floorf(x + halfSize);
+    yEnd = (int)SDL_floorf(y + halfSize);
     
     _Player.Velocity = {0, 0};
 }

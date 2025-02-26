@@ -120,9 +120,9 @@ void InputManager::PollAndUpdate(int actionIndex)
 
 void InputManager::UpdatePlayer()
 {
-    int mouseWorldX = _Renderer.MouseWorldX, mouseWorldY = _Renderer.MouseWorldY;
+    float mouseWorldX = _Renderer.MouseWorldX, mouseWorldY = _Renderer.MouseWorldY;
 
-    float adjustedX = _Player.x + _Player.Size/2, adjustedY = _Player.y + _Player.Size/2;
+    float adjustedX = _Player.x + _Player.HalfSize, adjustedY = _Player.y + _Player.HalfSize;
     float distance = Utils::Distance(_Player.x, _Player.y,  mouseWorldX, mouseWorldY);
 
     bool selectedIsInsidePlayer = (mouseWorldX >= _Player.xStart && mouseWorldX <= _Player.xEnd) &&

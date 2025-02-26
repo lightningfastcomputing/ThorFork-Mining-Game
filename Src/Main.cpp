@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     Player player;
 
     EntityManager entityManager(world, player);
-    WindowRenderer windowRenderer(world, player, 800, 600);
+    WindowRenderer windowRenderer(world, player, 1920, 1080);
     InputManager inputManager(world, player, windowRenderer);
 
     Uint64 frameRate = 1000 / 60;

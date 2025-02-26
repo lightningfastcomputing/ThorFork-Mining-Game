@@ -23,11 +23,7 @@ sudo apt-get install libsdl2-image-dev
 
 # TODO
 
-~~update collider for any size (square )object~~
 
-~~add button debouncing~~
-
-update renderer and coordinates to properly display player in the exact middle
 
 update renderer types so params arent needed (make better names or document)
 
@@ -42,6 +38,12 @@ either standardize Vec2F/Vec2 coordinates or just use float coordinates, Vec2 co
 Fix the discover function for the renderer (use rays or something)
 
 fix entity tunneling through world tiles
+
+~~update collider for any size (square )object~~
+
+~~add button debouncing~~
+
+~~update renderer and coordinates to properly display player in the exact middle~~
 
 
 

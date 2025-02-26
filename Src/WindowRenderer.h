@@ -21,6 +21,7 @@ private:
     int Width, Height;
     int TileLength;
     float xOffset, yOffset;
+    float PlayerXOffset, PlayerYOffset;
     void Init_Display(const char *windowTitle);
     void DrawPlayer();
     void DrawAndStoreSelectedTile(int minX, int minY);
@@ -31,7 +32,7 @@ private:
 public:
     bool Running;
     int MouseX, MouseY;
-    int MouseWorldX, MouseWorldY;
+    float MouseWorldX, MouseWorldY;
     WindowRenderer();
     WindowRenderer(World &world, Player &player, int width, int height);
     ~WindowRenderer();

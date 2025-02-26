@@ -8,7 +8,7 @@ private:
 
 public:
     const float EPSILON = 0.001;
-    float Size;
+    float HalfSize;
     float x, y;
     float Speed;
     Vec2F Velocity;

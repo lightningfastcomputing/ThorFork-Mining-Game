@@ -5,7 +5,7 @@ Player::Player()
     x = 0;
     y = 0;
     Speed = 0.1f; // tiles per tick, dont go too fast
-    Size = 1.9f;
+    HalfSize = 1.4f;
     Velocity = {0, 0};
     Direction = NONE;
     Score = 0;
