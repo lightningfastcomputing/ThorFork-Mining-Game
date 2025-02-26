@@ -10,32 +10,42 @@
 class WindowRenderer
 {
 private:
-    SDL_Window *Window;
-    SDL_Renderer *Renderer;
-    SDL_Texture *Textures[4] = {NULL};
+    SDL_Window *Window = nullptr;
+    SDL_Renderer *Renderer = nullptr;
+    SDL_Texture *Textures[4] = {nullptr};
 
     World &_World;
     Player &_Player;
 
     bool **Discovered, Debug;
-    int Width, Height;
+
+    int ScreenWidth, ScreenHeight;
+    int HorizontalTileCount, VerticalTileCount;
+
     int TileLength;
-    float xOffset, yOffset;
+
+    float TileXOffset, TileYOffset;
     float PlayerXOffset, PlayerYOffset;
+    int ScreenXMin, ScreenYMin;
+
     void Init_Display(const char *windowTitle);
-    void DrawPlayer();
-    void DrawAndStoreSelectedTile(int minX, int minY);
-    void DrawPlayerBoundingBox(int tileLength, int xRem);
-    void DrawPlayerCollisionBox(int minX, int minY);
-    void DrawPlayerVector(int tileLength, int xRem);
+    inline void DrawWorld();
+    inline void DrawPlayer();
+    inline void DebugInfo();
+    inline void DrawAndStoreSelectedTile();
+    inline void DrawPlayerBoundingBox();
+    inline void DrawPlayerCollisionBox();
+    inline void DrawPlayerVector();
 
 public:
+
     bool Running;
     int MouseX, MouseY;
     float MouseWorldX, MouseWorldY;
-    WindowRenderer();
+
     WindowRenderer(World &world, Player &player, int width, int height);
     ~WindowRenderer();
+
     void Reveal();
     void Discover();
     bool IsDiscovered(int x, int y);

@@ -32,10 +32,11 @@ void Game::Start()
         _EntityManager.UpdatePlayerPosition();
 
         Uint64 frameTime = SDL_GetTicks64() - frameStart;
-        if (frameTime < this->FrameRate)
+        if (frameTime < FrameRate)
         {
-            SDL_Delay(this->FrameRate - frameTime);
+            SDL_Delay(FrameRate - frameTime);
         }
+
         // running = false;
         running = _InputManager.Running && _WindowRenderer.Running;
     }

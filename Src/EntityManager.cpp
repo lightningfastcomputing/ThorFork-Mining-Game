@@ -25,10 +25,10 @@ void EntityManager::UpdatePlayerPosition()
     {
         x += velocity.x;
 
-        xStart = (int)SDL_floorf(x - halfSize);
-        yStart = (int)SDL_floorf(y - halfSize);
-        xEnd = (int)SDL_floorf(x + halfSize);
-        yEnd = (int)SDL_floorf(y + halfSize);
+        xStart = (int)(x - halfSize);
+        yStart = (int)(y - halfSize);
+        xEnd = (int)(x + halfSize);
+        yEnd = (int)(y + halfSize);
 
         if (xStart < 0)
         {
@@ -62,10 +62,10 @@ void EntityManager::UpdatePlayerPosition()
     {
         y += velocity.y;
 
-        xStart = (int)SDL_floorf(x - halfSize);
-        yStart = (int)SDL_floorf(y - halfSize);
-        xEnd = (int)SDL_floorf(x + halfSize);
-        yEnd = (int)SDL_floorf(y + halfSize);
+        xStart = (int)(x - halfSize);
+        yStart = (int)(y - halfSize);
+        xEnd = (int)(x + halfSize);
+        yEnd = (int)(y + halfSize);
 
         if (yStart < 0)
         {
@@ -93,10 +93,10 @@ void EntityManager::UpdatePlayerPosition()
         }
     }
 
-    xStart = (int)SDL_floorf(x - halfSize);
-    yStart = (int)SDL_floorf(y - halfSize);
-    xEnd = (int)SDL_floorf(x + halfSize);
-    yEnd = (int)SDL_floorf(y + halfSize);
+    xStart = (int)(x - halfSize);
+    yStart = (int)(y - halfSize);
+    xEnd = (int)(x + halfSize);
+    yEnd = (int)(y + halfSize);
     
     _Player.Velocity = {0, 0};
 }
