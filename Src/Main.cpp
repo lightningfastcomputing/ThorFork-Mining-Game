@@ -9,14 +9,14 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    World world(200, 200, 200, 30, 1000);
+    World world(200, 200, 100, 100, 0);
     Player player;
 
     EntityManager entityManager(world, player);
     WindowRenderer windowRenderer(world, player, 800, 600);
     InputManager inputManager(world, player, windowRenderer);
 
-    Uint64 frameRate = 1000 / 60;
+    Uint64 frameRate = 1000 / 10;
     Game game(frameRate, world, entityManager, inputManager, windowRenderer);
 
     game.Start();

@@ -26,7 +26,7 @@ InputManager::InputManager(World &world, Player &player, WindowRenderer &rendere
     MovementInputs[LEFT] = {SDL_SCANCODE_A, 0, 0, nullptr};
     MovementInputs[RIGHT] = {SDL_SCANCODE_D, 0, 0, nullptr};
 
-    MouseInputs = {500, 0, 500, 0};
+    MouseInputs = {0, 0, 0, 0};
 
     ActionInputs[REVEAL] = {SDL_SCANCODE_TAB, 500, 0, [this]()
                             { Reveal(); }};
@@ -58,7 +58,7 @@ void InputManager::ManageInput()
 void InputManager::HandleMouseInput()
 {
     int mouseState = SDL_GetMouseState(&(_Renderer.MouseX), &(_Renderer.MouseY));
-    int selectedX = _Renderer.MouseWorldX, selectedY = _Renderer.MouseWorldY;
+    int selectedX = (int)_Renderer.MouseWorldX, selectedY = (int)_Renderer.MouseWorldY;
     Uint64 now = SDL_GetTicks64();
 
     if (mouseState & SDL_BUTTON(1) && (now - MouseInputs.LeftLastTimePressed) > MouseInputs.LeftCooldown)
@@ -122,13 +122,13 @@ void InputManager::UpdatePlayer()
 {
     float mouseWorldX = _Renderer.MouseWorldX, mouseWorldY = _Renderer.MouseWorldY;
 
-    float adjustedX = _Player.x + _Player.HalfSize, adjustedY = _Player.y + _Player.HalfSize;
-    float distance = Utils::Distance(_Player.x, _Player.y,  mouseWorldX, mouseWorldY);
+    float adjustedX = _Player.BoundingBox.x + _Player.BoundingBox.w/2, adjustedY = _Player.BoundingBox.y + _Player.BoundingBox.h/2;
+    float distance = Utils::Distance(adjustedX, adjustedX,  mouseWorldX, mouseWorldY);
 
     bool selectedIsInsidePlayer = (mouseWorldX >= _Player.xStart && mouseWorldX <= _Player.xEnd) &&
                         (mouseWorldY >= _Player.yStart && mouseWorldY <= _Player.yEnd);  
 
-    _Player.CanMine = (distance <= _Player.MiningRadius) && !selectedIsInsidePlayer;
+    _Player.CanMine = true;//(distance <= _Player.MiningRadius) && !selectedIsInsidePlayer;
 }
 
 void InputManager::Reveal() { this->_Renderer.Reveal(); }

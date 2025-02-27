@@ -2,8 +2,8 @@
 
 EntityManager::EntityManager(World &world, Player &player) : _World(world), _Player(player)
 {
-    _Player.x = _World.Width/2;
-    _Player.y = _World.Height/2;
+    _Player.BoundingBox.x = _World.Width / 2;
+    _Player.BoundingBox.y = _World.Height / 2;
 }
 
 EntityManager::~EntityManager()
@@ -18,40 +18,40 @@ void EntityManager::UpdatePlayerPosition()
     int &yEnd = _Player.yEnd;
 
     Vec2F velocity = _Player.Velocity;
-    float &x = _Player.x, &y = _Player.y;
-    float halfSize = _Player.HalfSize, EPSILON = _Player.EPSILON;
+    float &x = _Player.BoundingBox.x, &y = _Player.BoundingBox.y, w = _Player.BoundingBox.w, h = _Player.BoundingBox.h;
+    float EPSILON = _Player.EPSILON;
 
     if (velocity.x != 0)
     {
         x += velocity.x;
 
-        xStart = (int)(x - halfSize);
-        yStart = (int)(y - halfSize);
-        xEnd = (int)(x + halfSize);
-        yEnd = (int)(y + halfSize);
+        xStart = (int)SDL_floorf(x);
+        yStart = (int)SDL_floorf(y);
+        xEnd = (int)SDL_floorf(x + w);
+        yEnd = (int)SDL_floorf(y + h);
 
         if (xStart < 0)
         {
-            x =  halfSize + EPSILON;
+            x = EPSILON;
         }
         else if (xEnd > _World.Width - 1)
         {
-            x = _World.Width - halfSize - EPSILON;
+            x = _World.Width - w - EPSILON;
         }
         else
         {
             for (int i = yStart; i <= yEnd; i++)
             {
-                //West Collision
+                // West Collision
                 if (_World.tiles[xStart][i] != AIR)
                 {
-                    x = (float)xStart + 1 + halfSize + EPSILON;
+                    x = (float)xStart + 1 + EPSILON;
                     break;
                 }
-                //East Collision
+                // East Collision
                 else if (_World.tiles[xEnd][i] != AIR)
                 {
-                    x = (float)xEnd - halfSize - EPSILON;
+                    x = (float)xEnd - w - EPSILON;
                     break;
                 }
             }
@@ -62,18 +62,18 @@ void EntityManager::UpdatePlayerPosition()
     {
         y += velocity.y;
 
-        xStart = (int)(x - halfSize);
-        yStart = (int)(y - halfSize);
-        xEnd = (int)(x + halfSize);
-        yEnd = (int)(y + halfSize);
+        xStart = (int)SDL_floorf(x);
+        yStart = (int)SDL_floorf(y);
+        xEnd = (int)SDL_floorf(x + w);
+        yEnd = (int)SDL_floorf(y + h);
 
         if (yStart < 0)
         {
-            y = halfSize + EPSILON;
+            y = EPSILON;
         }
         else if (yEnd > _World.Height - 1)
         {
-            y = _World.Height - halfSize - EPSILON;
+            y = _World.Height - h - EPSILON;
         }
         else
         {
@@ -81,22 +81,22 @@ void EntityManager::UpdatePlayerPosition()
             {
                 if (_World.tiles[i][yStart] != AIR)
                 {
-                    y = (float)yStart + 1 + halfSize + EPSILON;
+                    y = (float)yStart + 1 + EPSILON;
                     break;
                 }
                 else if (_World.tiles[i][yEnd] != AIR)
                 {
-                    y = (float)yEnd - halfSize - EPSILON;
+                    y = (float)yEnd - h - EPSILON;
                     break;
                 }
             }
         }
     }
 
-    xStart = (int)(x - halfSize);
-    yStart = (int)(y - halfSize);
-    xEnd = (int)(x + halfSize);
-    yEnd = (int)(y + halfSize);
-    
+    xStart = (int)SDL_floorf(x);
+    yStart = (int)SDL_floorf(y);
+    xEnd = (int)SDL_floorf(x + w);
+    yEnd = (int)SDL_floorf(y + h);
+
     _Player.Velocity = {0, 0};
 }

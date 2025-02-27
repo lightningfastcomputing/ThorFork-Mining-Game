@@ -2,10 +2,12 @@
 
 Player::Player()
 {
-    x = 0;
-    y = 0;
+    BoundingBox.x = 0;
+    BoundingBox.y = 0;
+    BoundingBox.w = 1.4f;
+    BoundingBox.h = 2.5f;
+    HalfDimensions = {BoundingBox.w/2, BoundingBox.h/2};
     Speed = 0.1f; // tiles per tick, dont go too fast
-    HalfSize = 1.4f;
     Velocity = {0, 0};
     Direction = NONE;
     Score = 0;

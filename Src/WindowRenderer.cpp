@@ -5,14 +5,16 @@ WindowRenderer::WindowRenderer(World &world, Player &player, int width, int heig
     ScreenWidth = width;
     ScreenHeight = height;
 
-     TileLength = 30;
+    TileLength = 30;
 
     HorizontalTileCount = ScreenWidth / TileLength;
     VerticalTileCount = ScreenHeight / TileLength;
 
+    PlayerPosXOffset = ScreenWidth % TileLength / 2;
+    PlayerPosYOffset = ScreenHeight % TileLength / 2;
 
-    PlayerXOffset = ScreenWidth % TileLength / 2;
-    PlayerYOffset = ScreenHeight % TileLength / 2;
+    PlayerDimXOffset = (_Player.HalfDimensions.x * TileLength);
+    PlayerDimYOffset = (_Player.HalfDimensions.y * TileLength);
 
     Discovered = new bool *[_World.Width];
     for (int i = 0; i < _World.Width; i++)
@@ -86,7 +88,7 @@ void WindowRenderer::Reveal()
 }
 void WindowRenderer::Discover()
 {
-    int x = _Player.x, y = _Player.y;
+    int x = _Player.BoundingBox.x, y = _Player.BoundingBox.y;
     int xStart = x - 5, yStart = y - 5;
     int xEnd = x + 5, yEnd = y + 5;
     for (int i = xStart; i < xEnd; i++)
@@ -107,15 +109,17 @@ void WindowRenderer::Discover()
 
 bool WindowRenderer::IsDiscovered(int x, int y)
 {
-    return Discovered[x][y];
+    return _World.IsInBounds(x, y) && Discovered[x][y];
 }
 void WindowRenderer::RenderFrame()
 {
-    TileXOffset = (_Player.x - (int)_Player.x) * TileLength;
-    TileYOffset = (_Player.y - (int)_Player.y) * TileLength;
+    float x = _Player.BoundingBox.x, y = _Player.BoundingBox.y;
 
-    ScreenXMin = (int)_Player.x - (HorizontalTileCount / 2);
-    ScreenYMin = (int)_Player.y - (VerticalTileCount / 2);
+    TileXOffset = (x - (int)x) * TileLength;
+    TileYOffset = (y - (int)y) * TileLength;
+
+    ScreenXMin = (int)x - (HorizontalTileCount / 2);
+    ScreenYMin = (int)y - (VerticalTileCount / 2);
 
     Discover();
 
@@ -129,8 +133,10 @@ void WindowRenderer::RenderFrame()
 
 void WindowRenderer::ClearFrame()
 {
-    if (!SDL_RenderClear(Renderer))
+    if (SDL_RenderClear(Renderer) < 0)
+    {
         printf("RenderClear failed, %s\n", SDL_GetError());
+    }
     system("clear");
 }
 
@@ -139,14 +145,14 @@ void WindowRenderer::ToggleDebug() { Debug = !Debug; }
 void WindowRenderer::DrawWorld()
 {
     SDL_Rect rect;
-    rect.x = -TileXOffset - TileLength + PlayerXOffset;
-    rect.y = -TileYOffset + PlayerYOffset;
+    rect.x = -TileXOffset - TileLength + PlayerPosXOffset - PlayerDimXOffset;
+    rect.y = -TileYOffset + PlayerPosYOffset - PlayerDimYOffset;
     rect.w = TileLength;
     rect.h = TileLength;
 
     for (int i = ScreenXMin - 1; i < ScreenXMin + HorizontalTileCount + 2; i++)
     {
-        for (int j = ScreenYMin; j < ScreenYMin + VerticalTileCount + 2; j++)
+        for (int j = ScreenYMin; j < ScreenYMin + VerticalTileCount + 3; j++)
         {
             if (i < 0 || j < 0 || i > _World.Width - 1 || j > _World.Height - 1 || !Discovered[i][j])
             {
@@ -161,20 +167,23 @@ void WindowRenderer::DrawWorld()
             rect.y += TileLength;
         }
         rect.x += TileLength;
-        rect.y = -TileYOffset + PlayerYOffset;
+        rect.y = -TileYOffset + PlayerPosYOffset - PlayerDimYOffset;
     }
 }
 
 void WindowRenderer::DrawPlayer()
 {
-    SDL_Rect rect;
-    rect.x = (ScreenWidth / 2) - (int)(_Player.HalfSize * TileLength);
-    rect.y = (ScreenHeight / 2) - (int)(_Player.HalfSize * TileLength);
-    rect.w = _Player.HalfSize * 2 * TileLength;
-    rect.h = _Player.HalfSize * 2 * TileLength;
+    SDL_FRect playerRect = _Player.BoundingBox;
+    Vec2F halfDimensions = _Player.HalfDimensions;
+    SDL_Rect displayRect;
 
-    SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-    SDL_RenderFillRect(Renderer, &rect);
+    displayRect.x = (ScreenWidth / 2) - (int)(halfDimensions.x * TileLength);
+    displayRect.y = (ScreenHeight / 2) - (int)(halfDimensions.y * TileLength);
+    displayRect.w = playerRect.w * TileLength;
+    displayRect.h = playerRect.h * TileLength;
+
+    SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
+    SDL_RenderFillRect(Renderer, &displayRect);
 }
 
 void WindowRenderer::DebugInfo()
@@ -182,14 +191,16 @@ void WindowRenderer::DebugInfo()
     if (Debug)
     {
         DrawPlayerCollisionBox();
-        printf("(%f,%f) PLAYER\n", _Player.x, _Player.y);
-        printf("DISTANCE FROM MOUSE AND PLAYER = %f\n", Utils::Distance(_Player.x + _Player.HalfSize, _Player.y + _Player.HalfSize, MouseWorldX, MouseWorldY));
-        printf("(%d,%d) (%f,%f) MOUSE\n", MouseX, MouseY, MouseWorldX, MouseWorldY);
+        printf("(%f,%f) PLAYER\n", _Player.BoundingBox.x, _Player.BoundingBox.y);
+        printf("(%f,%f) PLAYER DIMENSIONS\n", _Player.HalfDimensions.x, _Player.HalfDimensions.y);
+        // printf("DISTANCE FROM MOUSE AND PLAYER = %f\n", Utils::Distance(_Player.BoundingBox.x + _Player.HalfSize, _Player.BoundingBox.y + _Player.HalfSize, MouseWorldX, MouseWorldY));
+        printf("(%d,%d) (%d,%d) MOUSE\n", MouseX, MouseY, (int)MouseWorldX, (int)MouseWorldY);
         printf("(%d,%d),(%d,%d) TILES COVERED\n", _Player.xStart, _Player.yStart, _Player.xEnd, _Player.yEnd);
         printf("SCORE: %d\n", _Player.Score);
         printf("\n");
         printf("TILELENGTH = %d\n", TileLength);
         printf("xTILECOUNT = %d, yTILECOUNT = %d\n", HorizontalTileCount, VerticalTileCount);
+        printf("xPLAYEROFFSET = %f, yPLAYEROFFSET = %f\n", PlayerPosXOffset, PlayerPosYOffset);
         printf("xOFF = %f, yOFF = %f\n", TileXOffset, TileYOffset);
         printf("xMIN = %d, yMIN = %d\n", ScreenXMin, ScreenYMin);
     }
@@ -197,13 +208,15 @@ void WindowRenderer::DebugInfo()
 
 void WindowRenderer::DrawAndStoreSelectedTile()
 {
-    float x = ((MouseX + TileXOffset - PlayerXOffset) / TileLength), y = ((MouseY + TileYOffset - PlayerYOffset) / TileLength);
+    int x = (int)((MouseX + TileXOffset - PlayerPosXOffset + PlayerDimXOffset) / TileLength),
+        y = (int)((MouseY + TileYOffset - PlayerPosYOffset + PlayerDimYOffset) / TileLength);
     MouseWorldX = x + ScreenXMin;
     MouseWorldY = y + ScreenYMin;
 
     _Player.CanMine ? SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255) : SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
 
-    int rendX = (int)x * TileLength - TileXOffset + PlayerXOffset, rendY = (int)y * TileLength - TileYOffset + PlayerYOffset;
+    int rendX = (int)x * TileLength - TileXOffset + PlayerPosXOffset - PlayerDimXOffset,
+        rendY = (int)y * TileLength - TileYOffset + PlayerPosYOffset - PlayerDimYOffset;
 
     if (_World.IsInBounds(MouseWorldX, MouseWorldY) && Discovered[(int)(MouseWorldX)][(int)(MouseWorldY)])
     {
@@ -224,10 +237,10 @@ void WindowRenderer::DrawPlayerCollisionBox()
     int xStart = _Player.xStart, yStart = _Player.yStart, xEnd = _Player.xEnd, yEnd = _Player.yEnd;
 
     SDL_SetRenderDrawColor(Renderer, 255, 20, 255, 255);
-    float rendX0 = (xStart - ScreenXMin) * TileLength - TileXOffset + PlayerXOffset;
-    float rendX1 = (xEnd + 1 - ScreenXMin) * TileLength - TileXOffset + PlayerXOffset;
-    float rendY0 = (yStart - ScreenYMin) * TileLength - TileYOffset + PlayerYOffset;
-    float rendY1 = (yEnd + 1 - ScreenYMin) * TileLength - TileYOffset + PlayerYOffset;
+    float rendX0 = (xStart - ScreenXMin) * TileLength - TileXOffset + PlayerPosXOffset - PlayerDimXOffset;
+    float rendX1 = (xEnd + 1 - ScreenXMin) * TileLength - TileXOffset + PlayerPosXOffset - PlayerDimXOffset;
+    float rendY0 = (yStart - ScreenYMin) * TileLength - TileYOffset + PlayerPosYOffset - PlayerDimYOffset;
+    float rendY1 = (yEnd + 1 - ScreenYMin) * TileLength - TileYOffset + PlayerPosYOffset - PlayerDimYOffset;
 
     SDL_RenderDrawLineF(Renderer, rendX0, rendY0, rendX1, rendY0);
     SDL_RenderDrawLineF(Renderer, rendX0, rendY0, rendX0, rendY1);

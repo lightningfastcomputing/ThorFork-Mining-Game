@@ -1,6 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 #include "Types.h"
+#include <SDL2/SDL.h>
 
 class Player
 {
@@ -8,8 +9,8 @@ private:
 
 public:
     const float EPSILON = 0.001;
-    float HalfSize;
-    float x, y;
+    SDL_FRect BoundingBox;
+    Vec2F HalfDimensions;
     float Speed;
     Vec2F Velocity;
     direction Direction;

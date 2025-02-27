@@ -91,9 +91,12 @@ void World::Encapsulate(int count, Tile tile, int index)
 
 void World::Update()
 {
+    printf("Buffer vector size: %d\n", WorldActionsNext.size());
     // insert the next set of actions into the current vector for execution
     WorldActionsNow.insert(WorldActionsNow.end(), WorldActionsNext.begin(), WorldActionsNext.end());
     WorldActionsNext.clear();
+    printf("Action vector size: %d\n", WorldActionsNow.size());
+
     for (int i = 0; i < WorldActionsNow.size();)
     {
         WorldAction &worldAction = WorldActionsNow[i];
@@ -112,8 +115,7 @@ void World::Update()
 
 void World::ChangeTile(int x, int y, Tile tile)
 {
-    if (x > 0 && y > 0 && x < Width && y < Height)
-        this->tiles[x][y] = tile;
+    this->tiles[x][y] = tile;
 }
 
 void World::DestroyTile(int x, int y)
@@ -124,10 +126,10 @@ void World::DestroyTile(int x, int y)
         switch (tiles[x][y])
         {
         case AIR:
-            break;
+            return;
         case STONE:
         case GOLD:
-            actions.push_back({[this, x, y]()
+            WorldActionsNext.push_back({[this, x, y]()
                                { this->ChangeTile(x, y, AIR); }, 0});
             break;
         case EXPLOSIVE:
@@ -137,21 +139,24 @@ void World::DestroyTile(int x, int y)
             adjacents[2] = {x, y - 1};
             adjacents[3] = {x, y + 1};
 
-            actions.push_back({[this, x, y]()
-                               { this->ChangeTile(x, y, AIR); }, 0});
+            WorldActionsNext.push_back({[this, x, y]()
+                               { this->ChangeTile(x, y, AIR); }, 5});
             for (int i = 0; i < 4; i++)
             {
                 Vec2 point = adjacents[i];
                 int x = point.x, y = point.y;
 
-                actions.push_back({[this, x, y]()
-                                   { this->DestroyTile(x, y); }, 20});
+                if (tiles[x][y] != AIR)
+                {
+                    WorldActionsNext.push_back({[this, x, y]()
+                                       { this->DestroyTile(x, y); }, 5});
+                }
             }
             break;
         default:
             throw std::runtime_error("Invalid tile\n");
             break;
         }
-        WorldActionsNext.insert(WorldActionsNext.end(), actions.begin(), actions.end());
+        // printf("Succeeded\n");
     }
 }

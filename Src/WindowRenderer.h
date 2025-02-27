@@ -25,7 +25,8 @@ private:
     int TileLength;
 
     float TileXOffset, TileYOffset;
-    float PlayerXOffset, PlayerYOffset;
+    float PlayerPosXOffset, PlayerPosYOffset;
+    float PlayerDimXOffset, PlayerDimYOffset;
     int ScreenXMin, ScreenYMin;
 
     void Init_Display(const char *windowTitle);
@@ -41,7 +42,7 @@ public:
 
     bool Running;
     int MouseX, MouseY;
-    float MouseWorldX, MouseWorldY;
+    int MouseWorldX, MouseWorldY;
 
     WindowRenderer(World &world, Player &player, int width, int height);
     ~WindowRenderer();
