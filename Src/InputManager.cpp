@@ -65,7 +65,7 @@ void InputManager::HandleMouseInput()
     {
         if (_Player.CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
         {
-            _Player.Score += _World.DestroyTile(selectedX, selectedY);
+            _World.DestroyTile(selectedX, selectedY);
             MouseInputs.LeftLastTimePressed = now;
         }
     }

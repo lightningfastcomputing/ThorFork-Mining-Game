@@ -23,8 +23,6 @@ sudo apt-get install libsdl2-image-dev
 
 # TODO
 
-Add a queue to the world class that sequences actions done to it (cascading explosions, falling rocks, etc)
-
 When physics are improved, replace bounding boxes with SDL_RECTs to take advantage of the library's utilities
 
 Either standardize Vec2F/Vec2 coordinates or just use float coordinates, Vec2 could come in handly for raycasting later though
@@ -33,25 +31,38 @@ Fix the discover function for the renderer (use rays or something)
 
 Add debug info to screen instead of just using console
 
+Make window resizeable/fullscreen
 
 
+# Ideas
 
+Tie view and tilesize to player size
 
-# Potential TODO
+Fix entity tunneling through world tiles (for now, just make the player slow)
 
-tie view and tilesize to player size
+Turn explosives into an entity instead of a tile
 
-fix entity tunneling through world tiles
+Circle back on world queue: better implementation possible
 
 # Past Tasks
 
-update collider for any size (square )object
+Add a queue to the world class that sequences actions done to it (cascading explosions, falling rocks, etc)
 
-add button debouncing
+Update renderer types so params arent needed (make better names or document)
 
-update renderer and coordinates to properly display player in the exact middle
+Update renderer and coordinates to properly display player in the exact middle
 
-update renderer types so params arent needed (make better names or document)
+Add button debouncing
+
+Update collider for any size (square )object
+
+
+
+
+
+
+
+
 
 
 

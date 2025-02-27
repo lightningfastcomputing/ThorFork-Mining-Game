@@ -29,6 +29,7 @@ void Game::Start()
         _WindowRenderer.ClearFrame();
         _WindowRenderer.RenderFrame();
         _InputManager.ManageInput();
+        _World.Update();
         _EntityManager.UpdatePlayerPosition();
 
         Uint64 frameTime = SDL_GetTicks64() - frameStart;

@@ -18,7 +18,7 @@ World::World()
 World::World(int width, int height, int nuggetCount, int stoneThickness, int explosiveCount)
 {
     srand(time(0));
-    
+
     this->Width = width;
     this->Height = height;
     this->tiles = new Tile *[Width];
@@ -46,12 +46,6 @@ World::~World()
         delete[] tiles[i];
     }
     delete[] tiles;
-}
-
-void World::ChangeTile(int x, int y, Tile tile)
-{
-    if (x > 0 && y > 0 && x < Width && y < Height)
-        this->tiles[x][y] = tile;
 }
 
 void World::Sprinkle(int count, Tile tile, bool overwrite, int indexes[])
@@ -95,45 +89,69 @@ void World::Encapsulate(int count, Tile tile, int index)
     this->Encapsulate(count - 1, tile, adjacents[rand() % 4]);
 }
 
-int World::DestroyTile(int x, int y)
+void World::Update()
 {
-    if (x < 0 || y < 0 || x >= Width || y >= Height)
-        return 0;
-    int score = 0;
-    int index = x + y * Width;
-    switch (tiles[x][y])
+    // insert the next set of actions into the current vector for execution
+    WorldActionsNow.insert(WorldActionsNow.end(), WorldActionsNext.begin(), WorldActionsNext.end());
+    WorldActionsNext.clear();
+    for (int i = 0; i < WorldActionsNow.size();)
     {
-    case AIR:
-        break;
-    case STONE:
-        this->tiles[x][y] = AIR;
-        break;
-    case EXPLOSIVE: //obsolete, needs to be fixed
-        int adjacents[8];
-        adjacents[0] = index - 1;
-        adjacents[1] = index + 1;
-        adjacents[2] = index - Width;
-        adjacents[3] = index + Width;
-        adjacents[4] = index - Width - 1;
-        adjacents[5] = index - Width + 1;
-        adjacents[6] = index + Width - 1;
-        adjacents[7] = index + Width + 1;
-
-        tiles[x][y] = AIR;
-        for (int i = 0; i < 8; i++)
+        WorldAction &worldAction = WorldActionsNow[i];
+        worldAction.TickDelay--;
+        if (worldAction.TickDelay <= 0)
         {
-            if (adjacents[i] < Width * Height && adjacents[i] > 0)
-                score += DestroyTile(adjacents[i] % Width, adjacents[i] / Width);
+            worldAction.Action();
+            WorldActionsNow.erase(WorldActionsNow.begin() + i);
         }
-        break;
-    case GOLD:
-        score = 1;
-        tiles[x][y] = AIR;
-        break;
+        else
+        {
+            i++;
+        }
     }
-    return score;
 }
 
-bool World::IsInBounds(int x, int y) {
-    return (x >= 0 && x < Width && y >= 0 && y < Height);
+void World::ChangeTile(int x, int y, Tile tile)
+{
+    if (x > 0 && y > 0 && x < Width && y < Height)
+        this->tiles[x][y] = tile;
+}
+
+void World::DestroyTile(int x, int y)
+{
+    if (IsInBounds(x, y))
+    {
+        std::vector<WorldAction> actions;
+        switch (tiles[x][y])
+        {
+        case AIR:
+            break;
+        case STONE:
+        case GOLD:
+            actions.push_back({[this, x, y]()
+                               { this->ChangeTile(x, y, AIR); }, 0});
+            break;
+        case EXPLOSIVE:
+            Vec2 adjacents[4];
+            adjacents[0] = {x - 1, y};
+            adjacents[1] = {x + 1, y};
+            adjacents[2] = {x, y - 1};
+            adjacents[3] = {x, y + 1};
+
+            actions.push_back({[this, x, y]()
+                               { this->ChangeTile(x, y, AIR); }, 0});
+            for (int i = 0; i < 4; i++)
+            {
+                Vec2 point = adjacents[i];
+                int x = point.x, y = point.y;
+
+                actions.push_back({[this, x, y]()
+                                   { this->DestroyTile(x, y); }, 20});
+            }
+            break;
+        default:
+            throw std::runtime_error("Invalid tile\n");
+            break;
+        }
+        WorldActionsNext.insert(WorldActionsNext.end(), actions.begin(), actions.end());
+    }
 }

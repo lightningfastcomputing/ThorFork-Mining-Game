@@ -5,10 +5,11 @@ WindowRenderer::WindowRenderer(World &world, Player &player, int width, int heig
     ScreenWidth = width;
     ScreenHeight = height;
 
-    TileLength = 30;
+     TileLength = 30;
 
     HorizontalTileCount = ScreenWidth / TileLength;
     VerticalTileCount = ScreenHeight / TileLength;
+
 
     PlayerXOffset = ScreenWidth % TileLength / 2;
     PlayerYOffset = ScreenHeight % TileLength / 2;
@@ -160,7 +161,7 @@ void WindowRenderer::DrawWorld()
             rect.y += TileLength;
         }
         rect.x += TileLength;
-        rect.y = -(int)TileYOffset;
+        rect.y = -TileYOffset + PlayerYOffset;
     }
 }
 
