@@ -1,13 +1,13 @@
 #include "Player.h"
 
-Player::Player()
+Player::Player(float width, float height, float speed)
 {
     BoundingBox.x = 0;
     BoundingBox.y = 0;
-    BoundingBox.w = 1.4f;
-    BoundingBox.h = 2.5f;
+    BoundingBox.w = width;
+    BoundingBox.h = height;
     HalfDimensions = {BoundingBox.w/2, BoundingBox.h/2};
-    Speed = 0.1f; // tiles per tick, dont go too fast
+    Speed = speed; // tiles per tick, dont go too fast
     Velocity = {0, 0};
     Direction = NONE;
     Score = 0;

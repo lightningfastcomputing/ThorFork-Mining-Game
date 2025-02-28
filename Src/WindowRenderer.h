@@ -21,19 +21,14 @@ private:
 
     int TileLength;
 
-    Vec2 ScreenDimensions;
-    Vec2 TileCounts;
+    Vec2 ScreenDimensions;          //window width and height
+    Vec2 TileCounts;                //number of tiles, horizontal and vertical, that fit on the screen
 
-    Vec2F TileOffset;
-    Vec2 ScreenRemainderOffset;
-    Vec2F PlayerDimensionOffset;
+    Vec2F TileOffset;               //number of pixels offset from the middle of a tile, ranges from 0 to tilelength
+    Vec2 ScreenRemainderOffset;     //screen dimensions % tilelength / 2, added to rendering coordinates for alignment
+    Vec2F PlayerDimensionOffset;    //player is set to the middle of the screen, render coordinates need to be offset by half of its dimensions
 
-    Vec2 MinCoordinates;
-
-    //float TileXOffset, TileYOffset;
-    //float PlayerPosXOffset, PlayerPosYOffset;
-    //float PlayerDimXOffset, PlayerDimYOffset;
-    //int ScreenXMin, ScreenYMin;
+    Vec2 MinCoordinates;            //Minimum world coordinates that show up on the screen
 
     void Init_Display(const char *windowTitle);
     inline void DrawWorld();
@@ -47,8 +42,8 @@ private:
 public:
 
     bool Running;
-    int MouseX, MouseY;
-    int MouseWorldX, MouseWorldY;
+    Vec2 MouseScreen;   //coordinates of the mouse on the screen
+    Vec2 MouseWorld;    //coordinates of the mouse relative to the world
 
     WindowRenderer(World &world, Player &player, int width, int height);
     ~WindowRenderer();

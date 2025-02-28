@@ -10,10 +10,10 @@ int main(int argc, char *argv[])
     }
 
     World world(200, 200, 100, 100, 0);
-    Player player;
+    Player player(1.5f, 2.5f, 0.1f);
 
     EntityManager entityManager(world, player);
-    WindowRenderer windowRenderer(world, player, 800, 600);
+    WindowRenderer windowRenderer(world, player, 1280, 800);
     InputManager inputManager(world, player, windowRenderer);
 
     Uint64 frameRate = 1000 / 60;

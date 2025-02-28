@@ -23,8 +23,6 @@ sudo apt-get install libsdl2-image-dev
 
 # TODO
 
-Either standardize Vec2F/Vec2 coordinates or just use float coordinates, Vec2 could come in handly for raycasting later though
-
 Fix the discover function for the renderer (use rays or something)
 
 Add debug info to screen instead of just using console
@@ -33,7 +31,7 @@ Make window resizeable/fullscreen
 
 Utilize render batching
 
-Fix performance issue with cascading explosives
+Fix performance issue with cascading explosives (use priority queue)
 
 Fix Makefile
 
@@ -49,6 +47,8 @@ Turn explosives into an entity instead of a tile
 Circle back on world queue: better implementation possible
 
 # Past Tasks
+
+Either standardize Vec2F/Vec2 coordinates or just use float coordinates, Vec2 could come in handly for raycasting later though
 
 Update bounding boxes and physics to allow rectangular player figures
 

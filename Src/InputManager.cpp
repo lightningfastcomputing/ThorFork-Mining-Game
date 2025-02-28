@@ -57,8 +57,8 @@ void InputManager::ManageInput()
 
 void InputManager::HandleMouseInput()
 {
-    int mouseState = SDL_GetMouseState(&(_Renderer.MouseX), &(_Renderer.MouseY));
-    int selectedX = (int)_Renderer.MouseWorldX, selectedY = (int)_Renderer.MouseWorldY;
+    int mouseState = SDL_GetMouseState(&(_Renderer.MouseScreen.x), &(_Renderer.MouseScreen.y));
+    int selectedX = (int)_Renderer.MouseWorld.x, selectedY = (int)_Renderer.MouseWorld.y;
     Uint64 now = SDL_GetTicks64();
 
     if (mouseState & SDL_BUTTON(1) && (now - MouseInputs.LeftLastTimePressed) > MouseInputs.LeftCooldown)
@@ -120,7 +120,7 @@ void InputManager::PollAndUpdate(int actionIndex)
 
 void InputManager::UpdatePlayer()
 {
-    float mouseWorldX = _Renderer.MouseWorldX, mouseWorldY = _Renderer.MouseWorldY;
+    float mouseWorldX = _Renderer.MouseWorld.x, mouseWorldY = _Renderer.MouseWorld.y;
 
     float adjustedX = _Player.BoundingBox.x + _Player.BoundingBox.w/2, adjustedY = _Player.BoundingBox.y + _Player.BoundingBox.h/2;
     float distance = Utils::Distance(adjustedX, adjustedX,  mouseWorldX, mouseWorldY);

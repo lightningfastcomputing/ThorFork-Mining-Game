@@ -184,7 +184,7 @@ void WindowRenderer::DebugInfo()
         printf("(%f,%f) PLAYER\n", _Player.BoundingBox.x, _Player.BoundingBox.y);
         printf("(%f,%f) PLAYER DIMENSIONS\n", _Player.HalfDimensions.x, _Player.HalfDimensions.y);
         // printf("DISTANCE FROM MOUSE AND PLAYER = %f\n", Utils::Distance(_Player.BoundingBox.x + _Player.HalfSize, _Player.BoundingBox.y + _Player.HalfSize, MouseWorldX, MouseWorldY));
-        printf("(%d,%d) (%d,%d) MOUSE\n", MouseX, MouseY, (int)MouseWorldX, (int)MouseWorldY);
+        printf("(%d,%d) (%d,%d) MOUSE\n", MouseScreen.x, MouseScreen.y, MouseWorld.x, MouseWorld.x);
         printf("(%d,%d),(%d,%d) TILES COVERED\n", _Player.xStart, _Player.yStart, _Player.xEnd, _Player.yEnd);
         printf("SCORE: %d\n", _Player.Score);
         printf("\n");
@@ -198,17 +198,17 @@ void WindowRenderer::DebugInfo()
 
 void WindowRenderer::DrawAndStoreSelectedTile()
 {
-    int x = (int)((MouseX + TileOffset.x - ScreenRemainderOffset.x + PlayerDimensionOffset.x) / TileLength),
-        y = (int)((MouseY + TileOffset.y - ScreenRemainderOffset.y + PlayerDimensionOffset.y) / TileLength);
-    MouseWorldX = x + MinCoordinates.x;
-    MouseWorldY = y + MinCoordinates.y;
+    int x = (int)((MouseScreen.x + TileOffset.x - ScreenRemainderOffset.x + PlayerDimensionOffset.x) / TileLength),
+        y = (int)((MouseScreen.y + TileOffset.y - ScreenRemainderOffset.y + PlayerDimensionOffset.y) / TileLength);
+
+    MouseWorld = {x + MinCoordinates.x, y + MinCoordinates.y};
 
     _Player.CanMine ? SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255) : SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
 
     int rendX = (int)x * TileLength - TileOffset.x + ScreenRemainderOffset.x - PlayerDimensionOffset.x,
         rendY = (int)y * TileLength - TileOffset.y + ScreenRemainderOffset.y - PlayerDimensionOffset.y;
 
-    if (_World.IsInBounds(MouseWorldX, MouseWorldY) && Discovered[(int)(MouseWorldX)][(int)(MouseWorldY)])
+    if (_World.IsInBounds(MouseWorld.x, MouseWorld.y) && Discovered[(MouseWorld.x)][(MouseWorld.y)])
     {
         SDL_RenderDrawLine(Renderer, rendX, rendY, rendX + TileLength, rendY);
         SDL_RenderDrawLine(Renderer, rendX, rendY, rendX, rendY + TileLength);

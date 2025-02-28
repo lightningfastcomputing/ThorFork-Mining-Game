@@ -21,7 +21,7 @@ public:
     int xStart, xEnd;
     int yStart, yEnd;
 
-    Player();
+    Player(float width, float height, float speed);
     ~Player();
     void UpdateVelocity(direction dir);
 };
