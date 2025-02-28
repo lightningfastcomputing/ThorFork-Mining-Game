@@ -19,15 +19,21 @@ private:
 
     bool **Discovered, Debug;
 
-    int ScreenWidth, ScreenHeight;
-    int HorizontalTileCount, VerticalTileCount;
-
     int TileLength;
 
-    float TileXOffset, TileYOffset;
-    float PlayerPosXOffset, PlayerPosYOffset;
-    float PlayerDimXOffset, PlayerDimYOffset;
-    int ScreenXMin, ScreenYMin;
+    Vec2 ScreenDimensions;
+    Vec2 TileCounts;
+
+    Vec2F TileOffset;
+    Vec2 ScreenRemainderOffset;
+    Vec2F PlayerDimensionOffset;
+
+    Vec2 MinCoordinates;
+
+    //float TileXOffset, TileYOffset;
+    //float PlayerPosXOffset, PlayerPosYOffset;
+    //float PlayerDimXOffset, PlayerDimYOffset;
+    //int ScreenXMin, ScreenYMin;
 
     void Init_Display(const char *windowTitle);
     inline void DrawWorld();

@@ -91,11 +91,11 @@ void World::Encapsulate(int count, Tile tile, int index)
 
 void World::Update()
 {
-    printf("Buffer vector size: %d\n", WorldActionsNext.size());
+    //printf("Buffer vector size: %d\n", WorldActionsNext.size());
     // insert the next set of actions into the current vector for execution
     WorldActionsNow.insert(WorldActionsNow.end(), WorldActionsNext.begin(), WorldActionsNext.end());
     WorldActionsNext.clear();
-    printf("Action vector size: %d\n", WorldActionsNow.size());
+    //printf("Action vector size: %d\n", WorldActionsNow.size());
 
     for (int i = 0; i < WorldActionsNow.size();)
     {
@@ -122,7 +122,6 @@ void World::DestroyTile(int x, int y)
 {
     if (IsInBounds(x, y))
     {
-        std::vector<WorldAction> actions;
         switch (tiles[x][y])
         {
         case AIR:
@@ -140,7 +139,7 @@ void World::DestroyTile(int x, int y)
             adjacents[3] = {x, y + 1};
 
             WorldActionsNext.push_back({[this, x, y]()
-                               { this->ChangeTile(x, y, AIR); }, 5});
+                               { this->ChangeTile(x, y, AIR); }, 0});
             for (int i = 0; i < 4; i++)
             {
                 Vec2 point = adjacents[i];

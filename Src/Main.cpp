@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     WindowRenderer windowRenderer(world, player, 800, 600);
     InputManager inputManager(world, player, windowRenderer);
 
-    Uint64 frameRate = 1000 / 10;
+    Uint64 frameRate = 1000 / 60;
     Game game(frameRate, world, entityManager, inputManager, windowRenderer);
 
     game.Start();
