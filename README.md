@@ -35,6 +35,8 @@ Fix performance issue with cascading explosives (use priority queue)
 
 Fix Makefile
 
+Fix rendering again (wide players force x-level gen to be off)
+
 
 # Ideas
 

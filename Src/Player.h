@@ -11,6 +11,7 @@ public:
     const float EPSILON = 0.001;
     SDL_FRect BoundingBox;
     Vec2F HalfDimensions;
+    Vec2F Center;
     float Speed;
     Vec2F Velocity;
     direction Direction;

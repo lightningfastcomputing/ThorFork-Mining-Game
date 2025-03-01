@@ -4,6 +4,8 @@ EntityManager::EntityManager(World &world, Player &player) : _World(world), _Pla
 {
     _Player.BoundingBox.x = _World.Width / 2;
     _Player.BoundingBox.y = _World.Height / 2;
+
+    _Player.Center = {_Player.BoundingBox.x + _Player.HalfDimensions.x, _Player.BoundingBox.y + _Player.HalfDimensions.y};
 }
 
 EntityManager::~EntityManager()
@@ -98,5 +100,6 @@ void EntityManager::UpdatePlayerPosition()
     xEnd = (int)SDL_floorf(x + w);
     yEnd = (int)SDL_floorf(y + h);
 
+    _Player.Center = {_Player.BoundingBox.x + _Player.HalfDimensions.x, _Player.BoundingBox.y + _Player.HalfDimensions.y};
     _Player.Velocity = {0, 0};
 }

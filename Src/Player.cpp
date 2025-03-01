@@ -7,6 +7,7 @@ Player::Player(float width, float height, float speed)
     BoundingBox.w = width;
     BoundingBox.h = height;
     HalfDimensions = {BoundingBox.w/2, BoundingBox.h/2};
+    Center = {BoundingBox.x + HalfDimensions.x, BoundingBox.y + HalfDimensions.y};
     Speed = speed; // tiles per tick, dont go too fast
     Velocity = {0, 0};
     Direction = NONE;

@@ -82,21 +82,43 @@ void WindowRenderer::Reveal()
 }
 void WindowRenderer::Discover()
 {
-    int x = _Player.BoundingBox.x, y = _Player.BoundingBox.y;
-    int xStart = x - 5, yStart = y - 5;
-    int xEnd = x + 5, yEnd = y + 5;
-    for (int i = xStart; i < xEnd; i++)
+    // int x = _Player.BoundingBox.x, y = _Player.BoundingBox.y;
+    // int xStart = x - 5, yStart = y - 5;
+    // int xEnd = x + 5, yEnd = y + 5;
+    // for (int i = xStart; i < xEnd; i++)
+    // {
+    //     for (int j = yStart; j < yEnd; j++)
+    //     {
+    //         if (_World.IsInBounds(i, j) &&
+    //             ((_World.IsInBounds(i - 1, j) && _World.tiles[i - 1][j] == AIR) ||
+    //              (_World.IsInBounds(i + 1, j) && _World.tiles[i + 1][j] == AIR) ||
+    //              (_World.IsInBounds(i, j - 1) && _World.tiles[i][j - 1] == AIR) ||
+    //              (_World.IsInBounds(i, j + 1) && _World.tiles[i][j + 1] == AIR)))
+    //         {
+    //             Discovered[i][j] = true;
+    //         }
+    //     }
+    // }
+
+    std::vector<Ray> rays;
+
+    rays.push_back(Ray(_Player.Center, {1, 0}, 5));
+    rays.push_back(Ray(_Player.Center, {1, 1}, 5));
+    rays.push_back(Ray(_Player.Center, {0, 1}, 5));
+    rays.push_back(Ray(_Player.Center, {-1, 1}, 5));
+    rays.push_back(Ray(_Player.Center, {-1, 0}, 5));
+    rays.push_back(Ray(_Player.Center, {-1, -1}, 5));
+    rays.push_back(Ray(_Player.Center, {0, -1}, 5));
+    rays.push_back(Ray(_Player.Center, {1, -1}, 5));
+
+    for (Ray ray : rays)
     {
-        for (int j = yStart; j < yEnd; j++)
+        std::vector<Vec2> tiles = ray.GetTiles();
+        for (Vec2 tile : tiles)
         {
-            if (_World.IsInBounds(i, j) &&
-                ((_World.IsInBounds(i - 1, j) && _World.tiles[i - 1][j] == AIR) ||
-                 (_World.IsInBounds(i + 1, j) && _World.tiles[i + 1][j] == AIR) ||
-                 (_World.IsInBounds(i, j - 1) && _World.tiles[i][j - 1] == AIR) ||
-                 (_World.IsInBounds(i, j + 1) && _World.tiles[i][j + 1] == AIR)))
-            {
-                Discovered[i][j] = true;
-            }
+            Discovered[tile.x][tile.y] = true;
+            if (_World.tiles[tile.x][tile.y] != AIR)
+                break;
         }
     }
 }
@@ -127,7 +149,7 @@ void WindowRenderer::ClearFrame()
     {
         printf("RenderClear failed, %s\n", SDL_GetError());
     }
-    system("clear");
+    // system("clear");
 }
 
 void WindowRenderer::ToggleDebug() { Debug = !Debug; }
