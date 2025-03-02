@@ -6,10 +6,65 @@ EntityManager::EntityManager(World &world, Player &player) : _World(world), _Pla
     _Player.BoundingBox.y = _World.Height / 2;
 
     _Player.Center = {_Player.BoundingBox.x + _Player.HalfDimensions.x, _Player.BoundingBox.y + _Player.HalfDimensions.y};
+
+    _Player.DiscoveredTiles = new bool *[_World.Width];
+    for (int i = 0; i < _World.Width; i++)
+    {
+        _Player.DiscoveredTiles[i] = new bool[_World.Height];
+        for (int j = 0; j < _World.Height; j++)
+            _Player.DiscoveredTiles[i][j] = false;
+    }
 }
 
 EntityManager::~EntityManager()
 {
+    for (int i = 0; i < _World.Width; i++)
+    {
+        delete[] _Player.DiscoveredTiles[i];
+    }
+    delete[] _Player.DiscoveredTiles;
+}
+
+void EntityManager::Update() {
+    UpdatePlayerPosition();
+    PlayerRadialDiscover();
+}
+
+//space and computation tradeoff: use more rays to parallelize the computation at the cost of space
+void EntityManager::PlayerRadialDiscover()
+{
+    Ray ray(_Player.Center, 0, _Player.DiscoverRadius);
+
+    std::vector<Vec2> tiles;
+    Vec2F rayPos = ray.Origin;
+
+    int numRays = (int)(2 * PI * ray.Length) + 1; // aproximation of how many rays are needed to get a clean discovery radius
+    float dTheta = (2 * PI) / numRays;
+    float theta = 0;
+
+    for (int i = 0; i < numRays; i++)
+    {
+
+        Vec2F dir = {SDL_cosf(theta), SDL_sinf(theta)};
+
+        for (float t = 0; t < ray.Length; t += 0.5f) //advance by half a tile length
+        {
+            rayPos = ray.Origin + (dir * t);
+
+            Vec2 tile = {(int)rayPos.x, (int)rayPos.y};
+
+            if (_World.IsInBounds(tile.x, tile.y))
+            {
+                _Player.DiscoveredTiles[tile.x][tile.y] = true;
+
+                if (_World.tiles[tile.x][tile.y] != AIR)
+                {
+                    break; //once the ray hits a wall, stop iterating
+                }
+            }
+        }
+        theta += dTheta;
+    }
 }
 
 void EntityManager::UpdatePlayerPosition()

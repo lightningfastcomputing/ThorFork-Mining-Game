@@ -9,10 +9,12 @@ class EntityManager
 private:
     World &_World;
     Player &_Player;
+    void UpdatePlayerPosition();
+    void PlayerRadialDiscover();
 
 public:
     EntityManager(World &world, Player &player);
     ~EntityManager();
-    void UpdatePlayerPosition();
+    void Update();
 };
 #endif

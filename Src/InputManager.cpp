@@ -28,8 +28,8 @@ InputManager::InputManager(World &world, Player &player, WindowRenderer &rendere
 
     MouseInputs = {0, 0, 0, 0};
 
-    ActionInputs[REVEAL] = {SDL_SCANCODE_TAB, 500, 0, [this]()
-                            { Reveal(); }};
+    // ActionInputs[REVEAL] = {SDL_SCANCODE_TAB, 500, 0, [this]()
+    //                         { Reveal(); }};
     ActionInputs[TOGGLE_DEBUG] = {SDL_SCANCODE_F1, 500, 0, [this]()
                                   { ToggleDebug(); }};
     ActionInputs[EXIT] = {SDL_SCANCODE_ESCAPE, 100, 0, [this]()
@@ -131,6 +131,5 @@ void InputManager::UpdatePlayer()
     _Player.CanMine = true;//(distance <= _Player.MiningRadius) && !selectedIsInsidePlayer;
 }
 
-void InputManager::Reveal() { this->_Renderer.Reveal(); }
 void InputManager::ToggleDebug() { this->_Renderer.ToggleDebug(); }
 void InputManager::Exit() { this->Running = false; }

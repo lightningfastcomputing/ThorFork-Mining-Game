@@ -3,7 +3,6 @@
 Game::Game(Uint64 frameRate, World &world, EntityManager &entityManager, InputManager &inputManager, WindowRenderer &windowRenderer)
     : FrameRate(frameRate), _World(world), _EntityManager(entityManager), _InputManager(inputManager), _WindowRenderer(windowRenderer)
 {
-    _WindowRenderer.Discover();
 
 }
 Game::~Game()
@@ -30,7 +29,7 @@ void Game::Start()
         _WindowRenderer.RenderFrame();
         _InputManager.ManageInput();
         _World.Update();
-        _EntityManager.UpdatePlayerPosition();
+        _EntityManager.Update();
 
         Uint64 frameTime = SDL_GetTicks64() - frameStart;
         if (frameTime < FrameRate)

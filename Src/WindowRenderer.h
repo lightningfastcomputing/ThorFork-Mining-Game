@@ -14,10 +14,10 @@ private:
     SDL_Renderer *Renderer = nullptr;
     SDL_Texture *Textures[4] = {nullptr};
 
-    World &_World;
-    Player &_Player;
+    const World &_World;
+    const Player &_Player;
 
-    bool **Discovered, Debug;
+    bool Debug;
 
     int TileLength;
 
@@ -45,11 +45,9 @@ public:
     Vec2 MouseScreen;   //coordinates of the mouse on the screen
     Vec2 MouseWorld;    //coordinates of the mouse relative to the world
 
-    WindowRenderer(World &world, Player &player, int width, int height);
+    WindowRenderer(const World &world, const Player &player, int width, int height);
     ~WindowRenderer();
 
-    void Reveal();
-    void Discover();
     bool IsDiscovered(int x, int y);
     void RenderFrame();
     void ClearFrame();

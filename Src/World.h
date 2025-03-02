@@ -41,7 +41,7 @@ public:
 
     void DestroyTile(int x, int y);
 
-    bool IsInBounds(int x, int y) {
+    bool IsInBounds(int x, int y) const {
         return (x >= 0 && x < Width && y >= 0 && y < Height);
     };
 };

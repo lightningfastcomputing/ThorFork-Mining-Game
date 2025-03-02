@@ -9,15 +9,21 @@ private:
 
 public:
     const float EPSILON = 0.001;
+    bool **DiscoveredTiles;
+
     SDL_FRect BoundingBox;
     Vec2F HalfDimensions;
     Vec2F Center;
+
     float Speed;
     Vec2F Velocity;
+
     direction Direction;
+    
     int Score;
     bool CanMine;
     float MiningRadius;
+    float DiscoverRadius;
 
     int xStart, xEnd;
     int yStart, yEnd;

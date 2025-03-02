@@ -14,6 +14,7 @@ Player::Player(float width, float height, float speed)
     Score = 0;
     CanMine = false;
     MiningRadius = 10.0f;
+    DiscoverRadius = 10.0f;
 
     //tiles inhabited
     xStart = 0;
