@@ -23,8 +23,6 @@ sudo apt-get install libsdl2-image-dev
 
 # TODO
 
-Fix the discover function for the renderer (use rays or something)
-
 Add debug info to screen instead of just using console
 
 Make window resizeable/fullscreen
@@ -40,15 +38,16 @@ Fix rendering again (wide players force x-level gen to be off)
 
 # Ideas
 
+
 Tie view and tilesize to player size
 
 Fix entity tunneling through world tiles (for now, just make the player slow)
 
 Turn explosives into an entity instead of a tile
 
-Circle back on world queue: better implementation possible
-
 # Past Tasks
+
+Fix the discover function for the renderer (use rays or something)
 
 Either standardize Vec2F/Vec2 coordinates or just use float coordinates, Vec2 could come in handly for raycasting later though
 
