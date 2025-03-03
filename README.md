@@ -25,15 +25,13 @@ sudo apt-get install libsdl2-ttf-dev
 
 # TODO
 
-Utilize render batching
-
 Fix performance issue with cascading explosives (use priority queue)
 
 Fix Makefile
 
 Fix rendering again (wide players force x-level gen to be off)
 
-use raycasting to determine block to be mined
+Use raycasting to determine block to be mined
 
 
 # Ideas
@@ -44,9 +42,11 @@ Fix entity tunneling through world tiles (for now, just make the player slow)
 
 Turn explosives into an entity instead of a tile
 
+Investigate rendering with RenderDoc
+
 # Past Tasks
 
-
+Utilize render batching
 
 Make window resizeable/fullscreen
 

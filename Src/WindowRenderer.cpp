@@ -26,6 +26,8 @@ void WindowRenderer::Init_Display(const char *windowTitle)
     }
     SDL_SetWindowMinimumSize(Window, 640, 480);
 
+    SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");
+
     Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_SOFTWARE | SDL_RENDERER_PRESENTVSYNC);
     if (!Renderer)
     {
