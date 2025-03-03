@@ -3,4 +3,5 @@
 *.h.gch
 *.txt
 .vscode/
+Build/
 *.txt
