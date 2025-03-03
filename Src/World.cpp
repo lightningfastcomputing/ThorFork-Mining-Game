@@ -97,7 +97,7 @@ void World::Update()
     WorldActionsNext.clear();
     //printf("Action vector size: %d\n", WorldActionsNow.size());
 
-    for (int i = 0; i < WorldActionsNow.size();)
+    for (unsigned long i = 0; i < WorldActionsNow.size();)
     {
         WorldAction &worldAction = WorldActionsNow[i];
         worldAction.TickDelay--;

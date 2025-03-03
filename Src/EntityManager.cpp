@@ -57,9 +57,9 @@ void EntityManager::PlayerRadialDiscover()
             {
                 _Player.DiscoveredTiles[tile.x][tile.y] = true;
 
-                if (_World.tiles[tile.x][tile.y] != AIR)
+                if (_World.tiles[tile.x][tile.y] != AIR || !_World.IsInBounds(tile.x, tile.y))
                 {
-                    break; //once the ray hits a wall, stop iterating
+                    break; //once the ray hits a wall or OOB, stop iterating
                 }
             }
         }

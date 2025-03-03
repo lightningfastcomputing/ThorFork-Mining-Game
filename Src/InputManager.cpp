@@ -120,13 +120,13 @@ void InputManager::PollAndUpdate(int actionIndex)
 
 void InputManager::UpdatePlayer()
 {
-    float mouseWorldX = _Renderer.MouseWorld.x, mouseWorldY = _Renderer.MouseWorld.y;
+    //float mouseWorldX = _Renderer.MouseWorld.x, mouseWorldY = _Renderer.MouseWorld.y;
 
-    float adjustedX = _Player.BoundingBox.x + _Player.BoundingBox.w/2, adjustedY = _Player.BoundingBox.y + _Player.BoundingBox.h/2;
-    float distance = Utils::Distance(adjustedX, adjustedX,  mouseWorldX, mouseWorldY);
+    //float adjustedX = _Player.BoundingBox.x + _Player.BoundingBox.w/2, adjustedY = _Player.BoundingBox.y + _Player.BoundingBox.h/2;
+    //float distance = Utils::Distance(adjustedX, adjustedX,  mouseWorldX, mouseWorldY);
 
-    bool selectedIsInsidePlayer = (mouseWorldX >= _Player.xStart && mouseWorldX <= _Player.xEnd) &&
-                        (mouseWorldY >= _Player.yStart && mouseWorldY <= _Player.yEnd);  
+    //bool selectedIsInsidePlayer = (mouseWorldX >= _Player.xStart && mouseWorldX <= _Player.xEnd) &&
+    //                    (mouseWorldY >= _Player.yStart && mouseWorldY <= _Player.yEnd);  
 
     _Player.CanMine = true;//(distance <= _Player.MiningRadius) && !selectedIsInsidePlayer;
 }

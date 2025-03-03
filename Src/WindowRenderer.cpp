@@ -4,7 +4,7 @@ WindowRenderer::WindowRenderer(const World &world, const Player &player, int wid
 {
     ScreenDimensions = {width, height};
 
-    TileLength = 30;
+    TileLength = 32;
 
     TileCounts = {ScreenDimensions.x / TileLength, ScreenDimensions.y / TileLength};
     ScreenRemainderOffset = {(ScreenDimensions.x % TileLength) / 2, (ScreenDimensions.y % TileLength) / 2};
@@ -14,21 +14,7 @@ WindowRenderer::WindowRenderer(const World &world, const Player &player, int wid
     Running = true;
     Init_Display("Mining Game");
 }
-WindowRenderer::~WindowRenderer()
-{
-    if (Window)
-        SDL_DestroyWindow(Window);
-    if (Renderer)
-        SDL_DestroyRenderer(Renderer);
 
-    for (int i = 0; i < 4; i++)
-    {
-        if (Textures[i])
-        {
-            SDL_DestroyTexture(Textures[i]);
-        }
-    }
-}
 void WindowRenderer::Init_Display(const char *windowTitle)
 {
     Window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ScreenDimensions.x, ScreenDimensions.y, SDL_WINDOW_ALLOW_HIGHDPI);
@@ -41,6 +27,17 @@ void WindowRenderer::Init_Display(const char *windowTitle)
     if (!Renderer)
     {
         printf("SDL_CreateRenderer failed: %s\n", SDL_GetError());
+        Running = false;
+    }
+
+    if (TTF_Init() < 0) {
+        std::cerr << "TTF_Iinit() failed, " << TTF_GetError() << std::endl;
+    }
+
+    TextFont = TTF_OpenFont("Textures/Roboto.ttf", 20);
+    if (!TextFont)
+    {
+        std::cerr << "TTF_OpenFont failed: " << SDL_GetError() << std::endl;
         Running = false;
     }
 
@@ -58,6 +55,23 @@ void WindowRenderer::Init_Display(const char *windowTitle)
             Running = false;
         }
     }
+}
+
+WindowRenderer::~WindowRenderer()
+{
+    if (Window)
+        SDL_DestroyWindow(Window);
+    if (Renderer)
+        SDL_DestroyRenderer(Renderer);
+    if (TextFont)
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (Textures[i])
+            {
+                SDL_DestroyTexture(Textures[i]);
+            }
+        }
 }
 
 bool WindowRenderer::IsDiscovered(int x, int y)
@@ -84,7 +98,6 @@ void WindowRenderer::ClearFrame()
     {
         printf("RenderClear failed, %s\n", SDL_GetError());
     }
-    // system("clear");
 }
 
 void WindowRenderer::ToggleDebug() { Debug = !Debug; }
@@ -138,18 +151,33 @@ void WindowRenderer::DebugInfo()
     if (Debug)
     {
         DrawPlayerCollisionBox();
-        printf("(%f,%f) PLAYER\n", _Player.BoundingBox.x, _Player.BoundingBox.y);
-        printf("(%f,%f) PLAYER DIMENSIONS\n", _Player.HalfDimensions.x, _Player.HalfDimensions.y);
-        // printf("DISTANCE FROM MOUSE AND PLAYER = %f\n", Utils::Distance(_Player.BoundingBox.x + _Player.HalfSize, _Player.BoundingBox.y + _Player.HalfSize, MouseWorldX, MouseWorldY));
-        printf("(%d,%d) (%d,%d) MOUSE\n", MouseScreen.x, MouseScreen.y, MouseWorld.x, MouseWorld.x);
-        printf("(%d,%d),(%d,%d) TILES COVERED\n", _Player.xStart, _Player.yStart, _Player.xEnd, _Player.yEnd);
-        printf("SCORE: %d\n", _Player.Score);
-        printf("\n");
-        printf("TILELENGTH = %d\n", TileLength);
-        printf("xTILECOUNT = %d, yTILECOUNT = %d\n", TileCounts.x, TileCounts.y);
-        printf("xPLAYEROFFSET = %d, yPLAYEROFFSET = %d\n", ScreenRemainderOffset.x, ScreenRemainderOffset.y);
-        printf("xOFF = %f, yOFF = %f\n", TileOffset.x, TileOffset.y);
-        printf("xMIN = %d, yMIN = %d\n", MinCoordinates.x, MinCoordinates.y);
+
+        SDL_Rect textRect = {(int)(ScreenDimensions.x * 0.01f), (int)(ScreenDimensions.y * 0.01f), 0, 0};
+
+        std::string debugInfo = 
+        std::format("Player: ({:.2f},{:.2f})\n", _Player.Center.x, _Player.Center.y)
+        + std::format("Score: {}\n", _Player.Score)
+        + std::format("MouseScreen: ({},{})\n", MouseScreen.x, MouseScreen.y)
+        + std::format("MouseWorld: ({},{})\n", MouseWorld.x, MouseWorld.y)
+        + std::format("MinimumCoordinates: X={},Y={})\n", MinCoordinates.x, MinCoordinates.y) 
+        + std::format("TileCounts: X={}, Y={}\n", TileCounts.x, TileCounts.y)
+        + std::format("Offsets: X={:.2f}, Y={:.2f}\n", TileOffset.x, TileOffset.y);
+
+        SDL_Surface *textSurface = TTF_RenderText_Solid_Wrapped(TextFont, debugInfo.c_str(), {255, 255, 255, 255}, 0);
+        SDL_Texture *textTexture = SDL_CreateTextureFromSurface(Renderer, textSurface);
+        if (!textSurface)
+        {
+            std::cerr << "Unable to create text surface TTF_Error: " << TTF_GetError() << std::endl;
+            Running = false;
+        }
+
+        textRect.w = textSurface->w;
+        textRect.h = textSurface->h;
+
+        SDL_RenderCopy(Renderer, textTexture, NULL, &textRect);
+
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
     }
 }
 

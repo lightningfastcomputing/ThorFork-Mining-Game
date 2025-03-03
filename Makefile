@@ -1,13 +1,13 @@
-CC = g++
-CFLAGS = -Wall -g
-SDLFLAGS = -lSDL2main -lSDL2 -lSDL2_image -ggdb -O0
+CC = g++ 
+CFLAGS = -std=c++20
+SDLFLAGS = -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -ggdb -O0
 SRCDIR = Src/
 
 all:
-	$(CC) -c $(SRCDIR)World.cpp 
-	$(CC) -c $(SRCDIR)Player.cpp
-	$(CC) -c $(SRCDIR)EntityManager.cpp
-	$(CC) -c $(SRCDIR)WindowRenderer.cpp -lSDL2_image
-	$(CC) -c $(SRCDIR)InputManager.cpp
-	$(CC) -c $(SRCDIR)Game.cpp
+	$(CC) $(CFLAGS) -c $(SRCDIR)World.cpp 
+	$(CC) $(CFLAGS) -c $(SRCDIR)Player.cpp
+	$(CC) $(CFLAGS) -c $(SRCDIR)EntityManager.cpp
+	$(CC) $(CFLAGS) -c $(SRCDIR)WindowRenderer.cpp -lSDL2_image -lSDL2_ttf
+	$(CC) $(CFLAGS) -c $(SRCDIR)InputManager.cpp
+	$(CC) $(CFLAGS) -c $(SRCDIR)Game.cpp
 	$(CC) $(SRCDIR)Main.cpp -o Main.exe World.o Player.o EntityManager.o WindowRenderer.o InputManager.o Game.o $(SDLFLAGS)

@@ -21,9 +21,9 @@ sudo apt-get install libsdl2-dev
 
 sudo apt-get install libsdl2-image-dev
 
-# TODO
+sudo apt-get install libsdl2-ttf-dev
 
-Add debug info to screen instead of just using console
+# TODO
 
 Make window resizeable/fullscreen
 
@@ -38,7 +38,6 @@ Fix rendering again (wide players force x-level gen to be off)
 
 # Ideas
 
-
 Tie view and tilesize to player size
 
 Fix entity tunneling through world tiles (for now, just make the player slow)
@@ -46,6 +45,8 @@ Fix entity tunneling through world tiles (for now, just make the player slow)
 Turn explosives into an entity instead of a tile
 
 # Past Tasks
+
+Add debug info to screen instead of just using console
 
 Fix the discover function for the renderer (use rays or something)
 

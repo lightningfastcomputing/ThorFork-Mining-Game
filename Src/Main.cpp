@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     }
 
     World world(200, 200, 100, 100, 0);
-    Player player(1.5f, 2.5f, 0.3f);
+    Player player(1.5f, 2.5f, 0.15f);
 
     EntityManager entityManager(world, player);
     WindowRenderer windowRenderer(world, player, 1280, 800);
