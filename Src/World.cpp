@@ -91,26 +91,14 @@ void World::Encapsulate(int count, Tile tile, int index)
 
 void World::Update()
 {
-    // printf("Buffer vector size: %d\n", WorldActionsNext.size());
-    //  insert the next set of actions into the current vector for execution
-    WorldActionsNow.insert(WorldActionsNow.end(), WorldActionsNext.begin(), WorldActionsNext.end());
-    WorldActionsNext.clear();
-    // printf("Action vector size: %d\n", WorldActionsNow.size());
-
-    for (unsigned long i = 0; i < WorldActionsNow.size();)
+    while (!WorldActionQueue.empty() && WorldActionQueue.top().TickExecuted <= TicksPassed)
     {
-        WorldAction &worldAction = WorldActionsNow[i];
-        worldAction.TickDelay--;
-        if (worldAction.TickDelay <= 0)
-        {
-            worldAction.Action();
-            WorldActionsNow.erase(WorldActionsNow.begin() + i);
-        }
-        else
-        {
-            i++;
-        }
+        WorldAction worldAction = WorldActionQueue.top();
+        WorldActionQueue.pop();
+
+        worldAction.Action();
     }
+    TicksPassed++;
 }
 
 void World::ChangeTile(int x, int y, Tile tile)
@@ -128,8 +116,8 @@ void World::DestroyTile(int x, int y)
             return;
         case STONE:
         case GOLD:
-            WorldActionsNext.push_back({[this, x, y]()
-                                        { this->ChangeTile(x, y, AIR); }, 0});
+            WorldActionQueue.push({[this, x, y]()
+                                        { this->ChangeTile(x, y, AIR); }, TicksPassed});
             break;
         case EXPLOSIVE:
             Vec2 adjacents[4];
@@ -138,8 +126,8 @@ void World::DestroyTile(int x, int y)
             adjacents[2] = {x, y - 1};
             adjacents[3] = {x, y + 1};
 
-            WorldActionsNext.push_back({[this, x, y]()
-                                        { this->ChangeTile(x, y, AIR); }, 0});
+            WorldActionQueue.push({[this, x, y]()
+                                        { this->ChangeTile(x, y, AIR); }, TicksPassed});
             for (int i = 0; i < 4; i++)
             {
                 Vec2 point = adjacents[i];
@@ -147,8 +135,8 @@ void World::DestroyTile(int x, int y)
 
                 if (IsInBounds(x, y) && tiles[x][y] != AIR)
                 {
-                    WorldActionsNext.push_back({[this, x, y]()
-                                                { this->DestroyTile(x, y); }, 5});
+                    WorldActionQueue.push({[this, x, y]()
+                                                { this->DestroyTile(x, y); }, TicksPassed + 5});
                 }
             }
             break;
