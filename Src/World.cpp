@@ -91,11 +91,11 @@ void World::Encapsulate(int count, Tile tile, int index)
 
 void World::Update()
 {
-    //printf("Buffer vector size: %d\n", WorldActionsNext.size());
-    // insert the next set of actions into the current vector for execution
+    // printf("Buffer vector size: %d\n", WorldActionsNext.size());
+    //  insert the next set of actions into the current vector for execution
     WorldActionsNow.insert(WorldActionsNow.end(), WorldActionsNext.begin(), WorldActionsNext.end());
     WorldActionsNext.clear();
-    //printf("Action vector size: %d\n", WorldActionsNow.size());
+    // printf("Action vector size: %d\n", WorldActionsNow.size());
 
     for (unsigned long i = 0; i < WorldActionsNow.size();)
     {
@@ -129,7 +129,7 @@ void World::DestroyTile(int x, int y)
         case STONE:
         case GOLD:
             WorldActionsNext.push_back({[this, x, y]()
-                               { this->ChangeTile(x, y, AIR); }, 0});
+                                        { this->ChangeTile(x, y, AIR); }, 0});
             break;
         case EXPLOSIVE:
             Vec2 adjacents[4];
@@ -139,16 +139,16 @@ void World::DestroyTile(int x, int y)
             adjacents[3] = {x, y + 1};
 
             WorldActionsNext.push_back({[this, x, y]()
-                               { this->ChangeTile(x, y, AIR); }, 0});
+                                        { this->ChangeTile(x, y, AIR); }, 0});
             for (int i = 0; i < 4; i++)
             {
                 Vec2 point = adjacents[i];
                 int x = point.x, y = point.y;
 
-                if (tiles[x][y] != AIR)
+                if (IsInBounds(x, y) && tiles[x][y] != AIR)
                 {
                     WorldActionsNext.push_back({[this, x, y]()
-                                       { this->DestroyTile(x, y); }, 5});
+                                                { this->DestroyTile(x, y); }, 5});
                 }
             }
             break;

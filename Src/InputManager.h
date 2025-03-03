@@ -29,7 +29,7 @@ private:
     Player &_Player;
     WindowRenderer &_Renderer;
     Input MovementInputs[4];
-    Input ActionInputs[3];
+    Input ActionInputs[10];
     struct MouseInputs MouseInputs;
     const Uint8 *Keys;
     void HandleMouseInput();
@@ -38,6 +38,7 @@ private:
     void UpdatePlayer();
 
     void Reveal();
+    void ToggleFullScreen();
     void ToggleDebug();
     void Exit();
 

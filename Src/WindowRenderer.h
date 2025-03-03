@@ -23,7 +23,7 @@ private:
     const World &_World;
     const Player &_Player;
 
-    bool Debug;
+    bool Debug, Fullscreen;
 
     int TileLength;
 
@@ -52,7 +52,8 @@ public:
 
     WindowRenderer(const World &world, const Player &player, int width, int height);
     ~WindowRenderer();
-
+    void UpdateWindow();
+    void ToggleFullScreen();
     bool IsDiscovered(int x, int y);
     void RenderFrame();
     void ClearFrame();

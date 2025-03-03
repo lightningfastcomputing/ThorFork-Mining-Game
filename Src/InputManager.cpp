@@ -12,7 +12,8 @@ enum Action
 {
     REVEAL,
     TOGGLE_DEBUG,
-    EXIT
+    TOGGLE_FULLSCREEN,
+    EXIT,
 };
 
 InputManager::InputManager(World &world, Player &player, WindowRenderer &renderer) : _World(world),
@@ -30,10 +31,23 @@ InputManager::InputManager(World &world, Player &player, WindowRenderer &rendere
 
     // ActionInputs[REVEAL] = {SDL_SCANCODE_TAB, 500, 0, [this]()
     //                         { Reveal(); }};
-    ActionInputs[TOGGLE_DEBUG] = {SDL_SCANCODE_F1, 500, 0, [this]()
-                                  { ToggleDebug(); }};
-    ActionInputs[EXIT] = {SDL_SCANCODE_ESCAPE, 100, 0, [this]()
-                          { Exit(); }};
+    ActionInputs[TOGGLE_DEBUG] = {SDL_SCANCODE_F1,
+                                  500,
+                                  0,
+                                  [this]()
+                                  { this->_Renderer.ToggleDebug(); }};
+
+    ActionInputs[TOGGLE_FULLSCREEN] = {SDL_SCANCODE_F11,
+                                       1000,
+                                       0,
+                                       [this]()
+                                       { this->_Renderer.ToggleFullScreen(); }};
+
+    ActionInputs[EXIT] = {SDL_SCANCODE_ESCAPE,
+                          100,
+                          0,
+                          [this]()
+                          { this->Running = false; }};
 }
 
 InputManager::~InputManager()
@@ -48,8 +62,9 @@ void InputManager::ManageInput()
 
     HandleMovement();
 
-    PollAndUpdate(REVEAL);
+    // PollAndUpdate(REVEAL);
     PollAndUpdate(TOGGLE_DEBUG);
+    PollAndUpdate(TOGGLE_FULLSCREEN);
     PollAndUpdate(EXIT);
 
     UpdatePlayer();
@@ -120,16 +135,13 @@ void InputManager::PollAndUpdate(int actionIndex)
 
 void InputManager::UpdatePlayer()
 {
-    //float mouseWorldX = _Renderer.MouseWorld.x, mouseWorldY = _Renderer.MouseWorld.y;
+    // float mouseWorldX = _Renderer.MouseWorld.x, mouseWorldY = _Renderer.MouseWorld.y;
 
-    //float adjustedX = _Player.BoundingBox.x + _Player.BoundingBox.w/2, adjustedY = _Player.BoundingBox.y + _Player.BoundingBox.h/2;
-    //float distance = Utils::Distance(adjustedX, adjustedX,  mouseWorldX, mouseWorldY);
+    // float adjustedX = _Player.BoundingBox.x + _Player.BoundingBox.w/2, adjustedY = _Player.BoundingBox.y + _Player.BoundingBox.h/2;
+    // float distance = Utils::Distance(adjustedX, adjustedX,  mouseWorldX, mouseWorldY);
 
-    //bool selectedIsInsidePlayer = (mouseWorldX >= _Player.xStart && mouseWorldX <= _Player.xEnd) &&
-    //                    (mouseWorldY >= _Player.yStart && mouseWorldY <= _Player.yEnd);  
+    // bool selectedIsInsidePlayer = (mouseWorldX >= _Player.xStart && mouseWorldX <= _Player.xEnd) &&
+    //                     (mouseWorldY >= _Player.yStart && mouseWorldY <= _Player.yEnd);
 
-    _Player.CanMine = true;//(distance <= _Player.MiningRadius) && !selectedIsInsidePlayer;
+    _Player.CanMine = true; //(distance <= _Player.MiningRadius) && !selectedIsInsidePlayer;
 }
-
-void InputManager::ToggleDebug() { this->_Renderer.ToggleDebug(); }
-void InputManager::Exit() { this->Running = false; }

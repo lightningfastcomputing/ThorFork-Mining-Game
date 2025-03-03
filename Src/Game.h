@@ -6,17 +6,17 @@
 #include "EntityManager.h"
 #include <SDL2/SDL.h>
 
-
 class Game
 {
 private:
+    Uint64 FrameRate;
     World &_World;
+    EntityManager &_EntityManager;
     InputManager &_InputManager;
     WindowRenderer &_WindowRenderer;
-    EntityManager &_EntityManager;
+    bool Running;
 
 public:
-    Uint64 FrameRate;
     Game(Uint64 frameRate, World &world, EntityManager &entityManager, InputManager &inputManager, WindowRenderer &windowRenderer);
     ~Game();
     void Start();

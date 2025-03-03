@@ -10,6 +10,7 @@ WindowRenderer::WindowRenderer(const World &world, const Player &player, int wid
     ScreenRemainderOffset = {(ScreenDimensions.x % TileLength) / 2, (ScreenDimensions.y % TileLength) / 2};
     PlayerDimensionOffset = {_Player.HalfDimensions.x * TileLength, _Player.HalfDimensions.y * TileLength};
 
+    Fullscreen = false;
     Debug = false;
     Running = true;
     Init_Display("Mining Game");
@@ -17,20 +18,23 @@ WindowRenderer::WindowRenderer(const World &world, const Player &player, int wid
 
 void WindowRenderer::Init_Display(const char *windowTitle)
 {
-    Window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ScreenDimensions.x, ScreenDimensions.y, SDL_WINDOW_ALLOW_HIGHDPI);
+    Window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ScreenDimensions.x, ScreenDimensions.y, SDL_WINDOW_RESIZABLE);
     if (!Window)
     {
         printf("SDL_CreateWindow failed: %s\n", SDL_GetError());
         Running = false;
     }
-    Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_SOFTWARE);
+    SDL_SetWindowMinimumSize(Window, 640, 480);
+
+    Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_SOFTWARE | SDL_RENDERER_PRESENTVSYNC);
     if (!Renderer)
     {
         printf("SDL_CreateRenderer failed: %s\n", SDL_GetError());
         Running = false;
     }
 
-    if (TTF_Init() < 0) {
+    if (TTF_Init() < 0)
+    {
         std::cerr << "TTF_Iinit() failed, " << TTF_GetError() << std::endl;
     }
 
@@ -74,10 +78,25 @@ WindowRenderer::~WindowRenderer()
         }
 }
 
+void WindowRenderer::UpdateWindow() {
+    SDL_GetWindowSize(Window, &ScreenDimensions.x, &ScreenDimensions.y);
+
+    TileCounts = {ScreenDimensions.x / TileLength, ScreenDimensions.y / TileLength};
+    ScreenRemainderOffset = {(ScreenDimensions.x % TileLength) / 2, (ScreenDimensions.y % TileLength) / 2};
+    PlayerDimensionOffset = {_Player.HalfDimensions.x * TileLength, _Player.HalfDimensions.y * TileLength};
+}
+
+void WindowRenderer::ToggleFullScreen() {
+    Fullscreen = !Fullscreen;
+    Uint32 flag = Fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
+    SDL_SetWindowFullscreen(Window, flag);
+}
+
 bool WindowRenderer::IsDiscovered(int x, int y)
 {
     return _World.IsInBounds(x, y) && _Player.DiscoveredTiles[x][y];
 }
+
 void WindowRenderer::RenderFrame()
 {
     float x = _Player.BoundingBox.x, y = _Player.BoundingBox.y;
@@ -154,14 +173,13 @@ void WindowRenderer::DebugInfo()
 
         SDL_Rect textRect = {(int)(ScreenDimensions.x * 0.01f), (int)(ScreenDimensions.y * 0.01f), 0, 0};
 
-        std::string debugInfo = 
-        std::format("Player: ({:.2f},{:.2f})\n", _Player.Center.x, _Player.Center.y)
-        + std::format("Score: {}\n", _Player.Score)
-        + std::format("MouseScreen: ({},{})\n", MouseScreen.x, MouseScreen.y)
-        + std::format("MouseWorld: ({},{})\n", MouseWorld.x, MouseWorld.y)
-        + std::format("MinimumCoordinates: X={},Y={})\n", MinCoordinates.x, MinCoordinates.y) 
-        + std::format("TileCounts: X={}, Y={}\n", TileCounts.x, TileCounts.y)
-        + std::format("Offsets: X={:.2f}, Y={:.2f}\n", TileOffset.x, TileOffset.y);
+        std::string debugInfo =
+            std::format("Player: ({:.2f},{:.2f})\n", _Player.Center.x, _Player.Center.y) +
+            std::format("Score: {}\n", _Player.Score) + std::format("MouseScreen: ({},{})\n", MouseScreen.x, MouseScreen.y) +
+            std::format("MouseWorld: ({},{})\n", MouseWorld.x, MouseWorld.y) +
+            std::format("MinimumCoordinates: X={},Y={})\n", MinCoordinates.x, MinCoordinates.y) +
+            std::format("TileCounts: X={}, Y={}\n", TileCounts.x, TileCounts.y) +
+            std::format("Offsets: X={:.2f}, Y={:.2f}\n", TileOffset.x, TileOffset.y);
 
         SDL_Surface *textSurface = TTF_RenderText_Solid_Wrapped(TextFont, debugInfo.c_str(), {255, 255, 255, 255}, 0);
         SDL_Texture *textTexture = SDL_CreateTextureFromSurface(Renderer, textSurface);

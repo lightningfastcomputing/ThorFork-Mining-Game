@@ -3,7 +3,7 @@
 Game::Game(Uint64 frameRate, World &world, EntityManager &entityManager, InputManager &inputManager, WindowRenderer &windowRenderer)
     : FrameRate(frameRate), _World(world), _EntityManager(entityManager), _InputManager(inputManager), _WindowRenderer(windowRenderer)
 {
-
+    Running = true;
 }
 Game::~Game()
 {
@@ -11,20 +11,30 @@ Game::~Game()
 
 void Game::Start()
 {
-    SDL_Event window_event;
+    SDL_Event event;
 
-    bool running = _InputManager.Running && _WindowRenderer.Running;
-    while (running)
+    Running = this->Running && _InputManager.Running && _WindowRenderer.Running;
+    while (Running)
     {
         Uint64 frameStart = SDL_GetTicks64();
 
-        if (SDL_PollEvent(&window_event))
+        while (SDL_PollEvent(&event))
         {
-            if (window_event.type == SDL_QUIT)
+            if (event.type == SDL_QUIT)
             {
-                running = false;
+                Running = false;
+            }
+            if (event.type == SDL_WINDOWEVENT)
+            {
+                switch (event.window.event)
+                {
+                case SDL_WINDOWEVENT_RESIZED:
+                    _WindowRenderer.UpdateWindow();
+                    break;
+                }
             }
         }
+
         _WindowRenderer.ClearFrame();
         _WindowRenderer.RenderFrame();
         _InputManager.ManageInput();
@@ -38,6 +48,6 @@ void Game::Start()
         }
 
         // running = false;
-        running = _InputManager.Running && _WindowRenderer.Running;
+        Running = this->Running && _InputManager.Running && _WindowRenderer.Running;
     }
 }
