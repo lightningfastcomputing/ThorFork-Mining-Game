@@ -2,13 +2,13 @@
 
 WindowRenderer::WindowRenderer(const World &world, const Player &player, int width, int height) : _World(world), _Player(player)
 {
-    ScreenDimensions = {width, height};
+    WindowDimensions = {width, height};
 
-    TileLength = 32;
+    MouseWorld = {-1, -1};
 
-    TileCounts = {ScreenDimensions.x / TileLength, ScreenDimensions.y / TileLength};
-    ScreenRemainderOffset = {(ScreenDimensions.x % TileLength) / 2, (ScreenDimensions.y % TileLength) / 2};
-    PlayerDimensionOffset = {_Player.HalfDimensions.x * TileLength, _Player.HalfDimensions.y * TileLength};
+    TileLength = 32; //keep this a power of 2 for quick division
+
+    TileCounts = {WindowDimensions.x / TileLength, WindowDimensions.y / TileLength};
 
     Fullscreen = false;
     Debug = false;
@@ -18,7 +18,7 @@ WindowRenderer::WindowRenderer(const World &world, const Player &player, int wid
 
 void WindowRenderer::Init_Display(const char *windowTitle)
 {
-    Window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ScreenDimensions.x, ScreenDimensions.y, SDL_WINDOW_RESIZABLE);
+    Window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WindowDimensions.x, WindowDimensions.y, SDL_WINDOW_RESIZABLE);
     if (!Window)
     {
         printf("SDL_CreateWindow failed: %s\n", SDL_GetError());
@@ -80,17 +80,19 @@ WindowRenderer::~WindowRenderer()
         }
 }
 
-void WindowRenderer::UpdateWindow() {
-    SDL_GetWindowSize(Window, &ScreenDimensions.x, &ScreenDimensions.y);
+void WindowRenderer::UpdateWindow()
+{
+    SDL_GetWindowSize(Window, &WindowDimensions.x, &WindowDimensions.y);
 
-    TileCounts = {ScreenDimensions.x / TileLength, ScreenDimensions.y / TileLength};
-    ScreenRemainderOffset = {(ScreenDimensions.x % TileLength) / 2, (ScreenDimensions.y % TileLength) / 2};
-    PlayerDimensionOffset = {_Player.HalfDimensions.x * TileLength, _Player.HalfDimensions.y * TileLength};
+    TileCounts = {WindowDimensions.x / TileLength, WindowDimensions.y / TileLength};
 }
 
-void WindowRenderer::ToggleFullScreen() {
+void WindowRenderer::ToggleDebug() { Debug = !Debug; }
+
+void WindowRenderer::ToggleFullScreen()
+{
     Fullscreen = !Fullscreen;
-    Uint32 flag = Fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
+    Uint32 flag = Fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
     SDL_SetWindowFullscreen(Window, flag);
 }
 
@@ -101,9 +103,10 @@ bool WindowRenderer::IsDiscovered(int x, int y)
 
 void WindowRenderer::RenderFrame()
 {
-    float x = _Player.BoundingBox.x, y = _Player.BoundingBox.y;
-    TileOffset = {(x - (int)x) * TileLength, (y - (int)y) * TileLength};
+    float x = _Player.Center.x, y = _Player.Center.y;
+    TileOffset = {static_cast<int>((x - SDL_floorf(x)) * TileLength), static_cast<int>((y - SDL_floorf(y)) * TileLength)};
     MinCoordinates = {(int)x - (TileCounts.x / 2), (int)y - (TileCounts.y / 2)};
+    MaxCoordinates = {MinCoordinates.x + TileCounts.x, MinCoordinates.y + TileCounts.y};
 
     DrawWorld();
     DrawPlayer();
@@ -121,21 +124,19 @@ void WindowRenderer::ClearFrame()
     }
 }
 
-void WindowRenderer::ToggleDebug() { Debug = !Debug; }
-
 void WindowRenderer::DrawWorld()
 {
     SDL_Rect rect;
-    rect.x = -TileOffset.x - TileLength + ScreenRemainderOffset.x - PlayerDimensionOffset.x;
-    rect.y = -TileOffset.y + ScreenRemainderOffset.y - PlayerDimensionOffset.y;
+    rect.x = -TileOffset.x;
+    rect.y = -TileOffset.y;
     rect.w = TileLength;
     rect.h = TileLength;
 
-    for (int i = MinCoordinates.x - 1; i < MinCoordinates.x + TileCounts.x + 2; i++)
+    for (int i = MinCoordinates.x; i <= MaxCoordinates.x + 1; i++)
     {
-        for (int j = MinCoordinates.y; j < MinCoordinates.y + TileCounts.y + 3; j++)
+        for (int j = MinCoordinates.y; j <= MaxCoordinates.y + 1; j++)
         {
-            if (i < 0 || j < 0 || i > _World.Width - 1 || j > _World.Height - 1 || !_Player.DiscoveredTiles[i][j])
+            if (i < 0 || j < 0 || i >= _World.Width || j >= _World.Height || !_Player.DiscoveredTiles[i][j])
             {
                 SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
                 SDL_RenderFillRect(Renderer, &rect);
@@ -148,7 +149,7 @@ void WindowRenderer::DrawWorld()
             rect.y += TileLength;
         }
         rect.x += TileLength;
-        rect.y = -TileOffset.y + ScreenRemainderOffset.y - PlayerDimensionOffset.y;
+        rect.y = -TileOffset.y;
     }
 }
 
@@ -158,8 +159,10 @@ void WindowRenderer::DrawPlayer()
     Vec2F halfDimensions = _Player.HalfDimensions;
     SDL_Rect displayRect;
 
-    displayRect.x = (ScreenDimensions.x / 2) - (int)(halfDimensions.x * TileLength);
-    displayRect.y = (ScreenDimensions.y / 2) - (int)(halfDimensions.y * TileLength);
+    Vec2 windowCenter = {WindowDimensions.x >> 1, WindowDimensions.y >> 1};
+
+    displayRect.x = (windowCenter.x - windowCenter.x%TileLength) - (int)(halfDimensions.x * TileLength);
+    displayRect.y = (windowCenter.y - windowCenter.y%TileLength) - (int)(halfDimensions.y * TileLength);
     displayRect.w = playerRect.w * TileLength;
     displayRect.h = playerRect.h * TileLength;
 
@@ -173,15 +176,17 @@ void WindowRenderer::DebugInfo()
     {
         DrawPlayerCollisionBox();
 
-        SDL_Rect textRect = {(int)(ScreenDimensions.x * 0.01f), (int)(ScreenDimensions.y * 0.01f), 0, 0};
+        SDL_Rect textRect = {(int)(WindowDimensions.x * 0.01f), (int)(WindowDimensions.y * 0.01f), 0, 0};
 
         std::string debugInfo =
+            std::format("Screen Width, Height: ({},{})\n", WindowDimensions.x, WindowDimensions.y) +
             std::format("Player: ({:.2f},{:.2f})\n", _Player.Center.x, _Player.Center.y) +
             std::format("Score: {}\n", _Player.Score) + std::format("MouseScreen: ({},{})\n", MouseScreen.x, MouseScreen.y) +
             std::format("MouseWorld: ({},{})\n", MouseWorld.x, MouseWorld.y) +
-            std::format("MinimumCoordinates: X={},Y={})\n", MinCoordinates.x, MinCoordinates.y) +
+            std::format("MinimumCoordinates: X={},Y={}\n", MinCoordinates.x, MinCoordinates.y) +
+            std::format("MinimumCoordinates: X={},Y={}\n", MaxCoordinates.x, MaxCoordinates.y) +
             std::format("TileCounts: X={}, Y={}\n", TileCounts.x, TileCounts.y) +
-            std::format("Offsets: X={:.2f}, Y={:.2f}\n", TileOffset.x, TileOffset.y);
+            std::format("Offsets: X={}, Y={}\n", TileOffset.x, TileOffset.y);
 
         SDL_Surface *textSurface = TTF_RenderText_Solid_Wrapped(TextFont, debugInfo.c_str(), {255, 255, 255, 255}, 0);
         SDL_Texture *textTexture = SDL_CreateTextureFromSurface(Renderer, textSurface);
@@ -203,15 +208,15 @@ void WindowRenderer::DebugInfo()
 
 void WindowRenderer::DrawAndStoreSelectedTile()
 {
-    int x = (int)((MouseScreen.x + TileOffset.x - ScreenRemainderOffset.x + PlayerDimensionOffset.x) / TileLength),
-        y = (int)((MouseScreen.y + TileOffset.y - ScreenRemainderOffset.y + PlayerDimensionOffset.y) / TileLength);
+    int x = (int)((MouseScreen.x + TileOffset.x) / TileLength),
+        y = (int)((MouseScreen.y + TileOffset.y) / TileLength);
 
     MouseWorld = {x + MinCoordinates.x, y + MinCoordinates.y};
 
     _Player.CanMine ? SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255) : SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
 
-    int rendX = (int)x * TileLength - TileOffset.x + ScreenRemainderOffset.x - PlayerDimensionOffset.x,
-        rendY = (int)y * TileLength - TileOffset.y + ScreenRemainderOffset.y - PlayerDimensionOffset.y;
+    int rendX = (int)x * TileLength - TileOffset.x;
+    int rendY = (int)y * TileLength - TileOffset.y;
 
     if (_World.IsInBounds(MouseWorld.x, MouseWorld.y) && _Player.DiscoveredTiles[(MouseWorld.x)][(MouseWorld.y)])
     {
@@ -232,10 +237,10 @@ void WindowRenderer::DrawPlayerCollisionBox()
     int xStart = _Player.xStart, yStart = _Player.yStart, xEnd = _Player.xEnd, yEnd = _Player.yEnd;
 
     SDL_SetRenderDrawColor(Renderer, 255, 20, 255, 255);
-    float rendX0 = (xStart - MinCoordinates.x) * TileLength - TileOffset.x + ScreenRemainderOffset.x - PlayerDimensionOffset.x;
-    float rendX1 = (xEnd + 1 - MinCoordinates.x) * TileLength - TileOffset.x + ScreenRemainderOffset.x - PlayerDimensionOffset.x;
-    float rendY0 = (yStart - MinCoordinates.y) * TileLength - TileOffset.y + ScreenRemainderOffset.y - PlayerDimensionOffset.y;
-    float rendY1 = (yEnd + 1 - MinCoordinates.y) * TileLength - TileOffset.y + ScreenRemainderOffset.y - PlayerDimensionOffset.y;
+    float rendX0 = (xStart - MinCoordinates.x) * TileLength - TileOffset.x;
+    float rendX1 = (xEnd + 1 - MinCoordinates.x) * TileLength - TileOffset.x;
+    float rendY0 = (yStart - MinCoordinates.y) * TileLength - TileOffset.y;
+    float rendY1 = (yEnd + 1 - MinCoordinates.y) * TileLength - TileOffset.y;
 
     SDL_RenderDrawLineF(Renderer, rendX0, rendY0, rendX1, rendY0);
     SDL_RenderDrawLineF(Renderer, rendX0, rendY0, rendX0, rendY1);

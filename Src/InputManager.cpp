@@ -73,6 +73,7 @@ void InputManager::ManageInput()
 void InputManager::HandleMouseInput()
 {
     int mouseState = SDL_GetMouseState(&(_Renderer.MouseScreen.x), &(_Renderer.MouseScreen.y));
+    //printf("MOUSE COORDS %d,%d\n", _Renderer.MouseScreen.x, _Renderer.MouseScreen.y);
     int selectedX = (int)_Renderer.MouseWorld.x, selectedY = (int)_Renderer.MouseWorld.y;
     Uint64 now = SDL_GetTicks64();
 

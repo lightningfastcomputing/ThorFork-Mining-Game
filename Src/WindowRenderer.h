@@ -27,14 +27,15 @@ private:
 
     int TileLength;
 
-    Vec2 ScreenDimensions; // window width and height
+    //Vec2F& Camera;
+
+    Vec2 WindowDimensions; // window width and height
     Vec2 TileCounts;       // number of tiles, horizontal and vertical, that fit on the screen
 
-    Vec2F TileOffset;            // number of pixels offset from the middle of a tile, ranges from 0 to tilelength
-    Vec2 ScreenRemainderOffset;  // screen dimensions % tilelength / 2, added to rendering coordinates for alignment
-    Vec2F PlayerDimensionOffset; // player is set to the middle of the screen, render coordinates need to be offset by half of its dimensions
+    Vec2 TileOffset;       // number of pixels offset from the middle of a tile, ranges from 0 to tilelength
 
-    Vec2 MinCoordinates; // Minimum world coordinates that show up on the screen
+    Vec2 MinCoordinates;   // Minimum world coordinates that the window renders
+    Vec2 MaxCoordinates;   // Maximum world coordinates that the window renders
 
     void Init_Display(const char *windowTitle);
     inline void DrawWorld();
