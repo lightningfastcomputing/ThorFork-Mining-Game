@@ -26,9 +26,16 @@ sudo apt-get install libsdl2-ttf-dev
 # TODO
 
 Improve tiles (add health, more variance, better worldgen), fix scoring:
-    * tiles have health, explosion resistance, hardness, etc 
+
+    * tiles have health, explosion resistance, hardness, etc
+    
+    * worldgen: differentiate between overworld and underground, different walkable floortypes, veins of ore 
 
 Add sounds for mining, walking, ambience, explosions
+
+add more entities and improve physics engine to deal with them: entity class that player, monsters, etc inherit from
+
+fix logic for line-of-sight
 
 
 
