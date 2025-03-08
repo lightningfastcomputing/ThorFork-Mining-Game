@@ -2,8 +2,8 @@
 Extract the gold! Drill through the stone! Blow things up with dynamite!
 Terrain Destruction Game using SDL2, written in C++
 
-# Demo:
-https://www.youtube.com/watch?v=Xjp7c8JEtJ8 (out of date)
+# Demo Videos:
+https://www.youtube.com/@ottopfefferkorn9519
 
 
 # This game was made on WSL2 Ubuntu
@@ -25,14 +25,16 @@ sudo apt-get install libsdl2-ttf-dev
 
 # TODO
 
-Fix rendering again (wide players force x-level gen to be off)
+Improve tiles (add health, more variance, better worldgen), fix scoring:
+    * tiles have health, explosion resistance, hardness, etc 
 
-Use raycasting to determine block to be mined
+Add sounds for mining, walking, ambience, explosions
+
 
 
 # Ideas
 
-Tie view and tilesize to player size
+Tie view and tilesize to player size (keep tilesize a power of 2)
 
 Fix entity tunneling through world tiles (for now, just make the player slow)
 
@@ -40,7 +42,13 @@ Turn explosives into an entity instead of a tile
 
 Investigate rendering with RenderDoc
 
+improve line-of-sight mining with two rays
+
 # Past Tasks
+
+Use raycasting to determine block to be mined
+
+Fix rendering again (wide players force x-level gen to be off)
 
 Fix Makefile
 

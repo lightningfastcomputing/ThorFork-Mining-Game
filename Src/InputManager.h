@@ -35,7 +35,6 @@ private:
     void HandleMouseInput();
     void HandleMovement();
     void PollAndUpdate(int actionIndex);
-    void UpdatePlayer();
 
     void Reveal();
     void ToggleFullScreen();

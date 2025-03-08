@@ -1,12 +1,12 @@
 #include "WindowRenderer.h"
 
-WindowRenderer::WindowRenderer(const World &world, const Player &player, int width, int height) : _World(world), _Player(player)
+WindowRenderer::WindowRenderer(const World &world, Player &player, int width, int height) : _World(world), _Player(player)
 {
     WindowDimensions = {width, height};
 
     MouseWorld = {-1, -1};
 
-    TileLength = 32; //keep this a power of 2 for quick division
+    TileLength = 32; // keep this a power of 2 for quick division
 
     TileCounts = {WindowDimensions.x / TileLength, WindowDimensions.y / TileLength};
 
@@ -96,6 +96,17 @@ void WindowRenderer::ToggleFullScreen()
     SDL_SetWindowFullscreen(Window, flag);
 }
 
+void WindowRenderer::OutlineTile(int x, int y) {
+    Vec2 renderCoords = {(int)x + MinCoordinates.x, (int)y + MinCoordinates.y};
+    int rendX = (int)renderCoords.x * TileLength - TileOffset.x;
+    int rendY = (int)renderCoords.y * TileLength - TileOffset.y;
+
+    SDL_RenderDrawLine(Renderer, rendX, rendY, rendX + TileLength, rendY);
+    SDL_RenderDrawLine(Renderer, rendX, rendY, rendX, rendY + TileLength);
+    SDL_RenderDrawLine(Renderer, rendX + TileLength, rendY, rendX + TileLength, rendY + TileLength);
+    SDL_RenderDrawLine(Renderer, rendX, rendY + TileLength, rendX + TileLength, rendY + TileLength);
+}
+
 bool WindowRenderer::IsDiscovered(int x, int y)
 {
     return _World.IsInBounds(x, y) && _Player.DiscoveredTiles[x][y];
@@ -161,8 +172,8 @@ void WindowRenderer::DrawPlayer()
 
     Vec2 windowCenter = {WindowDimensions.x >> 1, WindowDimensions.y >> 1};
 
-    displayRect.x = (windowCenter.x - windowCenter.x%TileLength) - (int)(halfDimensions.x * TileLength);
-    displayRect.y = (windowCenter.y - windowCenter.y%TileLength) - (int)(halfDimensions.y * TileLength);
+    displayRect.x = (windowCenter.x - windowCenter.x % TileLength) - (int)(halfDimensions.x * TileLength);
+    displayRect.y = (windowCenter.y - windowCenter.y % TileLength) - (int)(halfDimensions.y * TileLength);
     displayRect.w = playerRect.w * TileLength;
     displayRect.h = playerRect.h * TileLength;
 
@@ -175,6 +186,7 @@ void WindowRenderer::DebugInfo()
     if (Debug)
     {
         DrawPlayerCollisionBox();
+        DrawPlayerVector();
 
         SDL_Rect textRect = {(int)(WindowDimensions.x * 0.01f), (int)(WindowDimensions.y * 0.01f), 0, 0};
 
@@ -183,6 +195,7 @@ void WindowRenderer::DebugInfo()
             std::format("Player: ({:.2f},{:.2f})\n", _Player.Center.x, _Player.Center.y) +
             std::format("Score: {}\n", _Player.Score) + std::format("MouseScreen: ({},{})\n", MouseScreen.x, MouseScreen.y) +
             std::format("MouseWorld: ({},{})\n", MouseWorld.x, MouseWorld.y) +
+            std::format("PlayerTarget: ({:.2f},{:.2f})\n", _Player.Target.x, _Player.Target.y) +
             std::format("MinimumCoordinates: X={},Y={}\n", MinCoordinates.x, MinCoordinates.y) +
             std::format("MinimumCoordinates: X={},Y={}\n", MaxCoordinates.x, MaxCoordinates.y) +
             std::format("TileCounts: X={}, Y={}\n", TileCounts.x, TileCounts.y) +
@@ -208,17 +221,18 @@ void WindowRenderer::DebugInfo()
 
 void WindowRenderer::DrawAndStoreSelectedTile()
 {
-    int x = (int)((MouseScreen.x + TileOffset.x) / TileLength),
-        y = (int)((MouseScreen.y + TileOffset.y) / TileLength);
+    float x = (float)(MouseScreen.x + TileOffset.x) / TileLength;
+    float y = (float)(MouseScreen.y + TileOffset.y) / TileLength;
 
-    MouseWorld = {x + MinCoordinates.x, y + MinCoordinates.y};
+    MouseWorld = {(int)x + MinCoordinates.x, (int)y + MinCoordinates.y};
+    _Player.Target = {x + MinCoordinates.x, y + MinCoordinates.y};
 
     _Player.CanMine ? SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255) : SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
 
     int rendX = (int)x * TileLength - TileOffset.x;
     int rendY = (int)y * TileLength - TileOffset.y;
 
-    if (_World.IsInBounds(MouseWorld.x, MouseWorld.y) && _Player.DiscoveredTiles[(MouseWorld.x)][(MouseWorld.y)])
+    if (_World.IsInBounds((int)MouseWorld.x, (int)MouseWorld.y) && _Player.DiscoveredTiles[((int)MouseWorld.x)][((int)MouseWorld.y)])
     {
         SDL_RenderDrawLine(Renderer, rendX, rendY, rendX + TileLength, rendY);
         SDL_RenderDrawLine(Renderer, rendX, rendY, rendX, rendY + TileLength);
@@ -250,5 +264,10 @@ void WindowRenderer::DrawPlayerCollisionBox()
 
 void WindowRenderer::DrawPlayerVector()
 {
-    // todo
+    float rendX0 = ((_Player.Center.x - MinCoordinates.x) * TileLength) - TileOffset.x;
+    float rendY0 = ((_Player.Center.y - MinCoordinates.y) * TileLength) - TileOffset.y;
+    float rendX1 = ((_Player.Target.x - MinCoordinates.x) * TileLength) - TileOffset.x;
+    float rendY1 = ((_Player.Target.y - MinCoordinates.y) * TileLength) - TileOffset.y;
+
+    SDL_RenderDrawLineF(Renderer, rendX0, rendY0, rendX1, rendY1);
 }

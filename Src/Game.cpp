@@ -46,8 +46,7 @@ void Game::Start()
         {
             SDL_Delay(FrameRate - frameTime);
         }
-
-        // running = false;
+        //std::cout << "Next frame" << std::endl;
         Running = this->Running && _InputManager.Running && _WindowRenderer.Running;
     }
 }

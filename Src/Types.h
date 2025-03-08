@@ -59,6 +59,11 @@ struct Vec2F
         return {x + other.x, y + other.y};
     }
 
+    Vec2F operator-(const Vec2F &other) const
+    {
+        return {x - other.x, y - other.y};
+    }
+
     Vec2F operator*(float scalar) const
     {
         return {x * scalar, y * scalar};

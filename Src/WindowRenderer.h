@@ -21,7 +21,7 @@ private:
     TTF_Font *TextFont = nullptr;
 
     const World &_World;
-    const Player &_Player;
+    Player &_Player;
 
     bool Debug, Fullscreen;
 
@@ -51,11 +51,12 @@ public:
     Vec2 MouseScreen; // coordinates of the mouse on the screen
     Vec2 MouseWorld;  // coordinates of the mouse relative to the world
 
-    WindowRenderer(const World &world, const Player &player, int width, int height);
+    WindowRenderer(const World &world, Player &player, int width, int height);
     ~WindowRenderer();
     void UpdateWindow();
     void ToggleFullScreen();
     bool IsDiscovered(int x, int y);
+    void OutlineTile(int x, int y);
     void RenderFrame();
     void ClearFrame();
     void ToggleDebug();

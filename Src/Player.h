@@ -21,7 +21,9 @@ public:
     direction Direction;
     
     int Score;
+    Vec2F Target;
     bool CanMine;
+
     float MiningRadius;
     float DiscoverRadius;
 

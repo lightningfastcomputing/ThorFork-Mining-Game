@@ -9,8 +9,9 @@ class EntityManager
 private:
     World &_World;
     Player &_Player;
-    void UpdatePlayerPosition();
+    void PlayerTryMine();
     void PlayerRadialDiscover();
+    void UpdatePlayerPosition();
 
 public:
     EntityManager(World &world, Player &player);

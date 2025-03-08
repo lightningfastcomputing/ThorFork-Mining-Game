@@ -53,5 +53,9 @@ public:
     {
         return (x >= 0 && x < Width && y >= 0 && y < Height);
     };
+
+    bool IsInBounds(const Vec2& point) const {
+        return (point.x >= 0 && point.x < Width && point.y >= 0 && point.y < Height);
+    };
 };
 #endif
