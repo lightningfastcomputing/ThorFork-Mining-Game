@@ -19,7 +19,9 @@ enum direction
     NONE
 };
 
-enum Tile
+#define TILETYPE_COUNT 4
+
+enum TileType
 {
     AIR,
     STONE,

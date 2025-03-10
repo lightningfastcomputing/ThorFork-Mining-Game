@@ -27,7 +27,7 @@ InputManager::InputManager(World &world, Player &player, WindowRenderer &rendere
     MovementInputs[LEFT] = {SDL_SCANCODE_A, 0, 0, nullptr};
     MovementInputs[RIGHT] = {SDL_SCANCODE_D, 0, 0, nullptr};
 
-    MouseInputs = {0, 0, 0, 0};
+    MouseInputs = {1000/2, 0, 0, 0};
 
     // ActionInputs[REVEAL] = {SDL_SCANCODE_TAB, 500, 0, [this]()
     //                         { Reveal(); }};
@@ -78,7 +78,7 @@ void InputManager::HandleMouseInput()
     {
         if (_Player.CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
         {
-            _World.DestroyTile(selectedX, selectedY);
+            _World.MineTile(selectedX, selectedY, _Player);
             MouseInputs.LeftLastTimePressed = now;
         }
     }
@@ -86,7 +86,7 @@ void InputManager::HandleMouseInput()
     {
         if (_Player.CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
         {
-            _World.ChangeTile(selectedX, selectedY, EXPLOSIVE);
+            //_World.ChangeTile(selectedX, selectedY, TileState::EXPLOSIVE_TILE);
             MouseInputs.RightLastTimePressed = now;
         }
     }

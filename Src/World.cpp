@@ -2,42 +2,34 @@
 
 using namespace std;
 
-World::World()
-{
-    Width = 20;
-    Height = 20;
-    this->tiles = new Tile *[Width];
-
-    for (int i = 0; i < Width; i++)
-    {
-        this->tiles[i] = new Tile[Height];
-        memset(tiles[i], AIR, Height);
-    }
-};
-
 World::World(int width, int height, int nuggetCount, int stoneThickness, int explosiveCount)
 {
     srand(time(0));
 
+    TileStates[AIR] = {TileType::AIR, 0};
+    TileStates[STONE] = {TileType::STONE, 10};
+    TileStates[GOLD] = {TileType::GOLD, 5};
+    TileStates[EXPLOSIVE] = {TileType::EXPLOSIVE, 1};
+
     this->Width = width;
     this->Height = height;
-    this->tiles = new Tile *[Width];
+    this->tiles = new TileState *[Width];
 
     for (int i = 0; i < Width; i++)
     {
-        this->tiles[i] = new Tile[Height];
+        this->tiles[i] = new TileState[Height];
         for (int j = 0; j < Height; j++)
-            this->tiles[i][j] = AIR;
+            this->tiles[i][j] = TileStates[AIR];
     }
 
     int *nuggets = new int[nuggetCount];
-    Sprinkle(nuggetCount, GOLD, false, nuggets);
-    Sprinkle(nuggetCount, GOLD, false, nullptr);
+    Sprinkle(nuggetCount, TileStates[GOLD], false, nuggets);
+    Sprinkle(nuggetCount, TileStates[GOLD], false, nullptr);
     for (int i = 0; i < nuggetCount; i++)
-        this->Encapsulate(stoneThickness, STONE, nuggets[i]);
+        this->Encapsulate(stoneThickness, TileStates[STONE], nuggets[i]);
     delete[] nuggets;
 
-    Sprinkle(explosiveCount, EXPLOSIVE, true, NULL);
+    Sprinkle(explosiveCount, TileStates[EXPLOSIVE], true, NULL);
 }
 World::~World()
 {
@@ -48,15 +40,15 @@ World::~World()
     delete[] tiles;
 }
 
-void World::Sprinkle(int count, Tile tile, bool overwrite, int indexes[])
+void World::Sprinkle(int count, TileState tileState, bool overwrite, int indexes[])
 {
     int i = 0;
     while (i < count)
     {
         int randX = rand() % Width, randY = rand() % Height;
-        if (this->tiles[randX][randY] == AIR || overwrite)
+        if (this->tiles[randX][randY].TileType == TileType::AIR || overwrite)
         {
-            this->tiles[randX][randY] = tile;
+            this->tiles[randX][randY] = tileState;
             if (indexes)
                 indexes[i] = randX + randY * Width;
             i++;
@@ -66,7 +58,7 @@ void World::Sprinkle(int count, Tile tile, bool overwrite, int indexes[])
     }
 }
 
-void World::Encapsulate(int count, Tile tile, int index)
+void World::Encapsulate(int count, TileState tileState, int index)
 {
     if (count == 0)
         return;
@@ -80,13 +72,13 @@ void World::Encapsulate(int count, Tile tile, int index)
     for (int i = 0; i < 4; i++)
     {
         int x = adjacents[i] % Width, y = adjacents[i] / Width;
-        if (IsInBounds(x, y) && this->tiles[x][y] == AIR)
+        if (IsInBounds(x, y) && this->tiles[x][y].TileType == TileType::AIR)
         {
-            this->tiles[x][y] = tile;
+            this->tiles[x][y] = tileState;
         }
     }
 
-    this->Encapsulate(count - 1, tile, adjacents[rand() % 4]);
+    this->Encapsulate(count - 1, tileState, adjacents[rand() % 4]);
 }
 
 void World::Update()
@@ -101,49 +93,59 @@ void World::Update()
     TicksPassed++;
 }
 
-void World::ChangeTile(int x, int y, Tile tile)
+void World::ChangeTile(int x, int y, const TileState &tileState)
 {
-    this->tiles[x][y] = tile;
+    this->tiles[x][y] = tileState;
 }
 
-void World::DestroyTile(int x, int y)
+void World::MineTile(int x, int y, Player &player)
 {
     if (IsInBounds(x, y))
     {
-        switch (tiles[x][y])
+        TileState &tileState = tiles[x][y];
+
+        tileState.Health--;
+        if (tileState.Health <= 0)
         {
-        case AIR:
-            return;
-        case STONE:
-        case GOLD:
-            WorldActionQueue.push({[this, x, y]()
-                                        { this->ChangeTile(x, y, AIR); }, TicksPassed});
-            break;
-        case EXPLOSIVE:
-            Vec2 adjacents[4];
-            adjacents[0] = {x - 1, y};
-            adjacents[1] = {x + 1, y};
-            adjacents[2] = {x, y - 1};
-            adjacents[3] = {x, y + 1};
 
-            WorldActionQueue.push({[this, x, y]()
-                                        { this->ChangeTile(x, y, AIR); }, TicksPassed});
-            for (int i = 0; i < 4; i++)
+            switch (tileState.TileType)
             {
-                Vec2 point = adjacents[i];
-                int x = point.x, y = point.y;
+            case TileType::AIR:
+                return;
+            case TileType::STONE:
+                WorldActionQueue.push({[this, x, y]()
+                                       { this->ChangeTile(x, y, TileStates[AIR]); }, TicksPassed});
+                break;
+            case TileType::GOLD:
+                WorldActionQueue.push({[this, x, y, &player]()
+                                       {player.Score++; 
+                                        this->ChangeTile(x, y, TileStates[AIR]); }, TicksPassed});
+                break;
+            case TileType::EXPLOSIVE:
+                Vec2 adjacents[4];
+                adjacents[0] = {x - 1, y};
+                adjacents[1] = {x + 1, y};
+                adjacents[2] = {x, y - 1};
+                adjacents[3] = {x, y + 1};
 
-                if (IsInBounds(x, y) && tiles[x][y] != AIR)
+                WorldActionQueue.push({[this, x, y]()
+                                       { this->ChangeTile(x, y, TileStates[AIR]); }, TicksPassed});
+                for (int i = 0; i < 4; i++)
                 {
-                    WorldActionQueue.push({[this, x, y]()
-                                                { this->DestroyTile(x, y); }, TicksPassed + 5});
+                    Vec2 point = adjacents[i];
+                    int x = point.x, y = point.y;
+
+                    if (IsInBounds(x, y) && tiles[x][y].TileType != AIR)
+                    {
+                        WorldActionQueue.push({[this, x, y, &player]()
+                                               { this->MineTile(x, y, player); }, TicksPassed + 5});
+                    }
                 }
+                break;
+            default:
+                throw std::runtime_error("Invalid tile\n");
+                break;
             }
-            break;
-        default:
-            throw std::runtime_error("Invalid tile\n");
-            break;
         }
-        // printf("Succeeded\n");
     }
 }

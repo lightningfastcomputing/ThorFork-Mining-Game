@@ -25,6 +25,8 @@ sudo apt-get install libsdl2-ttf-dev
 
 # TODO
 
+fix logic for line-of-sight
+
 Improve tiles (add health, more variance, better worldgen), fix scoring:
 
     * tiles have health, explosion resistance, hardness, etc
@@ -35,7 +37,6 @@ Add sounds for mining, walking, ambience, explosions
 
 add more entities and improve physics engine to deal with them: entity class that player, monsters, etc inherit from
 
-fix logic for line-of-sight
 
 
 

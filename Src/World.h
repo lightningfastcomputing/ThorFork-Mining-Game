@@ -6,7 +6,8 @@
 #include <time.h>
 #include <functional>
 #include <stdexcept>
-#include "Types.h"
+#include "TileState.h"
+#include "Player.h"
 
 struct WorldAction
 {
@@ -22,22 +23,20 @@ struct WorldAction
 class World
 {
 private:
-    
+    TileState TileStates[TILETYPE_COUNT];
     std::priority_queue<WorldAction, std::vector<WorldAction>, std::greater<>> WorldActionQueue;
     Uint64 TicksPassed = 0;
 
     //"sprinkle" a tile around the map
-    void Sprinkle(int count, Tile tile, bool overwrite, int indexes[]);
+    void Sprinkle(int count, TileState tileState, bool overwrite, int indexes[]);
 
     // encapsulate a specific tile with a material
-    void Encapsulate(int count, Tile tile, int index);
+    void Encapsulate(int count, TileState tileState, int index);
 
 public:
-    Tile **tiles;
+    TileState **tiles;
     int Width;
     int Height;
-
-    World();
 
     World(int width, int height, int nuggetCount, int stoneThickness, int explosiveCount);
 
@@ -45,9 +44,9 @@ public:
 
     void Update();
 
-    void ChangeTile(int x, int y, Tile tile);
+    void ChangeTile(int x, int y, const TileState &tileState);
 
-    void DestroyTile(int x, int y);
+    void MineTile(int x, int y, Player& player);
 
     bool IsInBounds(int x, int y) const
     {

@@ -76,7 +76,7 @@ void EntityManager::PlayerTryMine()
             // prevent pinhole diagonal tile mining: if adjacent tiles are stone, then mining is prevented
             Vec2 adj1 = {tile.x + (dir.x > 0 ? -1 : 1), tile.y};
             Vec2 adj2 = {tile.x, tile.y + (dir.y > 0 ? 1 : -1)};
-            if (_World.tiles[adj1.x][adj1.y] != AIR && _World.tiles[adj2.x][adj2.y] != AIR)
+            if (_World.tiles[adj1.x][adj1.y].TileType != TileType::AIR && _World.tiles[adj2.x][adj2.y].TileType != TileType::AIR)
             {
                 _Player.CanMine = false;
                 return;
@@ -87,7 +87,7 @@ void EntityManager::PlayerTryMine()
                 return;
             }
         }
-        else if (_World.tiles[tile.x][tile.y] != AIR)
+        else if (_World.tiles[tile.x][tile.y].TileType != TileType::AIR)
         {
             _Player.CanMine = false;
             return;
@@ -122,7 +122,7 @@ void EntityManager::PlayerRadialDiscover()
             {
                 _Player.DiscoveredTiles[tile.x][tile.y] = true;
 
-                if (_World.tiles[tile.x][tile.y] != AIR || !_World.IsInBounds(tile.x, tile.y))
+                if (_World.tiles[tile.x][tile.y].TileType != AIR || !_World.IsInBounds(tile.x, tile.y))
                 {
                     break; // once the ray hits a wall or OOB, stop iterating
                 }
@@ -165,13 +165,13 @@ void EntityManager::UpdatePlayerPosition()
             for (int i = yStart; i <= yEnd; i++)
             {
                 // West Collision
-                if (_World.tiles[xStart][i] != AIR)
+                if (_World.tiles[xStart][i].TileType != TileType::AIR)
                 {
                     x = (float)xStart + 1 + EPSILON;
                     break;
                 }
                 // East Collision
-                else if (_World.tiles[xEnd][i] != AIR)
+                else if (_World.tiles[xEnd][i].TileType != TileType::AIR)
                 {
                     x = (float)xEnd - w - EPSILON;
                     break;
@@ -201,12 +201,12 @@ void EntityManager::UpdatePlayerPosition()
         {
             for (int i = xStart; i <= xEnd; i++)
             {
-                if (_World.tiles[i][yStart] != AIR)
+                if (_World.tiles[i][yStart].TileType != TileType::AIR)
                 {
                     y = (float)yStart + 1 + EPSILON;
                     break;
                 }
-                else if (_World.tiles[i][yEnd] != AIR)
+                else if (_World.tiles[i][yEnd].TileType != TileType::AIR)
                 {
                     y = (float)yEnd - h - EPSILON;
                     break;

@@ -47,10 +47,10 @@ void WindowRenderer::Init_Display(const char *windowTitle)
         Running = false;
     }
 
-    Textures[AIR] = IMG_LoadTexture(Renderer, "Textures/grass.png");
-    Textures[STONE] = IMG_LoadTexture(Renderer, "Textures/stone.png");
-    Textures[GOLD] = IMG_LoadTexture(Renderer, "Textures/gold.png");
-    Textures[EXPLOSIVE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
+    Textures[TileType::AIR] = IMG_LoadTexture(Renderer, "Textures/grass.png");
+    Textures[TileType::STONE] = IMG_LoadTexture(Renderer, "Textures/stone.png");
+    Textures[TileType::GOLD] = IMG_LoadTexture(Renderer, "Textures/gold.png");
+    Textures[TileType::EXPLOSIVE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
 
     for (int i = 0; i < 4; i++)
     {
@@ -154,7 +154,7 @@ void WindowRenderer::DrawWorld()
             }
             else
             {
-                int textureIdx = _World.tiles[i][j];
+                int textureIdx = _World.tiles[i][j].TileType;
                 SDL_RenderCopy(Renderer, Textures[textureIdx], nullptr, &rect);
             }
             rect.y += TileLength;
@@ -195,6 +195,7 @@ void WindowRenderer::DebugInfo()
             std::format("Player: ({:.2f},{:.2f})\n", _Player.Center.x, _Player.Center.y) +
             std::format("Score: {}\n", _Player.Score) + std::format("MouseScreen: ({},{})\n", MouseScreen.x, MouseScreen.y) +
             std::format("MouseWorld: ({},{})\n", MouseWorld.x, MouseWorld.y) +
+            std::format("   Tile Health: {}\n", _World.tiles[MouseWorld.x][MouseWorld.y].Health) +
             std::format("PlayerTarget: ({:.2f},{:.2f})\n", _Player.Target.x, _Player.Target.y) +
             std::format("MinimumCoordinates: X={},Y={}\n", MinCoordinates.x, MinCoordinates.y) +
             std::format("MinimumCoordinates: X={},Y={}\n", MaxCoordinates.x, MaxCoordinates.y) +

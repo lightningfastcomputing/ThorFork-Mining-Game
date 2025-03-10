@@ -16,7 +16,7 @@ class WindowRenderer
 private:
     SDL_Window *Window = nullptr;
     SDL_Renderer *Renderer = nullptr;
-    SDL_Texture *Textures[4] = {nullptr};
+    SDL_Texture *Textures[TILETYPE_COUNT] = {nullptr};
 
     TTF_Font *TextFont = nullptr;
 
