@@ -96,7 +96,8 @@ void WindowRenderer::ToggleFullScreen()
     SDL_SetWindowFullscreen(Window, flag);
 }
 
-void WindowRenderer::OutlineTile(int x, int y) {
+void WindowRenderer::OutlineTile(int x, int y)
+{
     Vec2 renderCoords = {(int)x + MinCoordinates.x, (int)y + MinCoordinates.y};
     int rendX = (int)renderCoords.x * TileLength - TileOffset.x;
     int rendY = (int)renderCoords.y * TileLength - TileOffset.y;
@@ -195,7 +196,9 @@ void WindowRenderer::DebugInfo()
             std::format("Player: ({:.2f},{:.2f})\n", _Player.Center.x, _Player.Center.y) +
             std::format("Score: {}\n", _Player.Score) + std::format("MouseScreen: ({},{})\n", MouseScreen.x, MouseScreen.y) +
             std::format("MouseWorld: ({},{})\n", MouseWorld.x, MouseWorld.y) +
-            std::format("   Tile Health: {}\n", _World.tiles[MouseWorld.x][MouseWorld.y].Health) +
+            std::format("   Tile Health: {}\n", (_World.IsInBounds(MouseWorld) && _Player.DiscoveredTiles[MouseWorld.x][MouseWorld.y])
+                                                    ? _World.tiles[MouseWorld.x][MouseWorld.y].Health
+                                                    : -1) +
             std::format("PlayerTarget: ({:.2f},{:.2f})\n", _Player.Target.x, _Player.Target.y) +
             std::format("MinimumCoordinates: X={},Y={}\n", MinCoordinates.x, MinCoordinates.y) +
             std::format("MinimumCoordinates: X={},Y={}\n", MaxCoordinates.x, MaxCoordinates.y) +

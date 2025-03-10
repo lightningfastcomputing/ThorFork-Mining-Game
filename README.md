@@ -50,7 +50,17 @@ Turn explosives into an entity instead of a tile
 
 Investigate rendering with RenderDoc
 
-improve line-of-sight mining with two rays
+Improve line-of-sight mining with two rays
+
+Breaking stone/gold releases a bunch of chunks that have to be picked up for transport
+
+Cave generation
+
+Caveins
+
+Minecarts and tracks
+
+Different floor types: Stone, Mud, Void
 
 # Past Tasks
 
