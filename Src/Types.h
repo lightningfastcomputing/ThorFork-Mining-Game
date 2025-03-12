@@ -19,7 +19,6 @@ enum direction
     NONE
 };
 
-#define TILETYPE_COUNT 4
 
 enum TileType
 {
@@ -27,6 +26,7 @@ enum TileType
     STONE,
     GOLD,
     EXPLOSIVE,
+    TILETYPE_COUNT
 };
 
 struct Vec2

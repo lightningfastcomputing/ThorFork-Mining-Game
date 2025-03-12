@@ -3,9 +3,28 @@
 #include "World.h"
 #include "Player.h"
 #include "WindowRenderer.h"
+#include "SoundManager.h"
 #include "Utils.h"
 #include <SDL2/SDL.h>
 #include <functional>
+
+enum Action
+{
+    REVEAL,
+    TOGGLE_DEBUG,
+    TOGGLE_FULLSCREEN,
+    EXIT,
+    ACTIONS_COUNT
+};
+
+enum Movement
+{
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT,
+    MOVEMENT_COUNT
+};
 
 struct Input
 {
@@ -15,7 +34,8 @@ struct Input
     std::function<void()> Action;
 };
 
-struct MouseInputs {
+struct MouseInputs
+{
     Uint64 LeftCooldown;
     Uint64 LeftLastTimePressed;
     Uint64 RightCooldown;
@@ -28,8 +48,10 @@ private:
     World &_World;
     Player &_Player;
     WindowRenderer &_Renderer;
-    Input MovementInputs[4];
-    Input ActionInputs[10];
+    SoundManager &_SoundManager;
+
+    Input MovementInputs[MOVEMENT_COUNT];
+    Input ActionInputs[ACTIONS_COUNT];
     struct MouseInputs MouseInputs;
     const Uint8 *Keys;
     void HandleMouseInput();
@@ -43,7 +65,7 @@ private:
 
 public:
     InputManager();
-    InputManager(World &world, Player &player, WindowRenderer &renderer);
+    InputManager(World &world, Player &player, WindowRenderer &renderer, SoundManager &SoundManager);
     ~InputManager();
     void ManageInput();
     bool Running;

@@ -23,6 +23,8 @@ sudo apt-get install libsdl2-image-dev
 
 sudo apt-get install libsdl2-ttf-dev
 
+sudo apt-get install libsdl2-mixer-dev
+
 # TODO
 
 fix logic for line-of-sight

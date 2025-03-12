@@ -9,15 +9,17 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    SoundManager soundManager;
+
     World world(200, 200, 100, 100, 0);
     Player player(1.1f, 2.1f, 0.15f);
 
     EntityManager entityManager(world, player);
     WindowRenderer windowRenderer(world, player, 1280, 800);
-    InputManager inputManager(world, player, windowRenderer);
+    InputManager inputManager(world, player, windowRenderer, soundManager);
 
     Uint64 frameRate = 1000 / 60;
-    Game game(frameRate, world, entityManager, inputManager, windowRenderer);
+    Game game(frameRate, world, entityManager, inputManager, windowRenderer, soundManager);
 
     game.Start();
 

@@ -1,23 +1,7 @@
 #include "InputManager.h"
 
-enum Movement
-{
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT
-};
-
-enum Action
-{
-    REVEAL,
-    TOGGLE_DEBUG,
-    TOGGLE_FULLSCREEN,
-    EXIT,
-};
-
-InputManager::InputManager(World &world, Player &player, WindowRenderer &renderer) : _World(world),
-                                                                                     _Player(player), _Renderer(renderer)
+InputManager::InputManager(World &world, Player &player, WindowRenderer &renderer, SoundManager &soundManager) : _World(world),
+                                                                                     _Player(player), _Renderer(renderer), _SoundManager(soundManager)
 {
     Keys = SDL_GetKeyboardState(NULL);
     Running = true;
@@ -27,7 +11,7 @@ InputManager::InputManager(World &world, Player &player, WindowRenderer &rendere
     MovementInputs[LEFT] = {SDL_SCANCODE_A, 0, 0, nullptr};
     MovementInputs[RIGHT] = {SDL_SCANCODE_D, 0, 0, nullptr};
 
-    MouseInputs = {1000/2, 0, 0, 0};
+    MouseInputs = {1000, 0, 0, 0};
 
     // ActionInputs[REVEAL] = {SDL_SCANCODE_TAB, 500, 0, [this]()
     //                         { Reveal(); }};
@@ -79,6 +63,7 @@ void InputManager::HandleMouseInput()
         if (_Player.CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
         {
             _World.MineTile(selectedX, selectedY, _Player);
+            _SoundManager.PlaySound(Sound::PICKAXE_STRIKE);
             MouseInputs.LeftLastTimePressed = now;
         }
     }

@@ -52,7 +52,7 @@ void WindowRenderer::Init_Display(const char *windowTitle)
     Textures[TileType::GOLD] = IMG_LoadTexture(Renderer, "Textures/gold.png");
     Textures[TileType::EXPLOSIVE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < TILETYPE_COUNT; i++)
     {
         if (!Textures[i])
         {

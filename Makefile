@@ -1,6 +1,6 @@
 CC = g++ 
 CFLAGS = -std=c++20 -Wall
-SDLFLAGS = -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
+SDLFLAGS = -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 SRCDIR = Src
 BUILDDIR = Build
 
