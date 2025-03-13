@@ -6,10 +6,10 @@ SoundManager::SoundManager()
     Uint16 format;
     int channels;
 
-    Mix_QuerySpec(&freq, &format, &channels);
-    printf("Frequency: %d, Format: %d, Channels: %d\n", freq, format, channels);
+    //Mix_QuerySpec(&freq, &format, &channels);
+    //printf("Frequency: %d, Format: %d, Channels: %d\n", freq, format, channels);
 
-    Mix_OpenAudio(freq, MIX_DEFAULT_FORMAT, 2, 2048);
+    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
     Mix_AllocateChannels(256);
     Mix_ReserveChannels(4);
 

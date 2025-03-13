@@ -16,7 +16,7 @@ struct WorldAction
 
     bool operator>(const WorldAction &other) const
     {
-        return TickExecuted > other.TickExecuted; // Smallest TickExecuted first
+        return TickExecuted > other.TickExecuted;
     }
 };
 
@@ -24,7 +24,7 @@ class World
 {
 private:
     TileState TileStates[TILETYPE_COUNT];
-    std::priority_queue<WorldAction, std::vector<WorldAction>, std::greater<>> WorldActionQueue;
+    std::priority_queue<WorldAction, std::vector<WorldAction>, std::greater<WorldAction>> WorldActionQueue;
     Uint64 TicksPassed = 0;
 
     //"sprinkle" a tile around the map

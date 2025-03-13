@@ -46,7 +46,9 @@ void Game::Start()
         {
             SDL_Delay(FrameRate - frameTime);
         }
-        //std::cout << "Next frame" << std::endl;
+        else {
+            printf("Frame took longer to run than Framerate: %llu\n", frameTime - FrameRate);
+        }
         Running = this->Running && _InputManager.Running && _WindowRenderer.Running;
     }
 }
