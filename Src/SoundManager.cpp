@@ -2,18 +2,12 @@
 
 SoundManager::SoundManager()
 {
-    int freq;
-    Uint16 format;
-    int channels;
-
-    //Mix_QuerySpec(&freq, &format, &channels);
-    //printf("Frequency: %d, Format: %d, Channels: %d\n", freq, format, channels);
-
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
-    Mix_AllocateChannels(256);
+    Mix_AllocateChannels(64);
     Mix_ReserveChannels(4);
 
     Sounds[PICKAXE_STRIKE] = Mix_LoadWAV("Sounds/PickaxeStrike.wav");
+    Sounds[FOOTSTEP] = Mix_LoadWAV("Sounds/Footstep.wav");
 
     for (int i = 0; i < SOUNDS_COUNT; i++)
     {
@@ -38,6 +32,5 @@ SoundManager::~SoundManager()
 
 void SoundManager::PlaySound(Sound idx)
 {
-    Mix_PlayChannelTimed(1, Sounds[idx], 0, 500);
-    Mix_ExpireChannel(1, 500);
+    Mix_PlayChannel(-1, Sounds[idx], 0);
 }

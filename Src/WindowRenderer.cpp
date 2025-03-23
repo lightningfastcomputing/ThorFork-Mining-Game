@@ -80,6 +80,11 @@ WindowRenderer::~WindowRenderer()
         }
 }
 
+void WindowRenderer::Update(Uint64 tickCount) {
+    this->ClearFrame();
+    this->RenderFrame();
+}
+
 void WindowRenderer::UpdateWindow()
 {
     SDL_GetWindowSize(Window, &WindowDimensions.x, &WindowDimensions.y);
@@ -201,7 +206,7 @@ void WindowRenderer::DebugInfo()
                                                     : -1) +
             std::format("PlayerTarget: ({:.2f},{:.2f})\n", _Player.Target.x, _Player.Target.y) +
             std::format("MinimumCoordinates: X={},Y={}\n", MinCoordinates.x, MinCoordinates.y) +
-            std::format("MinimumCoordinates: X={},Y={}\n", MaxCoordinates.x, MaxCoordinates.y) +
+            std::format("MaximumCoordinates: X={},Y={}\n", MaxCoordinates.x, MaxCoordinates.y) +
             std::format("TileCounts: X={}, Y={}\n", TileCounts.x, TileCounts.y) +
             std::format("Offsets: X={}, Y={}\n", TileOffset.x, TileOffset.y);
 

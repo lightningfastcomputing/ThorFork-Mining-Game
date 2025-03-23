@@ -10,6 +10,7 @@
 enum Sound
 {
     PICKAXE_STRIKE,
+    FOOTSTEP,
     SOUNDS_COUNT
 };
 

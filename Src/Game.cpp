@@ -17,6 +17,7 @@ void Game::Start()
     while (Running)
     {
         Uint64 frameStart = SDL_GetTicks64();
+        TickCount++;
 
         while (SDL_PollEvent(&event))
         {
@@ -35,10 +36,9 @@ void Game::Start()
             }
         }
 
-        _WindowRenderer.ClearFrame();
-        _WindowRenderer.RenderFrame();
-        _InputManager.ManageInput();
-        _World.Update();
+        _WindowRenderer.Update(TickCount);
+        _InputManager.Update(TickCount);
+        _World.Update(TickCount);
         _EntityManager.Update();
 
         Uint64 frameTime = SDL_GetTicks64() - frameStart;
@@ -47,8 +47,9 @@ void Game::Start()
             SDL_Delay(FrameRate - frameTime);
         }
         else {
-            printf("Frame took longer to run than Framerate: %llu\n", frameTime - FrameRate);
+            //printf("Frame took longer to run than Framerate: %llu\n", frameTime - FrameRate);
         }
         Running = this->Running && _InputManager.Running && _WindowRenderer.Running;
+        TickCount++;
     }
 }

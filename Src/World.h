@@ -25,7 +25,7 @@ class World
 private:
     TileState TileStates[TILETYPE_COUNT];
     std::priority_queue<WorldAction, std::vector<WorldAction>, std::greater<WorldAction>> WorldActionQueue;
-    Uint64 TicksPassed = 0;
+    Uint64 TickCount = 0;
 
     //"sprinkle" a tile around the map
     void Sprinkle(int count, TileState tileState, bool overwrite, int indexes[]);
@@ -42,7 +42,7 @@ public:
 
     ~World();
 
-    void Update();
+    void Update(Uint64 tickCount);
 
     void ChangeTile(int x, int y, const TileState &tileState);
 

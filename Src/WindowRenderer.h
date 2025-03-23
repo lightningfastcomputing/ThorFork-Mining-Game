@@ -45,6 +45,8 @@ private:
     inline void DrawPlayerBoundingBox();
     inline void DrawPlayerCollisionBox();
     inline void DrawPlayerVector();
+    void RenderFrame();
+    void ClearFrame();
 
 public:
     bool Running;
@@ -57,8 +59,7 @@ public:
     void ToggleFullScreen();
     bool IsDiscovered(int x, int y);
     void OutlineTile(int x, int y);
-    void RenderFrame();
-    void ClearFrame();
     void ToggleDebug();
+    void Update(Uint64 tickCount);
 };
 #endif

@@ -17,6 +17,7 @@ private:
     WindowRenderer &_WindowRenderer;
     SoundManager &_SoundManager;
     bool Running;
+    Uint64 TickCount = 0;
 
 public:
     Game(Uint64 frameRate, World &world, EntityManager &entityManager, InputManager &inputManager, WindowRenderer &windowRenderer, SoundManager &SoundManager);

@@ -81,16 +81,17 @@ void World::Encapsulate(int count, TileState tileState, int index)
     this->Encapsulate(count - 1, tileState, adjacents[rand() % 4]);
 }
 
-void World::Update()
+void World::Update(Uint64 tickCount)
 {
-    while (!WorldActionQueue.empty() && WorldActionQueue.top().TickExecuted <= TicksPassed)
+    this->TickCount = tickCount;
+    while (!WorldActionQueue.empty() && WorldActionQueue.top().TickExecuted <= TickCount)
     {
         WorldAction worldAction = WorldActionQueue.top();
         WorldActionQueue.pop();
 
         worldAction.Action();
     }
-    TicksPassed++;
+    //TickCount++;
 }
 
 void World::ChangeTile(int x, int y, const TileState &tileState)
@@ -114,12 +115,12 @@ void World::MineTile(int x, int y, Player &player)
                 return;
             case TileType::STONE:
                 WorldActionQueue.push({[this, x, y]()
-                                       { this->ChangeTile(x, y, TileStates[AIR]); }, TicksPassed});
+                                       { this->ChangeTile(x, y, TileStates[AIR]); }, TickCount});
                 break;
             case TileType::GOLD:
                 WorldActionQueue.push({[this, x, y, &player]()
                                        {player.Score++; 
-                                        this->ChangeTile(x, y, TileStates[AIR]); }, TicksPassed});
+                                        this->ChangeTile(x, y, TileStates[AIR]); }, TickCount});
                 break;
             case TileType::EXPLOSIVE:
                 Vec2 adjacents[4];
@@ -129,7 +130,7 @@ void World::MineTile(int x, int y, Player &player)
                 adjacents[3] = {x, y + 1};
 
                 WorldActionQueue.push({[this, x, y]()
-                                       { this->ChangeTile(x, y, TileStates[AIR]); }, TicksPassed});
+                                       { this->ChangeTile(x, y, TileStates[AIR]); }, TickCount});
                 for (int i = 0; i < 4; i++)
                 {
                     Vec2 point = adjacents[i];
@@ -138,7 +139,7 @@ void World::MineTile(int x, int y, Player &player)
                     if (IsInBounds(x, y) && tiles[x][y].TileType != AIR)
                     {
                         WorldActionQueue.push({[this, x, y, &player]()
-                                               { this->MineTile(x, y, player); }, TicksPassed + 5});
+                                               { this->MineTile(x, y, player); }, TickCount + 5});
                     }
                 }
                 break;

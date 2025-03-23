@@ -58,16 +58,10 @@ private:
     void HandleMovement();
     void PollAndUpdate(int actionIndex);
 
-    void Reveal();
-    void ToggleFullScreen();
-    void ToggleDebug();
-    void Exit();
-
 public:
-    InputManager();
     InputManager(World &world, Player &player, WindowRenderer &renderer, SoundManager &SoundManager);
     ~InputManager();
-    void ManageInput();
+    void Update(Uint64 tickCount);
     bool Running;
 };
 #endif

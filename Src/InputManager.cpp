@@ -11,7 +11,7 @@ InputManager::InputManager(World &world, Player &player, WindowRenderer &rendere
     MovementInputs[LEFT] = {SDL_SCANCODE_A, 0, 0, nullptr};
     MovementInputs[RIGHT] = {SDL_SCANCODE_D, 0, 0, nullptr};
 
-    MouseInputs = {250, 0, 0, 0};
+    MouseInputs = {300, 0, 0, 0};
 
     // ActionInputs[REVEAL] = {SDL_SCANCODE_TAB, 500, 0, [this]()
     //                         { Reveal(); }};
@@ -38,7 +38,7 @@ InputManager::~InputManager()
 {
 }
 
-void InputManager::ManageInput()
+void InputManager::Update(Uint64 tickCount)
 {
     SDL_PumpEvents();
 
