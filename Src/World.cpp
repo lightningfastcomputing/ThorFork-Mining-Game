@@ -10,6 +10,7 @@ World::World(int width, int height, int nuggetCount, int stoneThickness, int exp
     TileStates[STONE] = {TileType::STONE, 10};
     TileStates[GOLD] = {TileType::GOLD, 5};
     TileStates[EXPLOSIVE] = {TileType::EXPLOSIVE, 1};
+    TileStates[BARRIER] = {TileType::BARRIER, INT_MAX};
 
     this->Width = width;
     this->Height = height;
@@ -30,6 +31,8 @@ World::World(int width, int height, int nuggetCount, int stoneThickness, int exp
     delete[] nuggets;
 
     Sprinkle(explosiveCount, TileStates[EXPLOSIVE], true, NULL);
+
+    SetBorder();
 }
 World::~World()
 {
@@ -81,6 +84,16 @@ void World::Encapsulate(int count, TileState tileState, int index)
     this->Encapsulate(count - 1, tileState, adjacents[rand() % 4]);
 }
 
+void World::SetBorder() {
+    for (int i = 0; i < Width; i++)
+    {
+        for (int j = 0; j < Height; j++) {
+            if (i == 0 || i == Width - 1 || j == 0 || j == Height - 1)
+                tiles[i][j] = TileStates[BARRIER];
+        }
+    }
+}
+
 void World::Update(Uint64 tickCount)
 {
     this->TickCount = tickCount;
@@ -94,18 +107,18 @@ void World::Update(Uint64 tickCount)
     //TickCount++;
 }
 
-void World::ChangeTile(int x, int y, const TileState &tileState)
+void World::ChangeTile(int x, int y, TileType TileType)
 {
-    this->tiles[x][y] = tileState;
+    this->tiles[x][y] = TileStates[TileType];
 }
 
-void World::MineTile(int x, int y, Player &player)
+void World::MineTile(int x, int y, int strength, Player &player)
 {
     if (IsInBounds(x, y))
     {
         TileState &tileState = tiles[x][y];
 
-        tileState.Health--;
+        tileState.Health -= strength;
         if (tileState.Health <= 0)
         {
 
@@ -115,12 +128,12 @@ void World::MineTile(int x, int y, Player &player)
                 return;
             case TileType::STONE:
                 WorldActionQueue.push({[this, x, y]()
-                                       { this->ChangeTile(x, y, TileStates[AIR]); }, TickCount});
+                                       { this->ChangeTile(x, y, AIR); }, TickCount});
                 break;
             case TileType::GOLD:
                 WorldActionQueue.push({[this, x, y, &player]()
                                        {player.Score++; 
-                                        this->ChangeTile(x, y, TileStates[AIR]); }, TickCount});
+                                        this->ChangeTile(x, y, AIR); }, TickCount});
                 break;
             case TileType::EXPLOSIVE:
                 Vec2 adjacents[4];
@@ -130,7 +143,7 @@ void World::MineTile(int x, int y, Player &player)
                 adjacents[3] = {x, y + 1};
 
                 WorldActionQueue.push({[this, x, y]()
-                                       { this->ChangeTile(x, y, TileStates[AIR]); }, TickCount});
+                                       { this->ChangeTile(x, y, AIR); }, TickCount});
                 for (int i = 0; i < 4; i++)
                 {
                     Vec2 point = adjacents[i];
@@ -139,7 +152,7 @@ void World::MineTile(int x, int y, Player &player)
                     if (IsInBounds(x, y) && tiles[x][y].TileType != AIR)
                     {
                         WorldActionQueue.push({[this, x, y, &player]()
-                                               { this->MineTile(x, y, player); }, TickCount + 5});
+                                               { this->MineTile(x, y, 10, player); }, TickCount + 5});
                     }
                 }
                 break;

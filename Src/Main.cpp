@@ -1,5 +1,6 @@
 #define SDL_MAIN_HANDLED
 #include "Game.h"
+#include <SDL2/SDL_net.h>
 
 int main(int argc, char *argv[])
 {
@@ -11,13 +12,34 @@ int main(int argc, char *argv[])
 
     SoundManager soundManager;
 
-    World world(200, 200, 100, 100, 0);
-    Player player(1.1f, 2.1f, 0.15f);
+    int worldWidth = 100;
+    int worldHeight = 100;
+    int nuggetCount = 100;
+    int thickness = 20;
+    int explosiveCount = 0;
 
-    EntityManager entityManager(world, player);
-    WindowRenderer windowRenderer(world, player, 1280, 800);
-    InputManager inputManager(world, player, windowRenderer, soundManager);
+    World world(worldWidth, worldHeight, nuggetCount, thickness, explosiveCount);
 
+    Player player(1.1f, 2.1f, 0.15f, worldWidth, worldHeight);
+
+    Player player2(4.1f, 4.1f, 0.15f, worldWidth, worldHeight);
+
+    Player player3(1.1f, 1.9f, 0.15f, worldWidth, worldHeight);
+
+    Player player4(1.1f, 1.9f, 0.15f, worldWidth, worldHeight);
+
+    Player player5(1.1f, 1.9f, 0.15f, worldWidth, worldHeight);
+
+    std::vector<Player*> players;
+    players.push_back(&player);
+    players.push_back(&player2);
+    players.push_back(&player3);
+    players.push_back(&player4);
+    players.push_back(&player5);
+
+    EntityManager entityManager(world, players);
+    WindowRenderer windowRenderer(world, &player, players, 1280, 800);
+    InputManager inputManager(world, &player, players, windowRenderer, soundManager);
     Uint64 frameRate = 1000 / 60;
     Game game(frameRate, world, entityManager, inputManager, windowRenderer, soundManager);
 

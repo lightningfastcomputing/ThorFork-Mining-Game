@@ -8,7 +8,7 @@ class Player
 private:
 
 public:
-    const float EPSILON = 0.001;
+    const float EPSILON = 0.0000000000000000000001f;
     bool **DiscoveredTiles;
 
     SDL_FRect BoundingBox;
@@ -30,7 +30,7 @@ public:
     int xStart, xEnd;
     int yStart, yEnd;
 
-    Player(float width, float height, float speed);
+    Player(float width, float height, float speed, int worldWidth, int worldHeight);
     ~Player();
     void UpdateVelocity(direction dir);
 };

@@ -1,7 +1,7 @@
 #include "InputManager.h"
 
-InputManager::InputManager(World &world, Player &player, WindowRenderer &renderer, SoundManager &soundManager) : _World(world),
-                                                                                     _Player(player), _Renderer(renderer), _SoundManager(soundManager)
+InputManager::InputManager(World &world, Player *player, std::vector<Player*> &players, WindowRenderer &renderer, SoundManager &soundManager) : _World(world),
+                                                                                     _Player(player), _Players(players), _Renderer(renderer), _SoundManager(soundManager)
 {
     Keys = SDL_GetKeyboardState(NULL);
     Running = true;
@@ -11,27 +11,85 @@ InputManager::InputManager(World &world, Player &player, WindowRenderer &rendere
     MovementInputs[LEFT] = {SDL_SCANCODE_A, 0, 0, nullptr};
     MovementInputs[RIGHT] = {SDL_SCANCODE_D, 0, 0, nullptr};
 
-    MouseInputs = {300, 0, 0, 0};
+    MouseInputs = {250, 250, 0, 0};
 
-    // ActionInputs[REVEAL] = {SDL_SCANCODE_TAB, 500, 0, [this]()
-    //                         { Reveal(); }};
+    ActionInputs[REVEAL] = {SDL_SCANCODE_TAB, 500, 0, [this]()
+                                { for (int i = 0; i < _World.Width; i++) 
+                                    {
+                                    memset(_Player->DiscoveredTiles[i], true, _World.Height * sizeof(bool));
+                                    }
+                                }
+                            };
     ActionInputs[TOGGLE_DEBUG] = {SDL_SCANCODE_F1,
                                   500,
                                   0,
                                   [this]()
-                                  { this->_Renderer.ToggleDebug(); }};
+                                  { this->_Renderer.ToggleDebug(); }
+                                };
 
     ActionInputs[TOGGLE_FULLSCREEN] = {SDL_SCANCODE_F11,
                                        1000,
                                        0,
                                        [this]()
-                                       { this->_Renderer.ToggleFullScreen(); }};
+                                       { this->_Renderer.ToggleFullScreen(); }
+                                    };
 
     ActionInputs[EXIT] = {SDL_SCANCODE_ESCAPE,
                           100,
                           0,
                           [this]()
-                          { this->Running = false; }};
+                          { 
+                            std::cout << "Exiting..." << std::endl;
+                            this->Running = false; 
+                          }
+                        };
+
+    ActionInputs[SWITCH_PLAYER_0] = {SDL_SCANCODE_1,
+                                    100,
+                                    0,
+                                    [this]()
+                                    {
+                                        this->_Player = _Players[0]; 
+                                        this->_Renderer._Player = _Players[0];
+                                    }
+                                };
+
+    ActionInputs[SWITCH_PLAYER_1] = {SDL_SCANCODE_2,
+                                    100,
+                                    0,
+                                    [this]()
+                                    { 
+                                        this->_Player = _Players[1];
+                                        this->_Renderer._Player = _Players[1];
+                                    }
+                                };
+    ActionInputs[SWITCH_PLAYER_2] = {SDL_SCANCODE_3,
+                                    100,
+                                    0,
+                                    [this]()
+                                    { 
+                                        this->_Player = _Players[2];
+                                        this->_Renderer._Player = _Players[2];
+                                    }
+                                };
+    ActionInputs[SWITCH_PLAYER_3] = {SDL_SCANCODE_4,
+                                    100,
+                                    0,
+                                    [this]()
+                                    { 
+                                        this->_Player = _Players[3];
+                                        this->_Renderer._Player = _Players[3];
+                                    }
+                                };
+    ActionInputs[SWITCH_PLAYER_4] = {SDL_SCANCODE_5,
+                                    100,
+                                    0,
+                                    [this]()
+                                    { 
+                                        this->_Player = _Players[4];
+                                        this->_Renderer._Player = _Players[4];
+                                    }
+                                };
 }
 
 InputManager::~InputManager()
@@ -46,10 +104,15 @@ void InputManager::Update(Uint64 tickCount)
 
     HandleMovement();
 
-    // PollAndUpdate(REVEAL);
+    PollAndUpdate(REVEAL);
     PollAndUpdate(TOGGLE_DEBUG);
     PollAndUpdate(TOGGLE_FULLSCREEN);
     PollAndUpdate(EXIT);
+    PollAndUpdate(SWITCH_PLAYER_0);
+    PollAndUpdate(SWITCH_PLAYER_1);
+    PollAndUpdate(SWITCH_PLAYER_2);
+    PollAndUpdate(SWITCH_PLAYER_3);
+    PollAndUpdate(SWITCH_PLAYER_4);
 }
 
 void InputManager::HandleMouseInput()
@@ -60,18 +123,18 @@ void InputManager::HandleMouseInput()
 
     if (mouseState & SDL_BUTTON(1) && (now - MouseInputs.LeftLastTimePressed) > MouseInputs.LeftCooldown)
     {
-        if (_Player.CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
+        if (_Player->CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
         {
-            _World.MineTile(selectedX, selectedY, _Player);
+            _World.MineTile(selectedX, selectedY, 1, *_Player);
             _SoundManager.PlaySound(Sound::PICKAXE_STRIKE);
             MouseInputs.LeftLastTimePressed = now;
         }
     }
     else if (mouseState & SDL_BUTTON(3) && (now - MouseInputs.RightLastTimePressed) > MouseInputs.RightCooldown)
     {
-        if (_Player.CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
+        if (_Player->CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
         {
-            //_World.ChangeTile(selectedX, selectedY, TileState::EXPLOSIVE_TILE);
+            _World.ChangeTile(selectedX, selectedY, TileType::EXPLOSIVE);
             MouseInputs.RightLastTimePressed = now;
         }
     }
@@ -79,7 +142,7 @@ void InputManager::HandleMouseInput()
 
 void InputManager::HandleMovement()
 {
-    SDL_Scancode up = MovementInputs[UP].ScanCode, down = MovementInputs[DOWN].ScanCode,
+    int up = MovementInputs[UP].ScanCode, down = MovementInputs[DOWN].ScanCode,
                  left = MovementInputs[LEFT].ScanCode, right = MovementInputs[RIGHT].ScanCode;
 
     bool horizontalInput = Keys[left] || Keys[right];
@@ -102,7 +165,7 @@ void InputManager::HandleMovement()
         dir = SOUTHWEST;
     else if (Keys[down] && Keys[right])
         dir = SOUTHEAST;
-    _Player.UpdateVelocity(dir);
+    _Player->UpdateVelocity(dir);
 }
 
 void InputManager::PollAndUpdate(int actionIndex)

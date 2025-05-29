@@ -14,6 +14,15 @@ enum Action
     TOGGLE_DEBUG,
     TOGGLE_FULLSCREEN,
     EXIT,
+    SWITCH_PLAYER_0,
+    SWITCH_PLAYER_1,
+    SWITCH_PLAYER_2,
+    SWITCH_PLAYER_3,
+    SWITCH_PLAYER_4,
+    SWITCH_PLAYER_5,
+    SWITCH_PLAYER_6,
+    SWITCH_PLAYER_7,
+    SWITCH_PLAYER_8,
     ACTIONS_COUNT
 };
 
@@ -28,7 +37,7 @@ enum Movement
 
 struct Input
 {
-    SDL_Scancode ScanCode;
+    int ScanCode;
     Uint64 MillisecondCooldown;
     Uint64 LastTimePressed;
     std::function<void()> Action;
@@ -46,7 +55,8 @@ class InputManager
 {
 private:
     World &_World;
-    Player &_Player;
+    Player *_Player;
+    std::vector<Player*> &_Players;
     WindowRenderer &_Renderer;
     SoundManager &_SoundManager;
 
@@ -59,7 +69,7 @@ private:
     void PollAndUpdate(int actionIndex);
 
 public:
-    InputManager(World &world, Player &player, WindowRenderer &renderer, SoundManager &SoundManager);
+    InputManager(World &world, Player *player, std::vector<Player*> &players, WindowRenderer &renderer, SoundManager &SoundManager);
     ~InputManager();
     void Update(Uint64 tickCount);
     bool Running;

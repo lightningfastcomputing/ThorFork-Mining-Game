@@ -14,6 +14,8 @@
 class WindowRenderer
 {
 private:
+    Uint64 TickCount;
+    
     SDL_Window *Window = nullptr;
     SDL_Renderer *Renderer = nullptr;
     SDL_Texture *Textures[TILETYPE_COUNT] = {nullptr};
@@ -21,13 +23,11 @@ private:
     TTF_Font *TextFont = nullptr;
 
     const World &_World;
-    Player &_Player;
+    std::vector<Player *> &_Players;
 
     bool Debug, Fullscreen;
 
     int TileLength;
-
-    //Vec2F& Camera;
 
     Vec2 WindowDimensions; // window width and height
     Vec2 TileCounts;       // number of tiles, horizontal and vertical, that fit on the screen
@@ -39,7 +39,7 @@ private:
 
     void Init_Display(const char *windowTitle);
     inline void DrawWorld();
-    inline void DrawPlayer();
+    inline void DrawPlayers();
     inline void DebugInfo();
     inline void DrawAndStoreSelectedTile();
     inline void DrawPlayerBoundingBox();
@@ -49,11 +49,13 @@ private:
     void ClearFrame();
 
 public:
+    Player *_Player;
+
     bool Running;
     Vec2 MouseScreen; // coordinates of the mouse on the screen
     Vec2 MouseWorld;  // coordinates of the mouse relative to the world
 
-    WindowRenderer(const World &world, Player &player, int width, int height);
+    WindowRenderer(const World &world, Player *player, std::vector<Player *> &players, int width, int height);
     ~WindowRenderer();
     void UpdateWindow();
     void ToggleFullScreen();

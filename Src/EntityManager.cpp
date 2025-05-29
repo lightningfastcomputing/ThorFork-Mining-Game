@@ -1,72 +1,87 @@
 #include "EntityManager.h"
 
-EntityManager::EntityManager(World &world, Player &player) : _World(world), _Player(player)
+EntityManager::EntityManager(World &world, std::vector<Player*>& players) : _World(world), _Players(players)
 {
-    _Player.BoundingBox.x = _World.Width / 2;
-    _Player.BoundingBox.y = _World.Height / 2;
-
-    _Player.Center = {_Player.BoundingBox.x + _Player.HalfDimensions.x, _Player.BoundingBox.y + _Player.HalfDimensions.y};
-
-    _Player.DiscoveredTiles = new bool *[_World.Width];
-    for (int i = 0; i < _World.Width; i++)
+    for (Player* p : _Players)
     {
-        _Player.DiscoveredTiles[i] = new bool[_World.Height];
-        for (int j = 0; j < _World.Height; j++)
-            _Player.DiscoveredTiles[i][j] = false;
+        p->BoundingBox.x = rand() %  (_World.Width - 1) + 1;
+        p->BoundingBox.y = rand() %  (_World.Height - 1) + 1;
+
+        int &xStart = p->xStart, &xEnd = p->xEnd, &yStart = p->yStart, &yEnd = p->yEnd;
+        float &x = p->BoundingBox.x, &y = p->BoundingBox.y, w = p->BoundingBox.w, h = p->BoundingBox.h;
+
+        xStart = (int)SDL_floorf(x);
+        xEnd = (int)SDL_floorf(x + w);
+        yStart = (int)SDL_floorf(y);
+        yEnd = (int)SDL_floorf(y + h);
+
+        for (int i = xStart; i <= xEnd; i++)
+        {
+            for (int j = yStart; j <= yEnd; j++)
+            {
+                _World.ChangeTile(i, j, TileType::AIR);
+            }
+        }
+        p->Center = {x + p->HalfDimensions.x, y + p->HalfDimensions.y};
+
+        
     }
 }
 
 EntityManager::~EntityManager()
 {
-    for (int i = 0; i < _World.Width; i++)
-    {
-        delete[] _Player.DiscoveredTiles[i];
-    }
-    delete[] _Player.DiscoveredTiles;
 }
 
-void EntityManager::Update()
+void EntityManager::Update(Uint64 deltaTime)
 {
     UpdatePlayerPosition();
-    PlayerRadialDiscover();
+    PlayerRadialDiscover(deltaTime);
     PlayerTryMine();
 }
 
-// sets ability to mine only if center has line of sight to the tile
+// sets ability to mine only if center has line of sight to the tile //broken
 void EntityManager::PlayerTryMine()
 {
-    Vec2 targetTile = {(int)_Player.Target.x, (int)_Player.Target.y};
+    for (Player* p : _Players)
+    {
+        p->CanMine = true;
+    }
+    return;
+    
+    Player* p = _Players[0]; // assuming only one player for now
+        
+    Vec2 targetTile = {(int)p->Target.x, (int)p->Target.y};
 
     // check if inside player
-    SDL_Rect collisionRect = {_Player.xStart, _Player.yStart, (_Player.xEnd - _Player.xStart + 1), (_Player.yEnd - _Player.yStart + 1)};
+    SDL_Rect collisionRect = {p->xStart, p->yStart, (p->xEnd - p->xStart + 1), (p->yEnd - p->yStart + 1)};
     if (SDL_PointInRect((SDL_Point *)&targetTile, &collisionRect))
     {
-        _Player.CanMine = false;
+        p->CanMine = false;
         return;
     }
 
     // check if in bounds or if discovered
-    if (!_World.IsInBounds(targetTile) || !_Player.DiscoveredTiles[targetTile.x][targetTile.y])
+    if (!_World.IsInBounds(targetTile) || !p->DiscoveredTiles[targetTile.x][targetTile.y])
     {
-        _Player.CanMine = false;
+        p->CanMine = false;
         return;
     }
 
     // check for line of sight
-    Vec2F dir = _Player.Target - _Player.Center; // vector toward mouse coordinates
+    Vec2F dir = p->Target - p->Center; // vector toward mouse coordinates
     float distance = dir.Magnitude();
-    if (distance > _Player.MiningRadius)
+    if (distance > p->MiningRadius)
     {
-        _Player.CanMine = false;
+        p->CanMine = false;
         return;
     }
 
     dir.Normalize();
-    Vec2F rayPos = _Player.Center;
+    Vec2F rayPos = p->Center;
 
     for (float t = 0; t < distance; t += 0.2f)
     {
-        rayPos = _Player.Center + (dir * t);
+        rayPos = p->Center + (dir * t);
 
         Vec2 tile = {(int)rayPos.x, (int)rayPos.y};
 
@@ -78,18 +93,18 @@ void EntityManager::PlayerTryMine()
             Vec2 adj2 = {tile.x, tile.y + (dir.y > 0 ? 1 : -1)};
             if (_World.tiles[adj1.x][adj1.y].TileType != TileType::AIR && _World.tiles[adj2.x][adj2.y].TileType != TileType::AIR)
             {
-                _Player.CanMine = false;
+                p->CanMine = false;
                 return;
             }
             else
             {
-                _Player.CanMine = true;
+                p->CanMine = true;
                 return;
             }
         }
         else if (_World.tiles[tile.x][tile.y].TileType != TileType::AIR)
         {
-            _Player.CanMine = false;
+            p->CanMine = false;
             return;
         }
     }
@@ -97,54 +112,54 @@ void EntityManager::PlayerTryMine()
 
 // space and computation tradeoff: use more rays to parallelize the computation at the cost of space
 // or do every 2 frames, or every 3, whatever keeps the illusion
-void EntityManager::PlayerRadialDiscover()
+void EntityManager::PlayerRadialDiscover(Uint64 deltaTime)
 {
-    Ray ray(_Player.Center, 0, _Player.DiscoverRadius);
-
-    Vec2F rayPos = ray.Origin;
-
-    int numRays = (int)(2 * PI * ray.Length) + 1; // aproximation of how many rays are needed to get a clean discovery radius
-    float dTheta = (2 * PI) / numRays;
-    float theta = 0;
-
-    for (int i = 0; i < numRays; i++)
+    for (Player* p : _Players) 
     {
+        Ray ray(p->Center, 0, p->DiscoverRadius);
 
-        Vec2F dir = {SDL_cosf(theta), SDL_sinf(theta)};
+        Vec2F rayPos = ray.Origin;
 
-        for (float t = 0; t < ray.Length; t += 0.5f) // advance by half a tile length
+        int numRays = (int)(2 * PI * ray.Length) + 1; // aproximation of how many rays are needed to get a clean discovery radius
+        float dTheta = (2 * PI) / numRays;
+        float theta = 0;
+
+        for (int i = 0; i < numRays; i++)
         {
-            rayPos = ray.Origin + (dir * t);
+            Vec2F dir = {SDL_cosf(theta), SDL_sinf(theta)};
 
-            Vec2 tile = {(int)rayPos.x, (int)rayPos.y};
-
-            if (_World.IsInBounds(tile.x, tile.y))
+            for (float t = 0; t < ray.Length; t += 0.5f) // advance by half a tile length
             {
-                _Player.DiscoveredTiles[tile.x][tile.y] = true;
+                rayPos = ray.Origin + (dir * t);
 
-                if (_World.tiles[tile.x][tile.y].TileType != AIR || !_World.IsInBounds(tile.x, tile.y))
+                Vec2 tile = {(int)rayPos.x, (int)rayPos.y};
+
+                if (_World.IsInBounds(tile.x, tile.y))
                 {
-                    break; // once the ray hits a wall or OOB, stop iterating
+                    p->DiscoveredTiles[tile.x][tile.y] = true;
+
+                    if (_World.tiles[tile.x][tile.y].TileType != AIR || !_World.IsInBounds(tile.x, tile.y))
+                    {
+                        break; // once the ray hits a wall or OOB, stop iterating
+                    }
                 }
             }
+            theta += dTheta;
         }
-        theta += dTheta;
     }
 }
 
+//todo: account for collision with other players 
 void EntityManager::UpdatePlayerPosition()
-{
-    int &xStart = _Player.xStart;
-    int &xEnd = _Player.xEnd;
-    int &yStart = _Player.yStart;
-    int &yEnd = _Player.yEnd;
+{ 
 
-    Vec2F velocity = _Player.Velocity;
-    float &x = _Player.BoundingBox.x, &y = _Player.BoundingBox.y, w = _Player.BoundingBox.w, h = _Player.BoundingBox.h;
-    float EPSILON = _Player.EPSILON;
-
-    if (velocity.x != 0)
+    for (Player* p : _Players)
     {
+        int &xStart = p->xStart, &xEnd = p->xEnd, &yStart = p->yStart, &yEnd = p->yEnd;
+        Vec2F velocity = p->Velocity;
+        float &x = p->BoundingBox.x, &y = p->BoundingBox.y, w = p->BoundingBox.w, h = p->BoundingBox.h;
+        float EPSILON = p->EPSILON;
+
         x += velocity.x;
 
         xStart = (int)SDL_floorf(x);
@@ -152,36 +167,49 @@ void EntityManager::UpdatePlayerPosition()
         xEnd = (int)SDL_floorf(x + w);
         yEnd = (int)SDL_floorf(y + h);
 
-        if (xStart < 0)
-        {
-            x = EPSILON;
-        }
-        else if (xEnd > _World.Width - 1)
-        {
-            x = _World.Width - w - EPSILON;
-        }
-        else
+        // West Collision
+        if (velocity.x < 0)
         {
             for (int i = yStart; i <= yEnd; i++)
             {
-                // West Collision
+                
                 if (_World.tiles[xStart][i].TileType != TileType::AIR)
                 {
                     x = (float)xStart + 1 + EPSILON;
                     break;
                 }
-                // East Collision
-                else if (_World.tiles[xEnd][i].TileType != TileType::AIR)
+            }
+
+            for (Player* other : _Players)
+            {
+                if (other == p) continue;
+
+                if (SDL_HasIntersectionF(&p->BoundingBox, &other->BoundingBox))
+                    x = other->BoundingBox.x + other->BoundingBox.w + EPSILON;
+            }
+        }
+        // East Collision
+        else if (velocity.x > 0)
+        {
+            for (int i = yStart; i <= yEnd; i++)
+            {
+                
+                if (_World.tiles[xEnd][i].TileType != TileType::AIR)
                 {
                     x = (float)xEnd - w - EPSILON;
                     break;
                 }
             }
-        }
-    }
 
-    if (velocity.y != 0)
-    {
+            for (Player* other : _Players)
+            {
+                if (other == p) continue;
+
+                if (SDL_HasIntersectionF(&p->BoundingBox, &other->BoundingBox))
+                    x = other->BoundingBox.x - w - EPSILON;
+            }
+        }
+        
         y += velocity.y;
 
         xStart = (int)SDL_floorf(x);
@@ -189,16 +217,8 @@ void EntityManager::UpdatePlayerPosition()
         xEnd = (int)SDL_floorf(x + w);
         yEnd = (int)SDL_floorf(y + h);
 
-        if (yStart < 0)
-        {
-            y = EPSILON;
-        }
-        else if (yEnd > _World.Height - 1)
-        {
-            y = _World.Height - h - EPSILON;
-        }
-        else
-        {
+        // North Collision
+        if (velocity.y < 0) {
             for (int i = xStart; i <= xEnd; i++)
             {
                 if (_World.tiles[i][yStart].TileType != TileType::AIR)
@@ -206,20 +226,58 @@ void EntityManager::UpdatePlayerPosition()
                     y = (float)yStart + 1 + EPSILON;
                     break;
                 }
-                else if (_World.tiles[i][yEnd].TileType != TileType::AIR)
+            }
+
+            for (Player* other : _Players)
+            {
+                if (other == p) continue;
+
+                if (SDL_HasIntersectionF(&p->BoundingBox, &other->BoundingBox))
+                {
+                    y = other->BoundingBox.y + other->BoundingBox.h + EPSILON;
+                }
+            }
+            
+        }
+        // South Collision
+        else if (velocity.y > 0)
+        {
+            for (int i = xStart; i <= xEnd; i++)
+            {
+                if (_World.tiles[i][yEnd].TileType != TileType::AIR)
                 {
                     y = (float)yEnd - h - EPSILON;
                     break;
                 }
             }
+
+            for (Player* other : _Players)
+            {
+                if (other == p) continue;
+
+                if (SDL_HasIntersectionF(&p->BoundingBox, &other->BoundingBox))
+                {
+                    y = other->BoundingBox.y - h - EPSILON;
+                }
+            }
         }
+
+        xStart = (int)SDL_floorf(x);
+        yStart = (int)SDL_floorf(y);
+        xEnd = (int)SDL_floorf(x + w);
+        yEnd = (int)SDL_floorf(y + h);
+
+        p->Center = {p->BoundingBox.x + p->HalfDimensions.x, p->BoundingBox.y + p->HalfDimensions.y};
+        p->Velocity = {0, 0};
     }
+}
 
-    xStart = (int)SDL_floorf(x);
-    yStart = (int)SDL_floorf(y);
-    xEnd = (int)SDL_floorf(x + w);
-    yEnd = (int)SDL_floorf(y + h);
+void EntityManager::EntityWorldCollisionCheck()
+{
 
-    _Player.Center = {_Player.BoundingBox.x + _Player.HalfDimensions.x, _Player.BoundingBox.y + _Player.HalfDimensions.y};
-    _Player.Velocity = {0, 0};
+}
+
+void EntityManager::EntityEntityCollisionCheck()
+{
+
 }

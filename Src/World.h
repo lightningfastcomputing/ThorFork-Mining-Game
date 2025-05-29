@@ -33,6 +33,9 @@ private:
     // encapsulate a specific tile with a material
     void Encapsulate(int count, TileState tileState, int index);
 
+    //set an impassable border around the world
+    void SetBorder();
+
 public:
     TileState **tiles;
     int Width;
@@ -44,9 +47,9 @@ public:
 
     void Update(Uint64 tickCount);
 
-    void ChangeTile(int x, int y, const TileState &tileState);
+    void ChangeTile(int x, int y, TileType tileType);
 
-    void MineTile(int x, int y, Player& player);
+    void MineTile(int x, int y, int strength, Player& player);
 
     bool IsInBounds(int x, int y) const
     {

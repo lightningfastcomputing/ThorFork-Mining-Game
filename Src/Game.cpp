@@ -35,12 +35,10 @@ void Game::Start()
                 }
             }
         }
-
         _WindowRenderer.Update(TickCount);
         _InputManager.Update(TickCount);
         _World.Update(TickCount);
-        _EntityManager.Update();
-
+        _EntityManager.Update(TickCount);
         Uint64 frameTime = SDL_GetTicks64() - frameStart;
         if (frameTime < FrameRate)
         {

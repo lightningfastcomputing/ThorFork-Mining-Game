@@ -1,6 +1,6 @@
 #include "Player.h"
 
-Player::Player(float width, float height, float speed)
+Player::Player(float width, float height, float speed, int worldWidth, int worldHeight)
 {
     BoundingBox.x = 0;
     BoundingBox.y = 0;
@@ -15,17 +15,25 @@ Player::Player(float width, float height, float speed)
     CanMine = false;
     Target = {0, 0};
     MiningRadius = 10.0f;
-    DiscoverRadius = 15.0f;
+    DiscoverRadius = 8.0f;
 
     //tiles inhabited
-    xStart = 0;
-    xEnd = 0;
-    yStart = 0;
-    yEnd = 0;
+    xStart = -1;
+    xEnd = -1;
+    yStart = -1;
+    yEnd = -1;
+    
+    DiscoveredTiles = new bool*[worldWidth];
+    for (int i = 0; i < worldWidth; i++)
+    {
+        DiscoveredTiles[i] = new bool[worldHeight];
+        memset(DiscoveredTiles[i], false, worldHeight * sizeof(bool));
+    }
 }
 
-Player::~Player()
+Player::~Player() //fix memory leak
 {
+    delete[] DiscoveredTiles;
 }
 
 void Player::UpdateVelocity(direction dir)

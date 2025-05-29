@@ -26,6 +26,7 @@ enum TileType
     STONE,
     GOLD,
     EXPLOSIVE,
+    BARRIER,
     TILETYPE_COUNT
 };
 

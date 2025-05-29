@@ -6,7 +6,7 @@
 struct TileState
 {
     enum TileType TileType;
-    Uint8 Health;
+    int Health;
 };
 
 #endif
