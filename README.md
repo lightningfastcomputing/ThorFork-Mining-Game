@@ -5,28 +5,9 @@ Terrain Destruction Game using SDL2, written in C++
 # Demo Videos:
 https://www.youtube.com/@ottopfeff
 
-
-# Building
-Compiling is described in the Makefile and requires gcc, gdb, and SDL2 packages
-
-Cross-Platform building will be implemented later
-
-If on Linux, just these commands in the terminal to install:
-
-sudo apt install gcc
-
-sudo apt install gdb
-
-sudo apt-get install libsdl2-dev
-
-sudo apt-get install libsdl2-image-dev
-
-sudo apt-get install libsdl2-ttf-dev
-
-sudo apt-get install libsdl2-mixer-dev
-
-
 # TODO
+
+Add chunking for world to facilitate online multiplayer
 
 fix logic for line-of-sight
 
