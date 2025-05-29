@@ -9,6 +9,8 @@ https://www.youtube.com/@ottopfeff
 
 Add chunking for world to facilitate online multiplayer
 
+Add basic multiplayer
+
 fix logic for line-of-sight
 
 Improve tiles (add health, more variance, better worldgen), fix scoring:
