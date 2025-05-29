@@ -3,7 +3,7 @@ Extract the gold! Drill through the stone! Blow things up with dynamite!
 Terrain Destruction Game using SDL2, written in C++
 
 # Demo Videos:
-https://www.youtube.com/@ottopfefferkorn9519
+https://www.youtube.com/@ottopfeff
 
 
 # Building
