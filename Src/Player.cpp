@@ -14,8 +14,8 @@ Player::Player(float width, float height, float speed, int worldWidth, int world
     Score = 0;
     CanMine = false;
     Target = {0, 0};
-    MiningRadius = 10.0f;
-    DiscoverRadius = 8.0f;
+    MiningRadius = 5.0f;
+    DiscoverRadius = 10.0f;
 
     //tiles inhabited
     xStart = -1;
@@ -23,17 +23,10 @@ Player::Player(float width, float height, float speed, int worldWidth, int world
     yStart = -1;
     yEnd = -1;
     
-    DiscoveredTiles = new bool*[worldWidth];
-    for (int i = 0; i < worldWidth; i++)
-    {
-        DiscoveredTiles[i] = new bool[worldHeight];
-        memset(DiscoveredTiles[i], false, worldHeight * sizeof(bool));
-    }
 }
 
-Player::~Player() //fix memory leak
+Player::~Player()
 {
-    delete[] DiscoveredTiles;
 }
 
 void Player::UpdateVelocity(direction dir)

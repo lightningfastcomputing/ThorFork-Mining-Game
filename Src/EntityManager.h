@@ -10,9 +10,9 @@ class EntityManager
 private:
     World &_World;
     std::vector<Player*> &_Players;
-    void PlayerTryMine();
     void PlayerRadialDiscover(Uint64 deltaTime);
     void UpdatePlayerPosition();
+    void FixPlayerTargets();
     void EntityWorldCollisionCheck();
     void EntityEntityCollisionCheck();
 
@@ -20,5 +20,6 @@ public:
     EntityManager(World &world, std::vector<Player*> &players);
     ~EntityManager();
     void Update(Uint64 deltaTime);
+
 };
 #endif

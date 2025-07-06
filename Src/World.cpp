@@ -6,11 +6,11 @@ World::World(int width, int height, int nuggetCount, int stoneThickness, int exp
 {
     srand(time(0));
 
-    TileStates[AIR] = {TileType::AIR, 0};
-    TileStates[STONE] = {TileType::STONE, 10};
-    TileStates[GOLD] = {TileType::GOLD, 5};
-    TileStates[EXPLOSIVE] = {TileType::EXPLOSIVE, 1};
-    TileStates[BARRIER] = {TileType::BARRIER, INT_MAX};
+    TileStates[AIR] = {TileType::AIR, 0, true};
+    TileStates[STONE] = {TileType::STONE, 10, false};
+    TileStates[GOLD] = {TileType::GOLD, 5, false};
+    TileStates[EXPLOSIVE] = {TileType::EXPLOSIVE, 1, true};
+    TileStates[BARRIER] = {TileType::BARRIER, INT_MAX, false};
 
     this->Width = width;
     this->Height = height;

@@ -28,19 +28,18 @@ sudo apt-get install libsdl2-mixer-dev
 
 # TODO
 
-fix logic for line-of-sight
-
+(partially done)
 Improve tiles (add health, more variance, better worldgen), fix scoring:
 
     * tiles have health, explosion resistance, hardness, etc
     
     * worldgen: differentiate between overworld and underground, different walkable floortypes, veins of ore 
 
+(partially done)
 Add sounds for mining, walking, ambience, explosions
 
+(partially done)
 add more entities and improve physics engine to deal with them: entity class that player, monsters, etc inherit from
-
-
 
 
 # Ideas
@@ -66,6 +65,8 @@ Minecarts and tracks
 Different floor types: Stone, Mud, Void
 
 # Past Tasks
+
+fix logic for line-of-sight
 
 Use raycasting to determine block to be mined
 

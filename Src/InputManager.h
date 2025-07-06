@@ -66,7 +66,8 @@ private:
     const Uint8 *Keys;
     void HandleMouseInput();
     void HandleMovement();
-    void PollAndUpdate(int actionIndex);
+    inline void PollAndUpdate(int actionIndex);
+    void ValidatePlayerState();
 
 public:
     InputManager(World &world, Player *player, std::vector<Player*> &players, WindowRenderer &renderer, SoundManager &SoundManager);

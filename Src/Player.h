@@ -8,8 +8,7 @@ class Player
 private:
 
 public:
-    const float EPSILON = 0.0000000000000000000001f;
-    bool **DiscoveredTiles;
+    const float EPSILON = 0.0001f;
 
     SDL_FRect BoundingBox;
     Vec2F HalfDimensions;

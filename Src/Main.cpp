@@ -22,20 +22,8 @@ int main(int argc, char *argv[])
 
     Player player(1.1f, 2.1f, 0.15f, worldWidth, worldHeight);
 
-    Player player2(4.1f, 4.1f, 0.15f, worldWidth, worldHeight);
-
-    Player player3(1.1f, 1.9f, 0.15f, worldWidth, worldHeight);
-
-    Player player4(1.1f, 1.9f, 0.15f, worldWidth, worldHeight);
-
-    Player player5(1.1f, 1.9f, 0.15f, worldWidth, worldHeight);
-
     std::vector<Player*> players;
     players.push_back(&player);
-    players.push_back(&player2);
-    players.push_back(&player3);
-    players.push_back(&player4);
-    players.push_back(&player5);
 
     EntityManager entityManager(world, players);
     WindowRenderer windowRenderer(world, &player, players, 1280, 800);

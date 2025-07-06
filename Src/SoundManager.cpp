@@ -22,7 +22,7 @@ SoundManager::~SoundManager()
 {
     for (int i = 0; i < SOUNDS_COUNT; i++)
     {
-        if (Sounds[i])
+        if (Sounds[i] != nullptr)
         {
             Mix_FreeChunk(Sounds[i]);
         }

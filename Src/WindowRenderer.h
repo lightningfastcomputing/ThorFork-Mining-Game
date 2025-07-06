@@ -23,6 +23,7 @@ private:
     TTF_Font *TextFont = nullptr;
 
     const World &_World;
+    bool** Discovered;
     std::vector<Player *> &_Players;
 
     bool Debug, Fullscreen;
@@ -45,11 +46,14 @@ private:
     inline void DrawPlayerBoundingBox();
     inline void DrawPlayerCollisionBox();
     inline void DrawPlayerVector();
+    void DrawPlayerReach();
+    void DrawCursor();
+    void RadialDiscover();
     void RenderFrame();
     void ClearFrame();
 
 public:
-    Player *_Player;
+    Player *_Player = nullptr;
 
     bool Running;
     Vec2 MouseScreen; // coordinates of the mouse on the screen
@@ -62,6 +66,7 @@ public:
     bool IsDiscovered(int x, int y);
     void OutlineTile(int x, int y);
     void ToggleDebug();
+    void Reveal();
     void Update(Uint64 tickCount);
 };
 #endif
