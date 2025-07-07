@@ -53,6 +53,13 @@ InputManager::InputManager(World &world, Player *player, std::vector<Player *> &
                                     {
                                         this->_Renderer.ToggleRelativeCursor();
                                     }};
+    ActionInputs[TOGGLE_VIEW] = {SDL_SCANCODE_F,
+                                    500,
+                                    0,
+                                    [this]()
+                                    {
+                                        this->_Renderer.ToggleGlobalView();
+                                    }};
 }
 
 InputManager::~InputManager()
@@ -73,6 +80,8 @@ void InputManager::Update(Uint64 tickCount)
     PollAndUpdate(EXIT);
     PollAndUpdate(SWITCH_PLAYER_0);
     PollAndUpdate(TOGGLE_CURSOR_MODE);
+    PollAndUpdate(TOGGLE_VIEW);
+
 }
 
 void InputManager::HandleMouseInput()

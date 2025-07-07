@@ -22,6 +22,7 @@ WindowRenderer::WindowRenderer(const World &world, Player *player, std::vector<P
 
     Fullscreen = false;
     Debug = false;
+    GlobalView = false;
     RelativeCursorMode = false;
 
     Running = true;
@@ -135,6 +136,8 @@ void WindowRenderer::ToggleRelativeCursor()
     }
 }
 
+void WindowRenderer::ToggleGlobalView() { GlobalView = !GlobalView; }
+
 void WindowRenderer::ToggleDebug() { Debug = !Debug; }
 
 void WindowRenderer::ToggleFullScreen()
@@ -180,17 +183,24 @@ void WindowRenderer::RenderFrame()
     MinCoordinates = {(int)x - (TileCounts.x / 2), (int)y - (TileCounts.y / 2)};
     MaxCoordinates = {MinCoordinates.x + TileCounts.x, MinCoordinates.y + TileCounts.y};
 
+    if (!GlobalView) 
+    {
+
     DrawWorld();
     DrawPlayers();
-    if (RelativeCursorMode)
-    {
-        DrawPlayerReach();
-        DrawCursor();
-        DrawAndStoreSelectedTile();
+        if (RelativeCursorMode)
+        {
+            DrawPlayerReach();
+            DrawCursor();
+            DrawAndStoreSelectedTile();
+        }
+        if (Debug)
+            DebugInfo();
     }
-
-    if (Debug)
-        DebugInfo();
+    else
+    {
+        GlobalDrawWorld();
+    }
 
     SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255); //undiscovered tiles are just black
     SDL_RenderPresent(Renderer);
@@ -201,6 +211,47 @@ void WindowRenderer::ClearFrame()
     if (SDL_RenderClear(Renderer) < 0)
     {
         printf("RenderClear failed, %s\n", SDL_GetError());
+        Running = false;
+    }
+}
+
+void WindowRenderer::GlobalDrawWorld()
+{
+    int globalTileLength = _World.Height > _World.Width ? WindowDimensions.x/_World.Width : WindowDimensions.y/_World.Height;
+
+    SDL_Rect rect;
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = globalTileLength;
+    rect.h = globalTileLength;
+
+    for (int i = 0; i < _World.Width; i++)
+    {
+        for (int j = 0; j < _World.Height; j++)
+        {
+            if (Discovered[i][j])
+            {
+                int textureIdx = _World.tiles[i][j].TileType;
+                if (SDL_RenderCopy(Renderer, Textures[textureIdx], nullptr, &rect) < 0)
+                {
+                    printf("SDL_RenderCopy Failed: %s", SDL_GetError());
+                }
+            }
+            rect.y += globalTileLength;
+        }
+        rect.x += globalTileLength;
+        rect.y = 0;
+    }
+
+    //draw little squares for the tiles the players are inhabiting
+    SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
+    for (Player* p : _Players)
+    {
+        rect.x = p->xStart * globalTileLength;
+        rect.y = p->yStart * globalTileLength;
+        rect.w = (p->xEnd - p->xStart) * globalTileLength;
+        rect.h = (p->yEnd - p->yStart) * globalTileLength;
+        SDL_RenderFillRect(Renderer, &rect);
     }
 }
 

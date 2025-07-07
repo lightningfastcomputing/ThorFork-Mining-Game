@@ -81,7 +81,7 @@ Update renderer and coordinates to properly display player in the exact middle
 
 Add button debouncing
 
-Update collider for any size (square )object
+Update collider for any size (square) object
 
 
 

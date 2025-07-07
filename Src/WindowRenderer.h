@@ -26,7 +26,7 @@ private:
     bool** Discovered;
     std::vector<Player *> &_Players;
 
-    bool Debug, Fullscreen;
+    bool Debug, Fullscreen, GlobalView;
 
     int TileLength;
 
@@ -41,6 +41,7 @@ private:
     Vec2 LastMouseCoordinates; //used for saving mouse coordinates when switching between modes
 
     void Init_Display(const char *windowTitle);
+    void GlobalDrawWorld();
     inline void DrawWorld();
     inline void DrawPlayers();
     inline void DebugInfo();
@@ -66,6 +67,7 @@ public:
     ~WindowRenderer();
     void UpdateWindow();
     void ToggleRelativeCursor();
+    void ToggleGlobalView();
     void ToggleFullScreen();
     bool IsDiscovered(int x, int y);
     void OutlineTile(int x, int y);

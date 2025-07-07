@@ -24,6 +24,7 @@ enum Action
     SWITCH_PLAYER_7,
     SWITCH_PLAYER_8,
     TOGGLE_CURSOR_MODE,
+    TOGGLE_VIEW,
     ACTIONS_COUNT
 };
 
