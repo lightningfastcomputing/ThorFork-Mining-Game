@@ -38,6 +38,8 @@ private:
     Vec2 MinCoordinates;   // Minimum world coordinates that the window renders
     Vec2 MaxCoordinates;   // Maximum world coordinates that the window renders
 
+    Vec2 LastMouseCoordinates; //used for saving mouse coordinates when switching between modes
+
     void Init_Display(const char *windowTitle);
     inline void DrawWorld();
     inline void DrawPlayers();
@@ -53,15 +55,17 @@ private:
     void ClearFrame();
 
 public:
-    Player *_Player = nullptr;
-
-    bool Running;
+    bool Running, RelativeCursorMode;
     Vec2 MouseScreen; // coordinates of the mouse on the screen
     Vec2 MouseWorld;  // coordinates of the mouse relative to the world
+    Vec2 MouseRelativeDeltas; //Mouse Deltas for non-cursor mouse input
+
+    Player *_Player;
 
     WindowRenderer(const World &world, Player *player, std::vector<Player *> &players, int width, int height);
     ~WindowRenderer();
     void UpdateWindow();
+    void ToggleRelativeCursor();
     void ToggleFullScreen();
     bool IsDiscovered(int x, int y);
     void OutlineTile(int x, int y);

@@ -6,6 +6,7 @@ WindowRenderer::WindowRenderer(const World &world, Player *player, std::vector<P
     WindowDimensions = {width, height};
 
     MouseWorld = {-1, -1};
+    MouseRelativeDeltas = {0, 0};
 
     TileLength = 32; // keep this a power of 2 for quick division
 
@@ -21,7 +22,10 @@ WindowRenderer::WindowRenderer(const World &world, Player *player, std::vector<P
 
     Fullscreen = false;
     Debug = false;
+    RelativeCursorMode = false;
+
     Running = true;
+
     Init_Display("Mining Game");
 }
 
@@ -38,7 +42,7 @@ void WindowRenderer::Init_Display(const char *windowTitle)
     SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");
 
     Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!Renderer)
+    if (Renderer == nullptr)
     {
         printf("SDL_CreateRenderer failed: %s\n", SDL_GetError());
         Running = false;
@@ -54,11 +58,6 @@ void WindowRenderer::Init_Display(const char *windowTitle)
     {
         std::cerr << "TTF_OpenFont failed: " << SDL_GetError() << std::endl;
         Running = false;
-    }
-
-    if (SDL_ShowCursor(SDL_DISABLE) < 0)
-    {
-        printf("SDL_ShowCursor failed: %s\n", SDL_GetError());
     }
 
     Textures[TileType::AIR] = IMG_LoadTexture(Renderer, "Textures/grass.png");
@@ -115,13 +114,37 @@ void WindowRenderer::UpdateWindow()
     TileCounts = {WindowDimensions.x / TileLength, WindowDimensions.y / TileLength};
 }
 
+void WindowRenderer::ToggleRelativeCursor()
+{
+    RelativeCursorMode = !RelativeCursorMode;
+    SDL_bool toggle = (SDL_bool)RelativeCursorMode;
+    if (SDL_SetRelativeMouseMode(toggle) < 0)
+    {
+        printf("SDL_SetRelativeMouseMode failed: %s", SDL_GetError());
+    }
+    else 
+    {
+        if (toggle)
+        {
+            LastMouseCoordinates = MouseScreen;
+        }
+        else
+        {
+            SDL_WarpMouseInWindow(Window, LastMouseCoordinates.x, LastMouseCoordinates.y);
+        }
+    }
+}
+
 void WindowRenderer::ToggleDebug() { Debug = !Debug; }
 
 void WindowRenderer::ToggleFullScreen()
 {
     Fullscreen = !Fullscreen;
     Uint32 flag = Fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
-    SDL_SetWindowFullscreen(Window, flag);
+    if (SDL_SetWindowFullscreen(Window, flag) < 0)
+    {
+        printf("SDL_SetWindowFullscreen failed: %s", SDL_GetError());
+    }
 }
 
 void WindowRenderer::OutlineTile(int x, int y)
@@ -159,9 +182,12 @@ void WindowRenderer::RenderFrame()
 
     DrawWorld();
     DrawPlayers();
-    DrawPlayerReach();
-    DrawCursor();
-    DrawAndStoreSelectedTile();
+    if (RelativeCursorMode)
+    {
+        DrawPlayerReach();
+        DrawCursor();
+        DrawAndStoreSelectedTile();
+    }
 
     if (Debug)
         DebugInfo();
@@ -280,17 +306,22 @@ void WindowRenderer::DebugInfo()
 
 void WindowRenderer::DrawAndStoreSelectedTile()
 {
-    float x = (float)(MouseScreen.x + TileOffset.x) / TileLength;
-    float y = (float)(MouseScreen.y + TileOffset.y) / TileLength;
+    _Player->Target.x += (float)MouseRelativeDeltas.x/TileLength/2;
+    _Player->Target.y += (float)MouseRelativeDeltas.y/TileLength/2;
 
-    MouseWorld = {(int)x + MinCoordinates.x, (int)y + MinCoordinates.y};
-    _Player->Target = {x + MinCoordinates.x, y + MinCoordinates.y};
+    Vec2F targetVector = _Player->Target - _Player->Center;
+    if (targetVector.Magnitude() > _Player->MiningRadius)
+    {
+        targetVector.Normalize();
+        _Player->Target = _Player->Center + (targetVector * (_Player->MiningRadius - 0.001f));
+    }
+    MouseWorld = {(int)_Player->Target.x, (int)_Player->Target.y};
 
     _Player->CanMine ? SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255) : SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
 
 
-    int rendX = (int)x * TileLength - TileOffset.x;
-    int rendY = (int)y * TileLength - TileOffset.y;
+    int rendX = (int)(_Player->Target.x - MinCoordinates.x) * TileLength - TileOffset.x;
+    int rendY = (int)(_Player->Target.y - MinCoordinates.y) * TileLength - TileOffset.y;
 
     if (_World.IsInBounds((int)MouseWorld.x, (int)MouseWorld.y) && Discovered[((int)MouseWorld.x)][((int)MouseWorld.y)])
     {
@@ -314,8 +345,6 @@ void WindowRenderer::DrawPlayerReach()
     int x0 = rendX + (_Player->MiningRadius * TileLength) * SDL_cosf(theta);
     int y0 = rendY + (_Player->MiningRadius * TileLength) * SDL_sinf(theta);
 
-    //SDL_RenderDrawLine(Renderer, rendX, rendY, x0, y0);
-
     for (int i = 0; i < divisions; i++)
     {
         theta += dtheta;
@@ -332,8 +361,8 @@ void WindowRenderer::DrawPlayerReach()
 void WindowRenderer::DrawCursor()
 {
     SDL_Rect rect;
-    rect.x = MouseScreen.x - TileLength/4;
-    rect.y = MouseScreen.y - TileLength/4;
+    rect.x = (_Player->Target.x - MinCoordinates.x) * TileLength - TileOffset.x - TileLength/4;
+    rect.y = (_Player->Target.y - MinCoordinates.y) * TileLength - TileOffset.y - TileLength/4;
     rect.w = TileLength/2;
     rect.h = TileLength/2;
 

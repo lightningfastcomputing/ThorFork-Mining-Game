@@ -54,6 +54,7 @@ void EntityManager::UpdatePlayerPosition()
         int &xStart = p->xStart, &xEnd = p->xEnd, &yStart = p->yStart, &yEnd = p->yEnd;
         Vec2F velocity = p->Velocity;
         float &x = p->BoundingBox.x, &y = p->BoundingBox.y, w = p->BoundingBox.w, h = p->BoundingBox.h;
+        Vec2F positionDelta = {x, y};
         float EPSILON = p->EPSILON;
 
         x += velocity.x;
@@ -165,6 +166,11 @@ void EntityManager::UpdatePlayerPosition()
 
         p->Center = {p->BoundingBox.x + p->HalfDimensions.x, p->BoundingBox.y + p->HalfDimensions.y};
         p->Velocity = {0, 0};
+
+        positionDelta.x = x - positionDelta.x;
+        positionDelta.y = y - positionDelta.y;
+        p->Target.x += positionDelta.x;
+        p->Target.y += positionDelta.y;
     }
 }
 

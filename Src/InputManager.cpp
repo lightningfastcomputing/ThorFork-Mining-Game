@@ -13,7 +13,7 @@ InputManager::InputManager(World &world, Player *player, std::vector<Player *> &
 
     MouseInputs = {250, 250, 0, 0};
 
-    ActionInputs[REVEAL] = {SDL_SCANCODE_TAB, 500, 0, [this]()
+    ActionInputs[REVEAL] = {SDL_SCANCODE_F2, 500, 0, [this]()
                             {
                                 this->_Renderer.Reveal();
                             }};
@@ -46,6 +46,13 @@ InputManager::InputManager(World &world, Player *player, std::vector<Player *> &
                                          this->_Player = _Players[0];
                                          this->_Renderer._Player = _Players[0];
                                      }};
+    ActionInputs[TOGGLE_CURSOR_MODE] = {SDL_SCANCODE_TAB,
+                                    500,
+                                    0,
+                                    [this]()
+                                    {
+                                        this->_Renderer.ToggleRelativeCursor();
+                                    }};
 }
 
 InputManager::~InputManager()
@@ -65,11 +72,22 @@ void InputManager::Update(Uint64 tickCount)
     PollAndUpdate(TOGGLE_FULLSCREEN);
     PollAndUpdate(EXIT);
     PollAndUpdate(SWITCH_PLAYER_0);
+    PollAndUpdate(TOGGLE_CURSOR_MODE);
 }
 
 void InputManager::HandleMouseInput()
 {
-    int mouseState = SDL_GetMouseState(&(_Renderer.MouseScreen.x), &(_Renderer.MouseScreen.y));
+    int mouseState;
+    if (_Renderer.RelativeCursorMode)
+    {
+        mouseState = SDL_GetRelativeMouseState(&(_Renderer.MouseRelativeDeltas.x), &(_Renderer.MouseRelativeDeltas.y));
+    }
+    else
+    {
+        mouseState = SDL_GetMouseState(&(_Renderer.MouseScreen.x), &(_Renderer.MouseScreen.y));
+    }
+        
+    
     int selectedX = (int)_Renderer.MouseWorld.x, selectedY = (int)_Renderer.MouseWorld.y;
     Uint64 now = SDL_GetTicks64();
 
