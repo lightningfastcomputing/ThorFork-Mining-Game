@@ -1,6 +1,6 @@
 #define SDL_MAIN_HANDLED
 #include "Game.h"
-#include <SDL2/SDL_net.h>
+//#include <SDL2/SDL_net.h>
 
 int main(int argc, char *argv[])
 {
@@ -16,10 +16,9 @@ int main(int argc, char *argv[])
     SoundManager soundManager;
 
     int worldWidth = 50;
-    int worldHeight = 700;
-    int nuggetCount = 100;
-    int thickness = 20;
-    int explosiveCount = 0;
+    int worldHeight = 50;
+
+    unsigned long size = sizeof(TileState);
 
     World world(worldWidth, worldHeight);
 

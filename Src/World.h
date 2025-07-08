@@ -5,6 +5,7 @@
 #include <queue>
 #include <time.h>
 #include <functional>
+#include <climits>
 #include <stdexcept>
 #include "TileState.h"
 #include "Player.h"

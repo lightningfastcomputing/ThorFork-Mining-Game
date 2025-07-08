@@ -5,9 +5,10 @@
 
 struct TileState
 {
-    enum TileType TileType;
-    int Health;
-    bool Passable;
+    unsigned int TileType : 8;
+    unsigned int Health : 8;
+    unsigned int Passable : 1;
+    unsigned int Indestrucible: 1;
 };
 
 #endif

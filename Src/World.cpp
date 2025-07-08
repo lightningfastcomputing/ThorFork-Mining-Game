@@ -4,12 +4,12 @@ using namespace std;
 
 World::World(int width, int height)
 {
-    TileStates[AIR] = {TileType::AIR, 0, true};
-    TileStates[STONE] = {TileType::STONE, 10, false};
-    TileStates[DENSE_STONE] = {TileType::DENSE_STONE, 50, false};
-    TileStates[GOLD] = {TileType::GOLD, 5, false};
-    TileStates[EXPLOSIVE] = {TileType::EXPLOSIVE, 1, true};
-    TileStates[BARRIER] = {TileType::BARRIER, INT_MAX, false};
+    TileStates[AIR] = {TileType::AIR, 0, true, true};
+    TileStates[STONE] = {TileType::STONE, 10, false, false};
+    TileStates[DENSE_STONE] = {TileType::DENSE_STONE, 50, false, false};
+    TileStates[GOLD] = {TileType::GOLD, 5, false, false};
+    TileStates[EXPLOSIVE] = {TileType::EXPLOSIVE, 1, true, false};
+    TileStates[BARRIER] = {TileType::BARRIER, 1, false, true};
 
     this->Width = width;
     this->Height = height;
