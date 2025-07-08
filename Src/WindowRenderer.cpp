@@ -73,7 +73,6 @@ void WindowRenderer::Init_Display(const char *windowTitle)
         if (!Textures[i])
         {
             printf("Textures not properly loaded: %s\n", SDL_GetError());
-            IMG_Quit();
             Running = false;
         }
     }

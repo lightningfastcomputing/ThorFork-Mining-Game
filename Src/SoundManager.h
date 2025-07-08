@@ -10,7 +10,6 @@
 enum Sound
 {
     PICKAXE_STRIKE,
-    DYNAMITE_EXPLOSION,
     FOOTSTEP,
     SOUNDS_COUNT
 };
@@ -18,7 +17,7 @@ enum Sound
 class SoundManager
 {
 private:
-    Mix_Chunk *Sounds[SOUNDS_COUNT];
+    Mix_Chunk *Sounds[SOUNDS_COUNT] = {nullptr};
 
 public:
     SoundManager();

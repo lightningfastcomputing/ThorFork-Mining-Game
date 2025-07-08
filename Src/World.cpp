@@ -56,44 +56,6 @@ World::~World()
 
 void World::GenerateVein(int x, int y, int count, TileType tileType)
 {
-    if (IsInBounds(x, y))
-    {
-        tiles[x][y] = TileStates[tileType];
-    }
-    else
-    {
-        throw std::runtime_error("Invalid coordinates for GenerateVein()");
-    }
-    count--;
-
-    int nextDir = -1, lastDir = -1;
-    while (count > 0)
-    {
-        nextDir = rand()%4;
-
-        switch (nextDir)
-        {
-            case 1:
-                x++;
-                break;
-            case 2:
-                x--;
-                break;
-            case 3:
-                y++;
-                break;
-            case 4:
-                y--;
-                break;
-        }
-
-        if (IsInBounds(x, y) && tiles[x][y].TileType != tileType)
-        {
-            tiles[x][y] = TileStates[tileType];
-            lastDir = nextDir;
-            count--;
-        }
-    }
 }
 
 void World::SetBorder() {

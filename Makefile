@@ -1,10 +1,13 @@
 CC = g++ 
 CFLAGS = -std=c++20 -Wall
-SDLFLAGS = -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
+LINKER_FLAGS = -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lSDL2_net
 SRCDIR = Src
 BUILDDIR = Build
 
-$(shell mkdir -p $(BUILDDIR))
+INCLUDE_PATHS = -I/mingw64/include -I/mingw64/include/SDL2
+LIBRARY_PATHS = -L/mingw64/lib 
+
+# $(shell mkdir $(BUILDDIR))
 
 SRCS = $(wildcard $(SRCDIR)/*.cpp)
 OBJS = $(patsubst $(SRCDIR)/%.cpp, $(BUILDDIR)/%.o, $(SRCS))
@@ -17,10 +20,10 @@ debug: CFLAGS += -ggdb -O0
 debug: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(SDLFLAGS)
+	$(CC) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(CFLAGS) -o $@ $^ $(LINKER_FLAGS) 
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(INCLUDE_PATHS) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(BUILDDIR)/*.o $(TARGET)
+	rm  $(BUILDDIR)/*.o $(TARGET)

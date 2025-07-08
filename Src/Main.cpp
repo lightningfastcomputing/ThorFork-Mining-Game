@@ -15,10 +15,9 @@ int main(int argc, char *argv[])
 
     SoundManager soundManager;
 
-    int worldWidth = 50;
-    int worldHeight = 50;
+    int worldWidth = 500;
+    int worldHeight = 2000;
 
-    unsigned long size = sizeof(TileState);
 
     World world(worldWidth, worldHeight);
 
@@ -35,6 +34,12 @@ int main(int argc, char *argv[])
 
     game.Start();
 
+    Mix_Quit();
+    TTF_Quit();
+    IMG_Quit();
+
     SDL_Quit();
+
+    printf("Exiting\n");
     return 0;
 }
