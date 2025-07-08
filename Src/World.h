@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include "TileState.h"
 #include "Player.h"
+#include "ValueNoise2D.h"
 
 struct WorldAction
 {
@@ -27,11 +28,7 @@ private:
     std::priority_queue<WorldAction, std::vector<WorldAction>, std::greater<WorldAction>> WorldActionQueue;
     Uint64 TickCount = 0;
 
-    //"sprinkle" a tile around the map
-    void Sprinkle(int count, TileState tileState, bool overwrite, int indexes[]);
-
-    // encapsulate a specific tile with a material
-    void Encapsulate(int count, TileState tileState, int index);
+    void GenerateVein(int x, int y, int count, TileType tileType);
 
     //set an impassable border around the world
     void SetBorder();
@@ -41,7 +38,7 @@ public:
     int Width;
     int Height;
 
-    World(int width, int height, int nuggetCount, int stoneThickness, int explosiveCount);
+    World(int width, int height);
 
     ~World();
 

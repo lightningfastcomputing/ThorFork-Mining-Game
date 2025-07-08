@@ -63,9 +63,10 @@ void WindowRenderer::Init_Display(const char *windowTitle)
 
     Textures[TileType::AIR] = IMG_LoadTexture(Renderer, "Textures/grass.png");
     Textures[TileType::STONE] = IMG_LoadTexture(Renderer, "Textures/stone.png");
+    Textures[TileType::DENSE_STONE] = IMG_LoadTexture(Renderer, "Textures/dense_rock.png");
     Textures[TileType::GOLD] = IMG_LoadTexture(Renderer, "Textures/gold.png");
     Textures[TileType::EXPLOSIVE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
-    Textures[TileType::BARRIER] = IMG_LoadTexture(Renderer, "Textures/stone.png");
+    Textures[TileType::BARRIER] = IMG_LoadTexture(Renderer, "Textures/barrier.png");
 
     for (int i = 0; i < TILETYPE_COUNT; i++)
     {

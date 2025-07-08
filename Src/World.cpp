@@ -2,12 +2,11 @@
 
 using namespace std;
 
-World::World(int width, int height, int nuggetCount, int stoneThickness, int explosiveCount)
+World::World(int width, int height)
 {
-    srand(time(0));
-
     TileStates[AIR] = {TileType::AIR, 0, true};
     TileStates[STONE] = {TileType::STONE, 10, false};
+    TileStates[DENSE_STONE] = {TileType::DENSE_STONE, 50, false};
     TileStates[GOLD] = {TileType::GOLD, 5, false};
     TileStates[EXPLOSIVE] = {TileType::EXPLOSIVE, 1, true};
     TileStates[BARRIER] = {TileType::BARRIER, INT_MAX, false};
@@ -16,22 +15,34 @@ World::World(int width, int height, int nuggetCount, int stoneThickness, int exp
     this->Height = height;
     this->tiles = new TileState *[Width];
 
+    ValueNoise2D noiseGen(time(NULL));
+
+    float yStrength = 1.1f;
+
     for (int i = 0; i < Width; i++)
     {
         this->tiles[i] = new TileState[Height];
         for (int j = 0; j < Height; j++)
-            this->tiles[i][j] = TileStates[AIR];
+        {
+            float noise = noiseGen.noise(i * 0.125f, j * 0.125f);
+            float yNorm = (float)j/(float)Height; //prioritize denser rock towards greater y
+
+            float value = noise + (yNorm * yStrength);
+
+            value = std::clamp(value, -1.0f, 1.0f);
+
+            TileType idx;
+            if (value < -0.50f)
+                idx = GOLD;
+            else if (value < -0.00f)
+                idx = DENSE_STONE;
+            else if (value < 0.50f)
+                idx = STONE;
+            else
+                idx = AIR;
+            this->tiles[i][j] = TileStates[idx];
+        }
     }
-
-    int *nuggets = new int[nuggetCount];
-    Sprinkle(nuggetCount, TileStates[GOLD], false, nuggets);
-    Sprinkle(nuggetCount, TileStates[GOLD], false, nullptr);
-    for (int i = 0; i < nuggetCount; i++)
-        this->Encapsulate(stoneThickness, TileStates[STONE], nuggets[i]);
-    delete[] nuggets;
-
-    Sprinkle(explosiveCount, TileStates[EXPLOSIVE], true, NULL);
-
     SetBorder();
 }
 World::~World()
@@ -43,45 +54,46 @@ World::~World()
     delete[] tiles;
 }
 
-void World::Sprinkle(int count, TileState tileState, bool overwrite, int indexes[])
+void World::GenerateVein(int x, int y, int count, TileType tileType)
 {
-    int i = 0;
-    while (i < count)
+    if (IsInBounds(x, y))
     {
-        int randX = rand() % Width, randY = rand() % Height;
-        if (this->tiles[randX][randY].TileType == TileType::AIR || overwrite)
-        {
-            this->tiles[randX][randY] = tileState;
-            if (indexes)
-                indexes[i] = randX + randY * Width;
-            i++;
-        }
-        else
-            continue;
+        tiles[x][y] = TileStates[tileType];
     }
-}
-
-void World::Encapsulate(int count, TileState tileState, int index)
-{
-    if (count == 0)
-        return;
-
-    int adjacents[4];
-    adjacents[0] = index - 1;
-    adjacents[1] = index + 1;
-    adjacents[2] = index - Width;
-    adjacents[3] = index + Width;
-
-    for (int i = 0; i < 4; i++)
+    else
     {
-        int x = adjacents[i] % Width, y = adjacents[i] / Width;
-        if (IsInBounds(x, y) && this->tiles[x][y].TileType == TileType::AIR)
+        throw std::runtime_error("Invalid coordinates for GenerateVein()");
+    }
+    count--;
+
+    int nextDir = -1, lastDir = -1;
+    while (count > 0)
+    {
+        nextDir = rand()%4;
+
+        switch (nextDir)
         {
-            this->tiles[x][y] = tileState;
+            case 1:
+                x++;
+                break;
+            case 2:
+                x--;
+                break;
+            case 3:
+                y++;
+                break;
+            case 4:
+                y--;
+                break;
+        }
+
+        if (IsInBounds(x, y) && tiles[x][y].TileType != tileType)
+        {
+            tiles[x][y] = TileStates[tileType];
+            lastDir = nextDir;
+            count--;
         }
     }
-
-    this->Encapsulate(count - 1, tileState, adjacents[rand() % 4]);
 }
 
 void World::SetBorder() {

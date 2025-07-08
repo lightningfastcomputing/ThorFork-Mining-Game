@@ -24,6 +24,7 @@ enum TileType
 {
     AIR,
     STONE,
+    DENSE_STONE,
     GOLD,
     EXPLOSIVE,
     BARRIER,

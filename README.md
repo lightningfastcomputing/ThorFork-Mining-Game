@@ -7,10 +7,6 @@ https://www.youtube.com/@ottopfeff
 
 # TODO
 
-Add chunking for world to facilitate online multiplayer
-
-Add basic multiplayer
-
 (partially done)
 Improve tiles (add health, more variance, better worldgen), fix scoring:
 
@@ -46,6 +42,10 @@ Caveins
 Minecarts and tracks
 
 Different floor types: Stone, Mud, Void
+
+Add chunking for world to facilitate online multiplayer
+
+Add basic multiplayer
 
 # Past Tasks
 
