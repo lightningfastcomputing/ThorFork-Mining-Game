@@ -20,7 +20,7 @@ private:
     SDL_Renderer *Renderer = nullptr;
     SDL_Texture *Textures[TILETYPE_COUNT] = {nullptr};
 
-    TTF_Font *TextFont = nullptr;
+    TTF_Font *TextFont = NULL;
 
     const World &_World;
     bool** Discovered;

@@ -22,12 +22,11 @@ SoundManager::~SoundManager()
 {
     for (int i = 0; i < SOUNDS_COUNT; i++)
     {
-        if (Sounds[i] != nullptr)
+        if (Sounds[i])
         {
             Mix_FreeChunk(Sounds[i]);
         }
     }
-    Mix_CloseAudio();
 }
 
 void SoundManager::PlaySound(Sound idx)

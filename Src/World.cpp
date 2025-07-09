@@ -18,6 +18,7 @@ World::World(int width, int height)
     ValueNoise2D noiseGen(time(NULL));
 
     float yStrength = 1.1f;
+    int yThreshold = Height/3;
 
     for (int i = 0; i < Width; i++)
     {
@@ -37,6 +38,8 @@ World::World(int width, int height)
             else if (value < -0.00f)
                 idx = DENSE_STONE;
             else if (value < 0.50f)
+                idx = STONE;
+            else if (j < yThreshold)
                 idx = STONE;
             else
                 idx = AIR;
@@ -101,6 +104,7 @@ void World::MineTile(int x, int y, int strength, Player &player)
             case TileType::AIR:
                 return;
             case TileType::STONE:
+            case TileType::DENSE_STONE:
                 WorldActionQueue.push({[this, x, y]()
                                        { this->ChangeTile(x, y, AIR); }, TickCount});
                 break;
@@ -129,6 +133,8 @@ void World::MineTile(int x, int y, int strength, Player &player)
                                                { this->MineTile(x, y, 10, player); }, TickCount + 5});
                     }
                 }
+                break;
+            case TileType::BARRIER:
                 break;
             default:
                 throw std::runtime_error("Invalid tile\n");

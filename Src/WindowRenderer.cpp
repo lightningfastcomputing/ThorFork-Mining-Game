@@ -13,10 +13,10 @@ WindowRenderer::WindowRenderer(const World &world, Player *player, std::vector<P
     TileCounts = {WindowDimensions.x / TileLength, WindowDimensions.y / TileLength};
 
     Discovered = new bool*[_World.Width];
-    for (int i = 0; i < _World.Height; i++)
+    for (int i = 0; i < _World.Width; i++)
     {
         Discovered[i] = new bool[_World.Height];
-        std::memset(Discovered[i], false, _World.Height);
+        std::memset(Discovered[i], false, _World.Height * sizeof(bool));
     }
 
 
@@ -217,7 +217,7 @@ void WindowRenderer::ClearFrame()
 
 void WindowRenderer::GlobalDrawWorld()
 {
-    int globalTileLength = _World.Height > _World.Width ? WindowDimensions.x/_World.Width : WindowDimensions.y/_World.Height;
+    int globalTileLength = _World.Height < _World.Width ? WindowDimensions.x/_World.Width : WindowDimensions.y/_World.Height;
 
     SDL_Rect rect;
     rect.x = 0;

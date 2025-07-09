@@ -6,7 +6,7 @@
 struct TileState
 {
     unsigned int TileType : 8;
-    unsigned int Health : 8;
+    int Health : 8;
     unsigned int Passable : 1;
     unsigned int Indestrucible: 1;
 };
