@@ -1,7 +1,14 @@
 #include "InputManager.h"
 
-InputManager::InputManager(World &world, Player *player, std::vector<Player *> &players, WindowRenderer &renderer, SoundManager &soundManager) : _World(world),
-                                                                                                                                                 _Player(player), _Players(players), _Renderer(renderer), _SoundManager(soundManager)
+InputManager::InputManager(World &world,
+                           Player *player,
+                           WindowRenderer &renderer,
+                           SoundManager &soundManager,
+                           EntityManager &entityManager) : _World(world),
+                                                           _Player(player),
+                                                           _Renderer(renderer),
+                                                           _SoundManager(soundManager),
+                                                           _EntityManager(entityManager)
 {
     Keys = SDL_GetKeyboardState(NULL);
     Running = true;
@@ -11,7 +18,8 @@ InputManager::InputManager(World &world, Player *player, std::vector<Player *> &
     MovementInputs[LEFT] = {SDL_SCANCODE_A, 0, 0, nullptr};
     MovementInputs[RIGHT] = {SDL_SCANCODE_D, 0, 0, nullptr};
 
-    MouseInputs = {250, 250, 0, 0};
+    MouseInputs.LeftCooldown = 1000;
+    MouseInputs.RightCooldown = 1000;
 
     ActionInputs[REVEAL] = {SDL_SCANCODE_F2, 500, 0, [this]()
                             {
@@ -43,23 +51,22 @@ InputManager::InputManager(World &world, Player *player, std::vector<Player *> &
                                      0,
                                      [this]()
                                      {
-                                         this->_Player = _Players[0];
-                                         this->_Renderer._Player = _Players[0];
+                                        printf("teehee\n");
                                      }};
     ActionInputs[TOGGLE_CURSOR_MODE] = {SDL_SCANCODE_TAB,
-                                    500,
-                                    0,
-                                    [this]()
-                                    {
-                                        this->_Renderer.ToggleRelativeCursor();
-                                    }};
+                                        500,
+                                        0,
+                                        [this]()
+                                        {
+                                            this->_Renderer.ToggleRelativeCursor();
+                                        }};
     ActionInputs[TOGGLE_VIEW] = {SDL_SCANCODE_F,
-                                    500,
-                                    0,
-                                    [this]()
-                                    {
-                                        this->_Renderer.ToggleGlobalView();
-                                    }};
+                                 500,
+                                 0,
+                                 [this]()
+                                 {
+                                     this->_Renderer.ToggleGlobalView();
+                                 }};
 }
 
 InputManager::~InputManager()
@@ -81,7 +88,6 @@ void InputManager::Update(Uint64 tickCount)
     PollAndUpdate(SWITCH_PLAYER_0);
     PollAndUpdate(TOGGLE_CURSOR_MODE);
     PollAndUpdate(TOGGLE_VIEW);
-
 }
 
 void InputManager::HandleMouseInput()
@@ -95,8 +101,7 @@ void InputManager::HandleMouseInput()
     {
         mouseState = SDL_GetMouseState(&(_Renderer.MouseScreen.x), &(_Renderer.MouseScreen.y));
     }
-        
-    
+
     int selectedX = (int)_Renderer.MouseWorld.x, selectedY = (int)_Renderer.MouseWorld.y;
     Uint64 now = SDL_GetTicks64();
 
@@ -113,7 +118,7 @@ void InputManager::HandleMouseInput()
     {
         if (_Player->CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
         {
-            _World.ChangeTile(selectedX, selectedY, TileType::EXPLOSIVE);
+            _EntityManager.SpawnExplosive(_Player->Target.x, _Player->Target.y);
             MouseInputs.RightLastTimePressed = now;
         }
     }
@@ -158,54 +163,56 @@ inline void InputManager::PollAndUpdate(int actionIndex)
     }
 }
 
-void InputManager::ValidatePlayerState() 
+void InputManager::ValidatePlayerState()
 {
-        Vec2F targetVector = _Player->Target - _Player->Center;
-        if (targetVector.Magnitude() > _Player->MiningRadius)
+    Vec2F targetVector = _Player->Target - _Player->Center;
+    if (targetVector.Magnitude() > _Player->MiningRadius)
+    {
+        _Player->CanMine = false;
+    }
+    else
+    {
+        int x = (int)_Player->Center.x, y = (int)_Player->Center.y, endX = (int)_Player->Target.x, endY = (int)_Player->Target.y;
+
+        float dx = _Player->Target.x - _Player->Center.x;
+        float dy = _Player->Target.y - _Player->Center.y;
+
+        int stepX = (dx > 0) ? 1 : (dx < 0) ? -1
+                                            : 0;
+        int stepY = (dy > 0) ? 1 : (dy < 0) ? -1
+                                            : 0;
+
+        float tDeltaX = (stepX != 0) ? SDL_fabsf(1.0f / dx) : 1e6;
+        float tDeltaY = (stepY != 0) ? SDL_fabsf(1.0f / dy) : 1e6;
+
+        float nextTileBoundaryX = (stepX > 0) ? (SDL_floorf(_Player->Center.x) + 1.0f) : (SDL_floorf(_Player->Center.x));
+        float nextTileBoundaryY = (stepY > 0) ? (SDL_floorf(_Player->Center.y) + 1.0f) : (SDL_floorf(_Player->Center.y));
+
+        float tMaxX = (stepX != 0) ? SDL_fabsf((nextTileBoundaryX - _Player->Center.x) / dx) : 1e6;
+        float tMaxY = (stepY != 0) ? SDL_fabsf((nextTileBoundaryY - _Player->Center.y) / dy) : 1e6;
+
+        while (x != endX || y != endY)
         {
-            _Player->CanMine = false;
-        }
-        else
-        {
-            int x = (int)_Player->Center.x, y = (int)_Player->Center.y, endX = (int)_Player->Target.x, endY = (int)_Player->Target.y;
-
-            float dx = _Player->Target.x - _Player->Center.x;
-            float dy = _Player->Target.y - _Player->Center.y;
-
-            int stepX = (dx > 0) ? 1 : (dx < 0) ? -1 : 0;
-            int stepY = (dy > 0) ? 1 : (dy < 0) ? -1 : 0;
-
-            float tDeltaX = (stepX != 0) ? SDL_fabsf(1.0f / dx) : 1e6;
-            float tDeltaY = (stepY != 0) ? SDL_fabsf(1.0f / dy) : 1e6;
-
-            float nextTileBoundaryX = (stepX > 0) ? (SDL_floorf(_Player->Center.x) + 1.0f) : (SDL_floorf(_Player->Center.x));
-            float nextTileBoundaryY = (stepY > 0) ? (SDL_floorf(_Player->Center.y) + 1.0f) : (SDL_floorf(_Player->Center.y));
-
-            float tMaxX = (stepX != 0) ? SDL_fabsf((nextTileBoundaryX - _Player->Center.x) / dx) : 1e6;
-            float tMaxY = (stepY != 0) ? SDL_fabsf((nextTileBoundaryY - _Player->Center.y) / dy) : 1e6;
-
-            while (x != endX || y != endY) 
+            if (tMaxX < tMaxY)
             {
-                if (tMaxX < tMaxY) 
-                {
-                    tMaxX += tDeltaX;
-                    x += stepX;
-                } 
-                else 
-                {
-                    tMaxY += tDeltaY;
-                    y += stepY;
-                }
-                if (x == (int)_Player->Target.x && y == (int)_Player->Target.y)
-                {
-                    _Player->CanMine = true;
-                    break;
-                }
-                else if (!_World.IsInBounds(x,y) || !_World.tiles[x][y].Passable) 
-                {
-                    _Player->CanMine = false;
-                    break;
-                }
+                tMaxX += tDeltaX;
+                x += stepX;
+            }
+            else
+            {
+                tMaxY += tDeltaY;
+                y += stepY;
+            }
+            if (x == (int)_Player->Target.x && y == (int)_Player->Target.y)
+            {
+                _Player->CanMine = true;
+                break;
+            }
+            else if (!_World.IsInBounds(x, y) || !_World.tiles[x][y].Passable)
+            {
+                _Player->CanMine = false;
+                break;
             }
         }
+    }
 }

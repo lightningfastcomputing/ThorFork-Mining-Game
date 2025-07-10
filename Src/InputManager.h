@@ -1,7 +1,8 @@
 #ifndef INPUTMANAGER_H
 #define INPUTMANAGER_H
 #include "World.h"
-#include "Player.h"
+#include "Entity/Player.h"
+#include "EntityManager.h"
 #include "WindowRenderer.h"
 #include "SoundManager.h"
 #include "Utils.h"
@@ -58,9 +59,9 @@ class InputManager
 private:
     World &_World;
     Player *_Player;
-    std::vector<Player*> &_Players;
     WindowRenderer &_Renderer;
     SoundManager &_SoundManager;
+    EntityManager &_EntityManager;
 
     Input MovementInputs[MOVEMENT_COUNT];
     Input ActionInputs[ACTIONS_COUNT];
@@ -72,7 +73,10 @@ private:
     void ValidatePlayerState();
 
 public:
-    InputManager(World &world, Player *player, std::vector<Player*> &players, WindowRenderer &renderer, SoundManager &SoundManager);
+    InputManager(World &world, Player *player,
+                 WindowRenderer &renderer,
+                 SoundManager &SoundManager,
+                 EntityManager &entityManager);
     ~InputManager();
     void Update(Uint64 tickCount);
     bool Running;

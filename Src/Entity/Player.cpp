@@ -1,28 +1,21 @@
 #include "Player.h"
 
-Player::Player(float width, float height, float speed, int worldWidth, int worldHeight)
+Player::Player(float width, float height, float speed) : Entity(100, 100, width, height)
 {
-    BoundingBox.x = 0;
-    BoundingBox.y = 0;
-    BoundingBox.w = width;
-    BoundingBox.h = height;
-    HalfDimensions = {BoundingBox.w/2, BoundingBox.h/2};
-    Center = {BoundingBox.x + HalfDimensions.x, BoundingBox.y + HalfDimensions.y};
     Speed = speed; // tiles per tick, dont go too fast
-    Velocity = {0, 0};
     Direction = NONE;
     Score = 0;
     CanMine = false;
-    Target = {0, 0};
+    Target = Center;
     MiningRadius = 10.0f;
-    DiscoverRadius = 10.0f;
+    DiscoverRadius = 50.0f;
 
-    //tiles inhabited
     xStart = -1;
-    xEnd = -1;
     yStart = -1;
+    xEnd = -1;
     yEnd = -1;
-    
+
+    type = PLAYER;
 }
 
 Player::~Player()

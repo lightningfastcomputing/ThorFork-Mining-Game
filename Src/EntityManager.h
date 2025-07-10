@@ -1,25 +1,23 @@
 #ifndef ENTITYMANAGER_H
 #define ENTITYMANAGER_H
 #include "World.h"
-#include "Player.h"
+#include "Entity/Player.h"
+#include "Entity/Explosive.h"
 #include "Utils.h"
+#include <memory>
 #include <SDL2/SDL.h>
 
 class EntityManager
 {
 private:
     World &_World;
-    std::vector<Player*> &_Players;
-    void PlayerRadialDiscover(Uint64 deltaTime);
+    std::vector<Entity*> &_Entities;
     void UpdatePlayerPosition();
-    void FixPlayerTargets();
-    void EntityWorldCollisionCheck();
-    void EntityEntityCollisionCheck();
 
 public:
-    EntityManager(World &world, std::vector<Player*> &players);
+    EntityManager(World &world, std::vector<Entity*> &entities);
     ~EntityManager();
     void Update(Uint64 deltaTime);
-
+    void SpawnExplosive(float x, float y);
 };
 #endif

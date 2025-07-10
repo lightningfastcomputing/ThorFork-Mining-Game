@@ -1,21 +1,15 @@
 #ifndef PLAYER_H
 #define PLAYER_H
-#include "Types.h"
+#include "Entity.h"
 #include <SDL2/SDL.h>
 
-class Player
+class Player : public Entity
 {
 private:
 
 public:
-    const float EPSILON = 0.0001f;
-
-    SDL_FRect BoundingBox;
-    Vec2F HalfDimensions;
-    Vec2F Center;
 
     float Speed;
-    Vec2F Velocity;
 
     direction Direction;
     
@@ -26,10 +20,7 @@ public:
     float MiningRadius;
     float DiscoverRadius;
 
-    int xStart, xEnd;
-    int yStart, yEnd;
-
-    Player(float width, float height, float speed, int worldWidth, int worldHeight);
+    Player(float width, float height, float speed);
     ~Player();
     void UpdateVelocity(direction dir);
 };

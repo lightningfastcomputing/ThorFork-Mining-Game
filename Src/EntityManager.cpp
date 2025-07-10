@@ -1,9 +1,10 @@
 #include "EntityManager.h"
 
-EntityManager::EntityManager(World &world, std::vector<Player*>& players) : _World(world), _Players(players)
+EntityManager::EntityManager(World &world, std::vector<Entity*>& entities) : _World(world), _Entities(entities)
 {
-    for (Player* p : _Players)
+    for (Entity* p : _Entities)
     {
+
         int &xStart = p->xStart, &xEnd = p->xEnd, &yStart = p->yStart, &yEnd = p->yEnd;
         float &x = p->BoundingBox.x, &y = p->BoundingBox.y, w = p->BoundingBox.w, h = p->BoundingBox.h;
 
@@ -26,30 +27,26 @@ EntityManager::EntityManager(World &world, std::vector<Player*>& players) : _Wor
             }
         }
         p->Center = {x + p->HalfDimensions.x, y + p->HalfDimensions.y};
-
-        
     }
 }
 
 EntityManager::~EntityManager()
 {
+    for (Entity* e : _Entities)
+    {
+        delete e;
+    }
 }
 
 void EntityManager::Update(Uint64 deltaTime)
 {
     UpdatePlayerPosition();
-    //PlayerRadialDiscover(deltaTime);
-    //PlayerTryMine();
 }
-
-
-// space and computation tradeoff: use more rays to parallelize the computation at the cost of space
-// or do every 2 frames, or every 3, whatever keeps the illusion
 
 void EntityManager::UpdatePlayerPosition()
 { 
 
-    for (Player* p : _Players)
+    for (Entity* p : _Entities)
     {
         int &xStart = p->xStart, &xEnd = p->xEnd, &yStart = p->yStart, &yEnd = p->yEnd;
         Vec2F velocity = p->Velocity;
@@ -77,7 +74,7 @@ void EntityManager::UpdatePlayerPosition()
                 }
             }
 
-            for (Player* other : _Players)
+            for (Entity* other : _Entities)
             {
                 if (other == p) continue;
 
@@ -98,7 +95,7 @@ void EntityManager::UpdatePlayerPosition()
                 }
             }
 
-            for (Player* other : _Players)
+            for (Entity* other : _Entities)
             {
                 if (other == p) continue;
 
@@ -125,7 +122,7 @@ void EntityManager::UpdatePlayerPosition()
                 }
             }
 
-            for (Player* other : _Players)
+            for (Entity* other : _Entities)
             {
                 if (other == p) continue;
 
@@ -148,7 +145,7 @@ void EntityManager::UpdatePlayerPosition()
                 }
             }
 
-            for (Player* other : _Players)
+            for (Entity* other : _Entities)
             {
                 if (other == p) continue;
 
@@ -169,32 +166,18 @@ void EntityManager::UpdatePlayerPosition()
 
         positionDelta.x = x - positionDelta.x;
         positionDelta.y = y - positionDelta.y;
-        p->Target.x += positionDelta.x;
-        p->Target.y += positionDelta.y;
-    }
-}
 
-void EntityManager::FixPlayerTargets() 
-{
-    for (Player *p : _Players)
-    {
-        Vec2F targetVector = p->Target - p->Center;
-        float mag = targetVector.Magnitude();
-        if (mag > p->MiningRadius)
+        if (p->type == EntityType::PLAYER)
         {
-            float invMag = 1/mag;
-
-            p->Target = (targetVector * invMag) * p->MiningRadius;
+            Player* player = static_cast<Player*>(p);
+            player->Target.x += positionDelta.x;
+            player->Target.y += positionDelta.y;
         }
     }
 }
 
-void EntityManager::EntityWorldCollisionCheck()
+void EntityManager::SpawnExplosive(float x, float y)
 {
-
-}
-
-void EntityManager::EntityEntityCollisionCheck()
-{
-
+    Explosive* e = new Explosive(x,y);
+    _Entities.emplace_back(e);
 }

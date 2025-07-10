@@ -6,8 +6,6 @@ int main(int argc, char *argv[])
 {
 
     {
-        ValueNoise2D noise(1234); // Seeded for repeatability
-
         if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO) < 0)
         {
             fprintf(stderr, "Could not initialise SDL: %s\n", SDL_GetError());
@@ -22,14 +20,14 @@ int main(int argc, char *argv[])
 
         World world(worldWidth, worldHeight);
 
-        Player player(1.1f, 2.1f, 0.15f, worldWidth, worldHeight);
+        Player* player = new Player(1.8f, 2.8f, 0.15f);
 
-        std::vector<Player*> players;
-        players.push_back(&player);
+        std::vector<Entity*> entities;
+        entities.push_back(player);
 
-        EntityManager entityManager(world, players);
-        WindowRenderer windowRenderer(world, &player, players, 1280, 800);
-        InputManager inputManager(world, &player, players, windowRenderer, soundManager);
+        EntityManager entityManager(world, entities);
+        WindowRenderer windowRenderer(world, player, entities, 1280, 800);
+        InputManager inputManager(world, player, windowRenderer, soundManager, entityManager);
         Uint64 frameRate = 1000 / 60;
         Game game(frameRate, world, entityManager, inputManager, windowRenderer, soundManager);
 

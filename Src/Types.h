@@ -31,6 +31,13 @@ enum TileType
     TILETYPE_COUNT
 };
 
+enum EntityType
+{
+    PLAYER,
+    DYNAMITE,
+    ENTITYTYPE_COUNT
+};
+
 struct Vec2
 {
     int x;

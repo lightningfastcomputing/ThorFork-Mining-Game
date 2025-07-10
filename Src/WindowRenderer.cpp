@@ -1,7 +1,7 @@
 #include "WindowRenderer.h"
 
-WindowRenderer::WindowRenderer(const World &world, Player *player, std::vector<Player *> &players, int width, int height) 
-: _World(world), _Player(player), _Players(players)
+WindowRenderer::WindowRenderer(const World &world, Player *player, std::vector<Entity *> &entities, int width, int height) 
+: _World(world), _Player(player), _Entities(entities)
 {
     WindowDimensions = {width, height};
 
@@ -61,18 +61,25 @@ void WindowRenderer::Init_Display(const char *windowTitle)
         Running = false;
     }
 
-    Textures[TileType::AIR] = IMG_LoadTexture(Renderer, "Textures/grass.png");
-    Textures[TileType::STONE] = IMG_LoadTexture(Renderer, "Textures/stone.png");
-    Textures[TileType::DENSE_STONE] = IMG_LoadTexture(Renderer, "Textures/dense_rock.png");
-    Textures[TileType::GOLD] = IMG_LoadTexture(Renderer, "Textures/gold.png");
-    Textures[TileType::EXPLOSIVE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
-    Textures[TileType::BARRIER] = IMG_LoadTexture(Renderer, "Textures/barrier.png");
+
+    //set tileTextures
+    TileTextures[TileType::AIR] = IMG_LoadTexture(Renderer, "Textures/grass.png");
+    TileTextures[TileType::STONE] = IMG_LoadTexture(Renderer, "Textures/stone.png");
+    TileTextures[TileType::DENSE_STONE] = IMG_LoadTexture(Renderer, "Textures/dense_rock.png");
+    TileTextures[TileType::GOLD] = IMG_LoadTexture(Renderer, "Textures/gold.png");
+    TileTextures[TileType::EXPLOSIVE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
+    TileTextures[TileType::BARRIER] = IMG_LoadTexture(Renderer, "Textures/barrier.png");
+
+    //set entityTextures
+    EntityTextures[EntityType::PLAYER] = IMG_LoadTexture(Renderer, "Textures/barrier.png");
+    EntityTextures[EntityType::DYNAMITE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
+
 
     for (int i = 0; i < TILETYPE_COUNT; i++)
     {
-        if (!Textures[i])
+        if (!TileTextures[i])
         {
-            printf("Textures not properly loaded: %s\n", SDL_GetError());
+            printf("TileTextures not properly loaded: %s\n", SDL_GetError());
             Running = false;
         }
     }
@@ -89,9 +96,9 @@ WindowRenderer::~WindowRenderer()
 
     for (int i = 0; i < TILETYPE_COUNT; i++)
     {
-        if (Textures[i])
+        if (TileTextures[i])
         {
-            SDL_DestroyTexture(Textures[i]);
+            SDL_DestroyTexture(TileTextures[i]);
         }
     }
 
@@ -187,7 +194,7 @@ void WindowRenderer::RenderFrame()
     {
 
     DrawWorld();
-    DrawPlayers();
+    DrawEntities();
         if (RelativeCursorMode)
         {
             DrawPlayerReach();
@@ -232,7 +239,7 @@ void WindowRenderer::GlobalDrawWorld()
             if (Discovered[i][j])
             {
                 int textureIdx = _World.tiles[i][j].TileType;
-                if (SDL_RenderCopy(Renderer, Textures[textureIdx], nullptr, &rect) < 0)
+                if (SDL_RenderCopy(Renderer, TileTextures[textureIdx], nullptr, &rect) < 0)
                 {
                     printf("SDL_RenderCopy Failed: %s", SDL_GetError());
                 }
@@ -245,12 +252,12 @@ void WindowRenderer::GlobalDrawWorld()
 
     //draw little squares for the tiles the players are inhabiting
     SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
-    for (Player* p : _Players)
+    for (Entity* p : _Entities)
     {
         rect.x = p->xStart * globalTileLength;
         rect.y = p->yStart * globalTileLength;
-        rect.w = (p->xEnd - p->xStart) * globalTileLength;
-        rect.h = (p->yEnd - p->yStart) * globalTileLength;
+        rect.w = (p->xEnd - p->xStart) + 1 * globalTileLength;
+        rect.h = (p->yEnd - p->yStart) + 1 * globalTileLength;
         SDL_RenderFillRect(Renderer, &rect);
     }
 }
@@ -270,7 +277,7 @@ void WindowRenderer::DrawWorld()
             if (_World.IsInBounds(i, j) && Discovered[i][j])
             {
                 int textureIdx = _World.tiles[i][j].TileType;
-                SDL_RenderCopy(Renderer, Textures[textureIdx], nullptr, &rect);
+                SDL_RenderCopy(Renderer, TileTextures[textureIdx], nullptr, &rect);
             }
             rect.y += TileLength;
         }
@@ -279,11 +286,11 @@ void WindowRenderer::DrawWorld()
     }
 }
 
-void WindowRenderer::DrawPlayers()
+void WindowRenderer::DrawEntities()
 {
     // Draw all players in the vector
     //todo: if player is not within view, dont draw
-    for (Player* p : _Players) 
+    for (Entity* p : _Entities) 
     {
         // Calculate position relative to current player
         int rendX = ((p->Center.x - MinCoordinates.x) * TileLength) - TileOffset.x + 1; //this is a terrible fix, find some other way to do this (+ 1)
@@ -295,24 +302,8 @@ void WindowRenderer::DrawPlayers()
         displayRect.w = p->BoundingBox.w * TileLength;
         displayRect.h = p->BoundingBox.h * TileLength;
 
-        SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
-        SDL_RenderFillRect(Renderer, &displayRect);
+        SDL_RenderCopy(Renderer, EntityTextures[p->type], nullptr, &displayRect);
 
-        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
-        for (int i = p->xStart; i <= p->xEnd; i++)
-        {
-            for (int j = p->yStart; j <= p->yEnd; j++)
-            {
-                if (_World.IsInBounds(i, j) && !Discovered[i][j])
-                {
-                    displayRect.x = (i - MinCoordinates.x) * TileLength - TileOffset.x;
-                    displayRect.y = (j - MinCoordinates.y) * TileLength - TileOffset.y;
-                    displayRect.w = TileLength;
-                    displayRect.h = TileLength;
-                    SDL_RenderFillRect(Renderer, &displayRect);
-                }
-            }
-        }
     }
 }
 
@@ -417,7 +408,7 @@ void WindowRenderer::DrawCursor()
     rect.w = TileLength/2;
     rect.h = TileLength/2;
 
-    SDL_RenderCopy(Renderer, Textures[EXPLOSIVE], nullptr, &rect);
+    SDL_RenderCopy(Renderer, TileTextures[EXPLOSIVE], nullptr, &rect);
 }
 
 void WindowRenderer::RadialDiscover()

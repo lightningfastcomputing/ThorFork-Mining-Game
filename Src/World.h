@@ -8,7 +8,7 @@
 #include <climits>
 #include <stdexcept>
 #include "TileState.h"
-#include "Player.h"
+#include "Entity/Player.h"
 #include "ValueNoise2D.h"
 
 struct WorldAction

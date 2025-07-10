@@ -5,7 +5,8 @@
 #include <format>
 #include <string>
 #include "World.h"
-#include "Player.h"
+#include "Entity/Player.h"
+#include "Entity/Explosive.h"
 #include "Utils.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -18,13 +19,14 @@ private:
     
     SDL_Window *Window = nullptr;
     SDL_Renderer *Renderer = nullptr;
-    SDL_Texture *Textures[TILETYPE_COUNT] = {nullptr};
+    SDL_Texture *TileTextures[TILETYPE_COUNT] = {nullptr};
+    SDL_Texture *EntityTextures[ENTITYTYPE_COUNT] = {nullptr};
 
     TTF_Font *TextFont = NULL;
 
     const World &_World;
     bool** Discovered;
-    std::vector<Player *> &_Players;
+    std::vector<Entity *> &_Entities;
 
     bool Debug, Fullscreen, GlobalView;
 
@@ -43,7 +45,7 @@ private:
     void Init_Display(const char *windowTitle);
     void GlobalDrawWorld();
     inline void DrawWorld();
-    inline void DrawPlayers();
+    inline void DrawEntities();
     inline void DebugInfo();
     inline void DrawAndStoreSelectedTile();
     inline void DrawPlayerBoundingBox();
@@ -63,7 +65,7 @@ public:
 
     Player *_Player;
 
-    WindowRenderer(const World &world, Player *player, std::vector<Player *> &players, int width, int height);
+    WindowRenderer(const World &world, Player *player, std::vector<Entity *> &entities, int width, int height);
     ~WindowRenderer();
     void UpdateWindow();
     void ToggleRelativeCursor();
