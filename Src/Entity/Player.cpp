@@ -7,8 +7,12 @@ Player::Player(float width, float height, float speed) : Entity(100, 100, width,
     Score = 0;
     CanMine = false;
     Target = Center;
-    MiningRadius = 10.0f;
+    MiningRadius = 3.0f;
     DiscoverRadius = 50.0f;
+    MaxVelocity = 0.15f;
+    DragCoefficient = 0.15f;
+    Elastic = false;
+    Corporeal = true;
 
     xStart = -1;
     yStart = -1;
@@ -22,36 +26,35 @@ Player::~Player()
 {
 }
 
-void Player::UpdateVelocity(direction dir)
+void Player::UpdateAcceleration(direction dir)
 {
-    this->Direction = dir;
     switch (dir)
     {
     case WEST:
-        Velocity = {-Speed, 0};
+        Acceleration = {-Speed, 0};
         break;
     case EAST:
-        Velocity = {Speed, 0};
+        Acceleration = {Speed, 0};
         break;
     case NORTH:
-        Velocity = {0, -Speed};
+        Acceleration = {0, -Speed};
         break;
     case SOUTH:
-        Velocity = {0, Speed};
+        Acceleration = {0, Speed};
         break;
     case NORTHWEST:
-        Velocity = {-Speed * 0.7071f, -Speed * 0.7071f};
+        Acceleration = {-Speed * 0.7071f, -Speed * 0.7071f};
         break;
     case NORTHEAST:
-        Velocity = {Speed * 0.7071f, -Speed * 0.7071f};
+        Acceleration = {Speed * 0.7071f, -Speed * 0.7071f};
         break;
     case SOUTHWEST:
-        Velocity = {-Speed * 0.7071f, Speed * 0.7071f};
+        Acceleration = {-Speed * 0.7071f, Speed * 0.7071f};
         break;
     case SOUTHEAST:
-        Velocity = {Speed * 0.7071f, Speed * 0.7071f};
+        Acceleration = {Speed * 0.7071f, Speed * 0.7071f};
         break;
     case NONE:
-        Velocity = {0, 0};
+        Acceleration = {0, 0};
     }
 }

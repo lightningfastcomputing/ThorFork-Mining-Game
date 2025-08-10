@@ -51,7 +51,7 @@ InputManager::InputManager(World &world,
                                      0,
                                      [this]()
                                      {
-                                        printf("teehee\n");
+                                         printf("teehee\n");
                                      }};
     ActionInputs[TOGGLE_CURSOR_MODE] = {SDL_SCANCODE_TAB,
                                         500,
@@ -67,6 +67,16 @@ InputManager::InputManager(World &world,
                                  {
                                      this->_Renderer.ToggleGlobalView();
                                  }};
+    ActionInputs[GRAB_RELEASE] = {SDL_SCANCODE_E,
+                                  500,
+                                  0,
+                                  [this]()
+                                  {
+                                      if (this->_Player->Child)
+                                          this->_Player->ReleaseChild();
+                                      else
+                                          this->_Player->SetChild(_Player->SelectedEntity, _Player->Target);
+                                  }};
 }
 
 InputManager::~InputManager()
@@ -88,6 +98,7 @@ void InputManager::Update(Uint64 tickCount)
     PollAndUpdate(SWITCH_PLAYER_0);
     PollAndUpdate(TOGGLE_CURSOR_MODE);
     PollAndUpdate(TOGGLE_VIEW);
+    PollAndUpdate(GRAB_RELEASE);
 }
 
 void InputManager::HandleMouseInput()
@@ -116,9 +127,10 @@ void InputManager::HandleMouseInput()
     }
     else if (mouseState & SDL_BUTTON(3) && (now - MouseInputs.RightLastTimePressed) > MouseInputs.RightCooldown)
     {
-        if (_Player->CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
+        if (_Player->CanMine && _Renderer.IsDiscovered(selectedX, selectedY) && _World.tiles[selectedX][selectedY].Passable)
         {
             _EntityManager.SpawnExplosive(_Player->Target.x, _Player->Target.y);
+            //_World.ChangeTile(selectedX, selectedY, TileType::EXPLOSIVE);
             MouseInputs.RightLastTimePressed = now;
         }
     }
@@ -149,7 +161,7 @@ void InputManager::HandleMovement()
         dir = SOUTHWEST;
     else if (Keys[down] && Keys[right])
         dir = SOUTHEAST;
-    _Player->UpdateVelocity(dir);
+    _Player->UpdateAcceleration(dir);
 }
 
 inline void InputManager::PollAndUpdate(int actionIndex)
@@ -165,54 +177,59 @@ inline void InputManager::PollAndUpdate(int actionIndex)
 
 void InputManager::ValidatePlayerState()
 {
-    Vec2F targetVector = _Player->Target - _Player->Center;
-    if (targetVector.Magnitude() > _Player->MiningRadius)
+    ValidateCanMine();
+    if (_Player->Child)
+        UpdateChild();
+}
+
+void InputManager::UpdateChild()
+{
+    _Player->Child->ParentOffset = _Player->Target - _Player->Center;
+}
+
+void InputManager::ValidateCanMine()
+{
+
+    int x = (int)_Player->Center.x, y = (int)_Player->Center.y, endX = (int)_Player->Target.x, endY = (int)_Player->Target.y;
+
+    float dx = _Player->Target.x - _Player->Center.x;
+    float dy = _Player->Target.y - _Player->Center.y;
+
+    int stepX = (dx > 0) ? 1 : (dx < 0) ? -1
+                                        : 0;
+    int stepY = (dy > 0) ? 1 : (dy < 0) ? -1
+                                        : 0;
+
+    float tDeltaX = (stepX != 0) ? SDL_fabsf(1.0f / dx) : 1e6;
+    float tDeltaY = (stepY != 0) ? SDL_fabsf(1.0f / dy) : 1e6;
+
+    float nextTileBoundaryX = (stepX > 0) ? (SDL_floorf(_Player->Center.x) + 1.0f) : (SDL_floorf(_Player->Center.x));
+    float nextTileBoundaryY = (stepY > 0) ? (SDL_floorf(_Player->Center.y) + 1.0f) : (SDL_floorf(_Player->Center.y));
+
+    float tMaxX = (stepX != 0) ? SDL_fabsf((nextTileBoundaryX - _Player->Center.x) / dx) : 1e6;
+    float tMaxY = (stepY != 0) ? SDL_fabsf((nextTileBoundaryY - _Player->Center.y) / dy) : 1e6;
+
+    while (x != endX || y != endY)
     {
-        _Player->CanMine = false;
-    }
-    else
-    {
-        int x = (int)_Player->Center.x, y = (int)_Player->Center.y, endX = (int)_Player->Target.x, endY = (int)_Player->Target.y;
-
-        float dx = _Player->Target.x - _Player->Center.x;
-        float dy = _Player->Target.y - _Player->Center.y;
-
-        int stepX = (dx > 0) ? 1 : (dx < 0) ? -1
-                                            : 0;
-        int stepY = (dy > 0) ? 1 : (dy < 0) ? -1
-                                            : 0;
-
-        float tDeltaX = (stepX != 0) ? SDL_fabsf(1.0f / dx) : 1e6;
-        float tDeltaY = (stepY != 0) ? SDL_fabsf(1.0f / dy) : 1e6;
-
-        float nextTileBoundaryX = (stepX > 0) ? (SDL_floorf(_Player->Center.x) + 1.0f) : (SDL_floorf(_Player->Center.x));
-        float nextTileBoundaryY = (stepY > 0) ? (SDL_floorf(_Player->Center.y) + 1.0f) : (SDL_floorf(_Player->Center.y));
-
-        float tMaxX = (stepX != 0) ? SDL_fabsf((nextTileBoundaryX - _Player->Center.x) / dx) : 1e6;
-        float tMaxY = (stepY != 0) ? SDL_fabsf((nextTileBoundaryY - _Player->Center.y) / dy) : 1e6;
-
-        while (x != endX || y != endY)
+        if (tMaxX < tMaxY)
         {
-            if (tMaxX < tMaxY)
-            {
-                tMaxX += tDeltaX;
-                x += stepX;
-            }
-            else
-            {
-                tMaxY += tDeltaY;
-                y += stepY;
-            }
-            if (x == (int)_Player->Target.x && y == (int)_Player->Target.y)
-            {
-                _Player->CanMine = true;
-                break;
-            }
-            else if (!_World.IsInBounds(x, y) || !_World.tiles[x][y].Passable)
-            {
-                _Player->CanMine = false;
-                break;
-            }
+            tMaxX += tDeltaX;
+            x += stepX;
+        }
+        else
+        {
+            tMaxY += tDeltaY;
+            y += stepY;
+        }
+        if (x == (int)_Player->Target.x && y == (int)_Player->Target.y)
+        {
+            _Player->CanMine = true;
+            break;
+        }
+        else if (!_World.tiles[x][y].Passable)
+        {
+            _Player->CanMine = false;
+            break;
         }
     }
 }

@@ -11,13 +11,13 @@ class EntityManager
 {
 private:
     World &_World;
-    std::vector<Entity*> &_Entities;
+    std::vector<Entity *> &_Entities;
     void UpdatePlayerPosition();
 
 public:
-    EntityManager(World &world, std::vector<Entity*> &entities);
+    EntityManager(World &world, std::vector<Entity *> &entities);
     ~EntityManager();
     void Update(Uint64 deltaTime);
-    void SpawnExplosive(float x, float y);
+    Explosive *SpawnExplosive(float x, float y);
 };
 #endif

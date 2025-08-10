@@ -20,9 +20,11 @@ public:
     float MiningRadius;
     float DiscoverRadius;
 
+    Entity* SelectedEntity = nullptr;
+
     Player(float width, float height, float speed);
     ~Player();
-    void UpdateVelocity(direction dir);
+    void UpdateAcceleration(direction dir);
 };
 
 #endif

@@ -11,6 +11,7 @@ class Game
 {
 private:
     Uint64 FrameRate;
+    SDL_Event Event;
     World &_World;
     EntityManager &_EntityManager;
     InputManager &_InputManager;
@@ -23,6 +24,7 @@ public:
     Game(Uint64 frameRate, World &world, EntityManager &entityManager, InputManager &inputManager, WindowRenderer &windowRenderer, SoundManager &SoundManager);
     ~Game();
     void Start();
+    void Update();
 };
 
 #endif

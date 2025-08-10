@@ -26,6 +26,7 @@ enum Action
     SWITCH_PLAYER_8,
     TOGGLE_CURSOR_MODE,
     TOGGLE_VIEW,
+    GRAB_RELEASE,
     ACTIONS_COUNT
 };
 
@@ -71,6 +72,8 @@ private:
     void HandleMovement();
     inline void PollAndUpdate(int actionIndex);
     void ValidatePlayerState();
+    void ValidateCanMine();
+    void UpdateChild();
 
 public:
     InputManager(World &world, Player *player,

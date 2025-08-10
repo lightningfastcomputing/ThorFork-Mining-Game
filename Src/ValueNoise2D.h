@@ -9,7 +9,6 @@
 class ValueNoise2D {
 private:
     std::vector<float> grid;
-    int gridSize;
     unsigned int seed;
 
     float fade(float t) const {

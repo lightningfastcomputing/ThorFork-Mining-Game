@@ -1,7 +1,7 @@
 #include "WindowRenderer.h"
 
-WindowRenderer::WindowRenderer(const World &world, Player *player, std::vector<Entity *> &entities, int width, int height) 
-: _World(world), _Player(player), _Entities(entities)
+WindowRenderer::WindowRenderer(const World &world, Player *player, std::vector<Entity *> &entities, int width, int height)
+    : _World(world), _Player(player), _Entities(entities)
 {
     WindowDimensions = {width, height};
 
@@ -12,13 +12,12 @@ WindowRenderer::WindowRenderer(const World &world, Player *player, std::vector<E
 
     TileCounts = {WindowDimensions.x / TileLength, WindowDimensions.y / TileLength};
 
-    Discovered = new bool*[_World.Width];
+    Discovered = new bool *[_World.Width];
     for (int i = 0; i < _World.Width; i++)
     {
         Discovered[i] = new bool[_World.Height];
         std::memset(Discovered[i], false, _World.Height * sizeof(bool));
     }
-
 
     Fullscreen = false;
     Debug = false;
@@ -61,8 +60,7 @@ void WindowRenderer::Init_Display(const char *windowTitle)
         Running = false;
     }
 
-
-    //set tileTextures
+    // set tileTextures
     TileTextures[TileType::AIR] = IMG_LoadTexture(Renderer, "Textures/grass.png");
     TileTextures[TileType::STONE] = IMG_LoadTexture(Renderer, "Textures/stone.png");
     TileTextures[TileType::DENSE_STONE] = IMG_LoadTexture(Renderer, "Textures/dense_rock.png");
@@ -70,10 +68,9 @@ void WindowRenderer::Init_Display(const char *windowTitle)
     TileTextures[TileType::EXPLOSIVE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
     TileTextures[TileType::BARRIER] = IMG_LoadTexture(Renderer, "Textures/barrier.png");
 
-    //set entityTextures
+    // set entityTextures
     EntityTextures[EntityType::PLAYER] = IMG_LoadTexture(Renderer, "Textures/barrier.png");
     EntityTextures[EntityType::DYNAMITE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
-
 
     for (int i = 0; i < TILETYPE_COUNT; i++)
     {
@@ -109,7 +106,9 @@ WindowRenderer::~WindowRenderer()
     delete[] Discovered;
 }
 
-void WindowRenderer::Update(Uint64 tickCount) {
+void WindowRenderer::Update(Uint64 tickCount)
+{
+    TickCount = tickCount;
     RadialDiscover();
     ClearFrame();
     RenderFrame();
@@ -130,7 +129,7 @@ void WindowRenderer::ToggleRelativeCursor()
     {
         printf("SDL_SetRelativeMouseMode failed: %s", SDL_GetError());
     }
-    else 
+    else
     {
         if (toggle)
         {
@@ -190,11 +189,11 @@ void WindowRenderer::RenderFrame()
     MinCoordinates = {(int)x - (TileCounts.x / 2), (int)y - (TileCounts.y / 2)};
     MaxCoordinates = {MinCoordinates.x + TileCounts.x, MinCoordinates.y + TileCounts.y};
 
-    if (!GlobalView) 
+    if (!GlobalView)
     {
 
-    DrawWorld();
-    DrawEntities();
+        DrawWorld();
+        DrawEntities();
         if (RelativeCursorMode)
         {
             DrawPlayerReach();
@@ -209,7 +208,7 @@ void WindowRenderer::RenderFrame()
         GlobalDrawWorld();
     }
 
-    SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255); //undiscovered tiles are just black
+    SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255); // undiscovered tiles are just black
     SDL_RenderPresent(Renderer);
 }
 
@@ -224,7 +223,7 @@ void WindowRenderer::ClearFrame()
 
 void WindowRenderer::GlobalDrawWorld()
 {
-    int globalTileLength = _World.Height < _World.Width ? WindowDimensions.x/_World.Width : WindowDimensions.y/_World.Height;
+    int globalTileLength = _World.Height < _World.Width ? WindowDimensions.x / _World.Width : WindowDimensions.y / _World.Height;
 
     SDL_Rect rect;
     rect.x = 0;
@@ -250,9 +249,9 @@ void WindowRenderer::GlobalDrawWorld()
         rect.y = 0;
     }
 
-    //draw little squares for the tiles the players are inhabiting
+    // draw little squares for the tiles the players are inhabiting
     SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
-    for (Entity* p : _Entities)
+    for (Entity *p : _Entities)
     {
         rect.x = p->xStart * globalTileLength;
         rect.y = p->yStart * globalTileLength;
@@ -289,11 +288,12 @@ void WindowRenderer::DrawWorld()
 void WindowRenderer::DrawEntities()
 {
     // Draw all players in the vector
-    //todo: if player is not within view, dont draw
-    for (Entity* p : _Entities) 
+    // todo: if player is not within view, dont draw
+
+    for (Entity *p : _Entities)
     {
         // Calculate position relative to current player
-        int rendX = ((p->Center.x - MinCoordinates.x) * TileLength) - TileOffset.x + 1; //this is a terrible fix, find some other way to do this (+ 1)
+        int rendX = ((p->Center.x - MinCoordinates.x) * TileLength) - TileOffset.x + 1; // this is a terrible fix, find some other way to do this (+ 1)
         int rendY = ((p->Center.y - MinCoordinates.y) * TileLength) - TileOffset.y + 1;
 
         SDL_Rect displayRect;
@@ -303,74 +303,101 @@ void WindowRenderer::DrawEntities()
         displayRect.h = p->BoundingBox.h * TileLength;
 
         SDL_RenderCopy(Renderer, EntityTextures[p->type], nullptr, &displayRect);
-
     }
 }
 
 void WindowRenderer::DebugInfo()
 {
-        DrawPlayerCollisionBox();
-        DrawPlayerVector();
+    DrawPlayerCollisionBox();
+    DrawPlayerVector();
 
-        SDL_Rect textRect = {(int)(WindowDimensions.x * 0.01f), (int)(WindowDimensions.y * 0.01f), 0, 0};
+    SDL_Rect textRect = {(int)(WindowDimensions.x * 0.01f), (int)(WindowDimensions.y * 0.01f), 0, 0};
 
-        std::string debugInfo =
-            std::format("Screen Width, Height: ({},{})\n", WindowDimensions.x, WindowDimensions.y) +
-            std::format("Player: ({:.2f},{:.2f})\n", _Player->Center.x, _Player->Center.y) +
-            std::format("Score: {}\n", _Player->Score) + std::format("MouseScreen: ({},{})\n", MouseScreen.x, MouseScreen.y) +
-            std::format("MouseWorld: ({},{})\n", MouseWorld.x, MouseWorld.y) +
-            std::format("   Tile Health: {}\n", (_World.IsInBounds(MouseWorld) && Discovered[MouseWorld.x][MouseWorld.y])
-                                                    ? _World.tiles[MouseWorld.x][MouseWorld.y].Health
-                                                    : -1) +
-            std::format("PlayerTarget: ({:.2f},{:.2f})\n", _Player->Target.x, _Player->Target.y) +
-            std::format("MinimumCoordinates: X={},Y={}\n", MinCoordinates.x, MinCoordinates.y) +
-            std::format("MaximumCoordinates: X={},Y={}\n", MaxCoordinates.x, MaxCoordinates.y) +
-            std::format("TileCounts: X={}, Y={}\n", TileCounts.x, TileCounts.y) +
-            std::format("Offsets: X={}, Y={}\n", TileOffset.x, TileOffset.y) +
-            std::format("TickCount: {}\n", TickCount);
+    std::string debugInfo =
+        std::format("Screen Width, Height: ({},{})\n", WindowDimensions.x, WindowDimensions.y) +
+        std::format("Player: ({:.2f},{:.2f})\n", _Player->Center.x, _Player->Center.y) +
+        std::format("Velocity: ({:.2f},{:.2f})\n", _Player->Velocity.x, _Player->Velocity.y) +
+        std::format("Score: {}\n", _Player->Score) + std::format("MouseScreen: ({},{})\n", MouseScreen.x, MouseScreen.y) +
+        std::format("MouseWorld: ({},{})\n", MouseWorld.x, MouseWorld.y) +
+        std::format("   Tile Health: {}\n", (_World.IsInBounds(MouseWorld) && Discovered[MouseWorld.x][MouseWorld.y])
+                                                ? _World.tiles[MouseWorld.x][MouseWorld.y].Health
+                                                : -1) +
+        std::format("PlayerTarget: ({:.2f},{:.2f})\n", _Player->Target.x, _Player->Target.y) +
+        std::format("MinimumCoordinates: X={},Y={}\n", MinCoordinates.x, MinCoordinates.y) +
+        std::format("MaximumCoordinates: X={},Y={}\n", MaxCoordinates.x, MaxCoordinates.y) +
+        std::format("TileCounts: X={}, Y={}\n", TileCounts.x, TileCounts.y) +
+        std::format("Offsets: X={}, Y={}\n", TileOffset.x, TileOffset.y);
 
-        SDL_Surface *textSurface = TTF_RenderText_Solid_Wrapped(TextFont, debugInfo.c_str(), {255, 255, 255, 255}, 0);
-        SDL_Texture *textTexture = SDL_CreateTextureFromSurface(Renderer, textSurface);
-        if (!textSurface)
-        {
-            std::cerr << "Unable to create text surface TTF_Error: " << TTF_GetError() << std::endl;
-            Running = false;
-        }
+    if (_Player->Child)
+        debugInfo += std::format("Child Pos: ({:.2f},{:.2f})\n", _Player->Child->BoundingBox.x, _Player->Child->BoundingBox.y);
 
-        textRect.w = textSurface->w;
-        textRect.h = textSurface->h;
+    debugInfo += std::format("Entities: {}\n", _Entities.size()) +
+                 std::format("TickCount: {}\n", TickCount);
 
-        SDL_RenderCopy(Renderer, textTexture, NULL, &textRect);
+    SDL_Surface *textSurface = TTF_RenderText_Solid_Wrapped(TextFont, debugInfo.c_str(), {255, 255, 255, 255}, 0);
+    SDL_Texture *textTexture = SDL_CreateTextureFromSurface(Renderer, textSurface);
+    if (!textSurface)
+    {
+        std::cerr << "Unable to create text surface TTF_Error: " << TTF_GetError() << std::endl;
+        Running = false;
+    }
 
-        SDL_FreeSurface(textSurface);
-        SDL_DestroyTexture(textTexture);
+    textRect.w = textSurface->w;
+    textRect.h = textSurface->h;
+
+    SDL_RenderCopy(Renderer, textTexture, NULL, &textRect);
+
+    SDL_FreeSurface(textSurface);
+    SDL_DestroyTexture(textTexture);
 }
 
 void WindowRenderer::DrawAndStoreSelectedTile()
 {
-    _Player->Target.x += (float)MouseRelativeDeltas.x/TileLength/2;
-    _Player->Target.y += (float)MouseRelativeDeltas.y/TileLength/2;
+    _Player->Target.x += (float)MouseRelativeDeltas.x / TileLength / 2;
+    _Player->Target.y += (float)MouseRelativeDeltas.y / TileLength / 2;
 
+    // this should really be part of the inputmanager
     Vec2F targetVector = _Player->Target - _Player->Center;
     if (targetVector.Magnitude() > _Player->MiningRadius)
     {
         targetVector.Normalize();
-        _Player->Target = _Player->Center + (targetVector * (_Player->MiningRadius - 0.001f));
+        _Player->Target = _Player->Center + targetVector * _Player->MiningRadius;
     }
     MouseWorld = {(int)_Player->Target.x, (int)_Player->Target.y};
 
-    _Player->CanMine ? SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255) : SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
+    _Player->CanMine ? SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255) : SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
 
-
+    int xTileLength = TileLength;
+    int yTileLength = TileLength;
     int rendX = (int)(_Player->Target.x - MinCoordinates.x) * TileLength - TileOffset.x;
     int rendY = (int)(_Player->Target.y - MinCoordinates.y) * TileLength - TileOffset.y;
 
+    _Player->SelectedEntity = nullptr;
+    for (Entity* e : _Entities)
+    {
+        if (e == _Player)
+            continue;
+        
+        SDL_FPoint point = {_Player->Target.x, _Player->Target.y};
+        if (SDL_PointInFRect(&point, &(e->BoundingBox)))
+        {
+            _Player->SelectedEntity = e;
+            xTileLength = (int)(e->BoundingBox.w * TileLength);
+            yTileLength = (int)(e->BoundingBox.h * TileLength);
+            rendX = (e->BoundingBox.x - MinCoordinates.x) * TileLength - TileOffset.x;
+            rendY = (e->BoundingBox.y - MinCoordinates.y) * TileLength - TileOffset.y;
+            break;
+        }
+    }
+
+
+
     if (_World.IsInBounds((int)MouseWorld.x, (int)MouseWorld.y) && Discovered[((int)MouseWorld.x)][((int)MouseWorld.y)])
     {
-        SDL_RenderDrawLine(Renderer, rendX, rendY, rendX + TileLength, rendY);
-        SDL_RenderDrawLine(Renderer, rendX, rendY, rendX, rendY + TileLength);
-        SDL_RenderDrawLine(Renderer, rendX + TileLength, rendY, rendX + TileLength, rendY + TileLength);
-        SDL_RenderDrawLine(Renderer, rendX, rendY + TileLength, rendX + TileLength, rendY + TileLength);
+        SDL_RenderDrawLine(Renderer, rendX, rendY, rendX + xTileLength, rendY);
+        SDL_RenderDrawLine(Renderer, rendX, rendY, rendX, rendY + yTileLength);
+        SDL_RenderDrawLine(Renderer, rendX + xTileLength, rendY, rendX + xTileLength, rendY + xTileLength);
+        SDL_RenderDrawLine(Renderer, rendX, rendY + yTileLength, rendX + xTileLength, rendY + yTileLength);
     }
 }
 
@@ -380,7 +407,7 @@ void WindowRenderer::DrawPlayerReach()
     int rendY = ((_Player->Center.y - MinCoordinates.y) * TileLength) - TileOffset.y;
 
     int divisions = 30;
-    float dtheta = (2 * PI)/divisions;
+    float dtheta = (2 * PI) / divisions;
     float theta = 0;
 
     int x1, y1;
@@ -403,64 +430,65 @@ void WindowRenderer::DrawPlayerReach()
 void WindowRenderer::DrawCursor()
 {
     SDL_Rect rect;
-    rect.x = (_Player->Target.x - MinCoordinates.x) * TileLength - TileOffset.x - TileLength/4;
-    rect.y = (_Player->Target.y - MinCoordinates.y) * TileLength - TileOffset.y - TileLength/4;
-    rect.w = TileLength/2;
-    rect.h = TileLength/2;
+    rect.x = (_Player->Target.x - MinCoordinates.x) * TileLength - TileOffset.x - TileLength / 8;
+    rect.y = (_Player->Target.y - MinCoordinates.y) * TileLength - TileOffset.y - TileLength / 8;
+    rect.w = TileLength / 4;
+    rect.h = TileLength / 4;
 
-    SDL_RenderCopy(Renderer, TileTextures[EXPLOSIVE], nullptr, &rect);
+    SDL_RenderCopy(Renderer, TileTextures[DENSE_STONE], nullptr, &rect);
 }
 
 void WindowRenderer::RadialDiscover()
 {
-        int numRays = (int)(2 * PI * _Player->DiscoverRadius) + 1; // aproximation of how many rays are needed to get a clean discovery radius
-        float dTheta = (2 * PI) / numRays;
-        float theta = 0;
+    int numRays = (int)(2 * PI * _Player->DiscoverRadius) + 1; // aproximation of how many rays are needed to get a clean discovery radius
+    float dTheta = (2 * PI) / numRays;
+    float theta = 0;
 
-        for (int i = 0; i < numRays; i++)
+    for (int i = 0; i < numRays; i++)
+    {
+        Vec2F endPos = {_Player->Center.x + (_Player->DiscoverRadius * SDL_cosf(theta)), _Player->Center.y + (_Player->DiscoverRadius * SDL_sinf(theta))};
+
+        int x = (int)_Player->Center.x;
+        int y = (int)_Player->Center.y;
+        int endX = (int)(endPos.x);
+        int endY = (int)(endPos.y);
+
+        float dx = endPos.x - _Player->Center.x;
+        float dy = endPos.y - _Player->Center.y;
+
+        int stepX = (dx > 0) ? 1 : (dx < 0) ? -1
+                                            : 0;
+        int stepY = (dy > 0) ? 1 : (dy < 0) ? -1
+                                            : 0;
+
+        float tDeltaX = (stepX != 0) ? SDL_fabsf(1.0f / dx) : 1e6;
+        float tDeltaY = (stepY != 0) ? SDL_fabsf(1.0f / dy) : 1e6;
+
+        float nextTileBoundaryX = (stepX > 0) ? (SDL_floorf(_Player->Center.x) + 1.0f) : (SDL_floorf(_Player->Center.x));
+        float nextTileBoundaryY = (stepY > 0) ? (SDL_floorf(_Player->Center.y) + 1.0f) : (SDL_floorf(_Player->Center.y));
+
+        float tMaxX = (stepX != 0) ? SDL_fabsf((nextTileBoundaryX - _Player->Center.x) / dx) : 1e6;
+        float tMaxY = (stepY != 0) ? SDL_fabsf((nextTileBoundaryY - _Player->Center.y) / dy) : 1e6;
+
+        while (x != endX || y != endY)
         {
-            Vec2F endPos = {_Player->Center.x + (_Player->DiscoverRadius * SDL_cosf(theta)), _Player->Center.y + (_Player->DiscoverRadius * SDL_sinf(theta))};
+            Discovered[x][y] = true;
+            if (!_World.tiles[x][y].Passable)
+                break;
 
-            int x = (int)_Player->Center.x;
-            int y = (int)_Player->Center.y;
-            int endX = (int)(endPos.x);
-            int endY = (int)(endPos.y);
-
-            float dx = endPos.x - _Player->Center.x;
-            float dy = endPos.y - _Player->Center.y;
-
-            int stepX = (dx > 0) ? 1 : (dx < 0) ? -1 : 0;
-            int stepY = (dy > 0) ? 1 : (dy < 0) ? -1 : 0;
-
-            float tDeltaX = (stepX != 0) ? SDL_fabsf(1.0f / dx) : 1e6;
-            float tDeltaY = (stepY != 0) ? SDL_fabsf(1.0f / dy) : 1e6;
-
-            float nextTileBoundaryX = (stepX > 0) ? (SDL_floorf(_Player->Center.x) + 1.0f) : (SDL_floorf(_Player->Center.x));
-            float nextTileBoundaryY = (stepY > 0) ? (SDL_floorf(_Player->Center.y) + 1.0f) : (SDL_floorf(_Player->Center.y));
-
-            float tMaxX = (stepX != 0) ? SDL_fabsf((nextTileBoundaryX - _Player->Center.x) / dx) : 1e6;
-            float tMaxY = (stepY != 0) ? SDL_fabsf((nextTileBoundaryY - _Player->Center.y) / dy) : 1e6;
-
-            while (x != endX || y != endY) 
+            if (tMaxX < tMaxY)
             {
-                if (_World.IsInBounds(x,y))
-                    Discovered[x][y] = true;
-                if (!_World.tiles[x][y].Passable) 
-                    break;
-
-                if (tMaxX < tMaxY) 
-                {
-                    tMaxX += tDeltaX;
-                    x += stepX;
-                } 
-                else 
-                {
-                    tMaxY += tDeltaY;
-                    y += stepY;
-                }
+                tMaxX += tDeltaX;
+                x += stepX;
             }
-            theta += dTheta;
+            else
+            {
+                tMaxY += tDeltaY;
+                y += stepY;
+            }
         }
+        theta += dTheta;
+    }
 }
 
 void WindowRenderer::DrawPlayerBoundingBox()
@@ -493,4 +521,3 @@ void WindowRenderer::DrawPlayerVector()
 
     SDL_RenderDrawLine(Renderer, rendX0, rendY0, rendX1, rendY1);
 }
-

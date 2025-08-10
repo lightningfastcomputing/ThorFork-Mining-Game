@@ -16,3 +16,22 @@ Entity::Entity(float x, float y, float w, float h)
 Entity::~Entity()
 {
 }
+
+bool Entity::SetChild(Entity* child, Vec2F offset)
+{
+    bool valid = child != nullptr;
+    if (valid)
+    {
+        Child = child;
+        child->Parent = this;
+        child->ParentOffset = offset;
+    }
+    return valid;
+}
+
+void Entity::ReleaseChild()
+{
+    Child->Parent = nullptr;
+    Child->ParentOffset = {0,0};
+    Child = nullptr;
+}
