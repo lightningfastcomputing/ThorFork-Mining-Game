@@ -19,10 +19,10 @@ enum direction
     NONE
 };
 
-
 enum TileType
 {
     AIR,
+    STONE_FLOOR,
     STONE,
     DENSE_STONE,
     GOLD,
@@ -38,10 +38,19 @@ enum EntityType
     ENTITYTYPE_COUNT
 };
 
+struct Vec2F;
+
 struct Vec2
 {
     int x;
     int y;
+
+    Vec2F ToVec2F() const;
+    Vec2 operator+(const Vec2 &other) const;
+    Vec2 operator-(const Vec2 &other) const;
+    Vec2 operator*(int scalar) const;
+    Vec2 operator/(int scalar) const;
+    void operator+=(const Vec2 &other);
 };
 
 struct Vec2F
@@ -49,56 +58,14 @@ struct Vec2F
     float x;
     float y;
 
-    float Magnitude() const
-    {
-        return (SDL_sqrtf((x * x) + (y * y)));
-    }
-
-    void Normalize()
-    {
-        float magnitude = this->Magnitude();
-        if (magnitude != 0)
-        {
-            float invMagnitude = 1 / (magnitude);
-            x *= invMagnitude;
-            y *= invMagnitude;
-        }
-    }
-
-    Vec2F operator+(const Vec2F &other) const
-    {
-        return {x + other.x, y + other.y};
-    }
-
-    Vec2F operator-(const Vec2F &other) const
-    {
-        return {x - other.x, y - other.y};
-    }
-
-    Vec2F operator*(float scalar) const
-    {
-        return {x * scalar, y * scalar};
-    }
-
-    void operator+=(const Vec2F &other)
-    {
-        x += other.x;
-        y += other.y;
-    }
-};
-
-struct Ray
-{
-    Vec2F Origin;
-    float Angle;
-    float Length;
-
-    Ray(const Vec2F &origin, float angle, float length)
-    {
-        Origin = origin;
-        Angle = angle;
-        Length = length;
-    }
+    float Magnitude() const;
+    void Normalize();
+    Vec2 ToVec2() const;
+    Vec2F operator+(const Vec2F &other) const;
+    Vec2F operator-(const Vec2F &other) const;
+    Vec2F operator*(float scalar) const;
+    Vec2F operator/(float scalar) const;
+    void operator+=(const Vec2F &other);
 };
 
 #endif

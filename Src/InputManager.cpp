@@ -73,9 +73,13 @@ InputManager::InputManager(World &world,
                                   [this]()
                                   {
                                       if (this->_Player->Child)
-                                          this->_Player->ReleaseChild();
+                                      {
+                                          this->_Player->ReleaseChild(_Player->Target);
+                                          if (_Player->SelectedEntity)
+                                              this->_Player->SetChild(_Player->SelectedEntity, {0, 0});
+                                      }
                                       else
-                                          this->_Player->SetChild(_Player->SelectedEntity, _Player->Target);
+                                          this->_Player->SetChild(_Player->SelectedEntity, {0, 0});
                                   }};
 }
 
@@ -118,12 +122,16 @@ void InputManager::HandleMouseInput()
 
     if (mouseState & SDL_BUTTON(1) && (now - MouseInputs.LeftLastTimePressed) > MouseInputs.LeftCooldown)
     {
-        if (_Player->CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
+        if (_Player->SelectedEntity)
         {
-            _World.MineTile(selectedX, selectedY, 1, *_Player);
-            _SoundManager.PlaySound(Sound::PICKAXE_STRIKE);
-            MouseInputs.LeftLastTimePressed = now;
+            _EntityManager.KillEntity(_Player->SelectedEntity);
         }
+        else if (_Player->CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
+        {
+            _World.MineTile(selectedX, selectedY, 1, _Player);
+            _SoundManager.PlaySound(Sound::PICKAXE_STRIKE);
+        }
+        MouseInputs.LeftLastTimePressed = now;
     }
     else if (mouseState & SDL_BUTTON(3) && (now - MouseInputs.RightLastTimePressed) > MouseInputs.RightCooldown)
     {
@@ -184,7 +192,30 @@ void InputManager::ValidatePlayerState()
 
 void InputManager::UpdateChild()
 {
-    _Player->Child->ParentOffset = _Player->Target - _Player->Center;
+    Entity *child = _Player->Child;
+    float radius = _Player->Dimensions.x * 0.5f;
+
+    switch (_Player->Direction)
+    {
+    case WEST:
+        child->ParentOffset = {-radius, 0};
+        break;
+    case EAST:
+        child->ParentOffset = {radius, 0};
+        break;
+    case NORTH:
+    case NORTHEAST:
+    case NORTHWEST:
+        child->ParentOffset = {0, -radius};
+        break;
+    case SOUTH:
+    case SOUTHWEST:
+    case SOUTHEAST:
+        child->ParentOffset = {0, radius};
+        break;
+    case NONE:
+        break;
+    }
 }
 
 void InputManager::ValidateCanMine()

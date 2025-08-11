@@ -47,7 +47,9 @@ public:
 
     void ChangeTile(int x, int y, TileType tileType);
 
-    void MineTile(int x, int y, int strength, Player& player);
+    void MineTile(int x, int y, int strength, Player* player);
+
+    void Explosion(Vec2F pos, float radius);
 
     bool IsInBounds(int x, int y) const
     {

@@ -2,9 +2,12 @@
 
 Entity::Entity(float x, float y, float w, float h)
 {
+    //keep in this order so we can cast to an SDL_FRect
+    Position = {x - w/2, y - h/2};
+    Dimensions = {w, h};
+
     Center = {x, y};
-    HalfDimensions = {w/2, h/2};
-    BoundingBox = {Center.x - HalfDimensions.x, Center.y - HalfDimensions.y, w, h};
+    
     Velocity = {0, 0};
 
     xStart = (int)SDL_floorf(x);
@@ -29,9 +32,10 @@ bool Entity::SetChild(Entity* child, Vec2F offset)
     return valid;
 }
 
-void Entity::ReleaseChild()
+void Entity::ReleaseChild(Vec2F offset)
 {
+    //fix
     Child->Parent = nullptr;
-    Child->ParentOffset = {0,0};
+    Child->ParentOffset = {0, 0};
     Child = nullptr;
 }

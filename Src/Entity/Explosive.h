@@ -5,7 +5,8 @@
 
 struct Explosive : public Entity
 {
-    Explosive(float x, float y);
+    float ExplosionRadius;
+    Explosive(float x, float y, float size, float explRadius);
     ~Explosive();
 };
 

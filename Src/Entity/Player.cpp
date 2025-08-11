@@ -28,6 +28,7 @@ Player::~Player()
 
 void Player::UpdateAcceleration(direction dir)
 {
+    Direction = dir;
     switch (dir)
     {
     case WEST:

@@ -16,6 +16,8 @@ class WindowRenderer
 {
 private:
     Uint64 TickCount;
+
+    static constexpr int CIRCLE_SEGMENTS = 30;
     
     SDL_Window *Window = nullptr;
     SDL_Renderer *Renderer = nullptr;
@@ -54,6 +56,10 @@ private:
     void DrawPlayerReach();
     void DrawCursor();
     void RadialDiscover();
+    Vec2 ConvertWorldToScreen(Vec2F worldCoordinates) {
+            return ((worldCoordinates - MinCoordinates.ToVec2F()) * TileLength).ToVec2() - TileOffset;
+    };
+    void Encircle(Vec2F pos, float radius); /*world coordinates and lengths*/
     void RenderFrame();
     void ClearFrame();
 
@@ -63,7 +69,7 @@ public:
     Vec2 MouseWorld;  // coordinates of the mouse relative to the world
     Vec2 MouseRelativeDeltas; //Mouse Deltas for non-cursor mouse input
 
-    Player *_Player;
+    Player *_Player = nullptr;
 
     WindowRenderer(const World &world, Player *player, std::vector<Entity *> &entities, int width, int height);
     ~WindowRenderer();
@@ -72,7 +78,7 @@ public:
     void ToggleGlobalView();
     void ToggleFullScreen();
     bool IsDiscovered(int x, int y);
-    void OutlineTile(int x, int y);
+    void Outline(float x, float y, float w, float h);
     void ToggleDebug();
     void Reveal();
     void Update(Uint64 tickCount);

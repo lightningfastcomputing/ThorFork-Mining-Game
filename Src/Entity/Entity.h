@@ -10,8 +10,8 @@ private:
 public:
     static constexpr float EPSILON = 0.0001f;
 
-    SDL_FRect BoundingBox;
-    Vec2F HalfDimensions;
+    Vec2F Position;
+    Vec2F Dimensions;
     Vec2F Center;
 
     Vec2F Velocity;
@@ -35,9 +35,12 @@ public:
 
     Entity(float x, float y, float w, float h);
     ~Entity();
+
+    SDL_FRect ToFRect() const { return {Position.x, Position.y, Dimensions.x, Dimensions.y}; }
+
     bool HasParent() { return Parent != nullptr; }
-    bool SetChild(Entity* child, Vec2F offset);
-    void ReleaseChild();
+    bool SetChild(Entity *child, Vec2F offset);
+    void ReleaseChild(Vec2F offset);
 };
 
 #endif

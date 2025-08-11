@@ -18,6 +18,7 @@ public:
     EntityManager(World &world, std::vector<Entity *> &entities);
     ~EntityManager();
     void Update(Uint64 deltaTime);
+    void KillEntity(Entity* entity);
     Explosive *SpawnExplosive(float x, float y);
 };
 #endif
