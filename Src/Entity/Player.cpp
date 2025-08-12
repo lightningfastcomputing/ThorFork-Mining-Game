@@ -11,6 +11,7 @@ Player::Player(float width, float height, float speed) : Entity(100, 100, width,
     DiscoverRadius = 50.0f;
     MaxVelocity = 0.15f;
     DragCoefficient = 0.15f;
+
     Elastic = false;
     Corporeal = true;
 
@@ -20,6 +21,7 @@ Player::Player(float width, float height, float speed) : Entity(100, 100, width,
     yEnd = -1;
 
     type = PLAYER;
+
 }
 
 Player::~Player()

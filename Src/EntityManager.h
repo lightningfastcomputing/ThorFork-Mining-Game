@@ -12,10 +12,11 @@ class EntityManager
 private:
     World &_World;
     std::vector<Entity *> &_Entities;
+    SoundManager &_SoundManager;
     void UpdatePlayerPosition();
 
 public:
-    EntityManager(World &world, std::vector<Entity *> &entities);
+    EntityManager(World &world, std::vector<Entity *> &entities, SoundManager &SoundManager);
     ~EntityManager();
     void Update(Uint64 deltaTime);
     void KillEntity(Entity* entity);

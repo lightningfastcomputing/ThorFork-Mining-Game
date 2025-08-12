@@ -7,27 +7,13 @@ https://www.youtube.com/@ottopfeff
 
 # TODO
 
-(partially done)
-Improve tiles (add health, more variance, better worldgen), fix scoring:
-
-    * tiles have health, explosion resistance, hardness, etc
-    
-    * worldgen: differentiate between overworld and underground, different walkable floortypes, veins of ore 
-
-(partially done)
-Add sounds for mining, walking, ambience, explosions
-
-(partially done)
-add more entities and improve physics engine to deal with them: entity class that player, monsters, etc inherit from
-
+Fix Explosions: should reach further
 
 # Ideas
 
 Tie view and tilesize to player size (keep tilesize a power of 2)
 
 Fix entity tunneling through world tiles (for now, just make the player slow)
-
-Turn explosives into an entity instead of a tile
 
 Investigate rendering with RenderDoc
 
@@ -41,13 +27,21 @@ Caveins
 
 Minecarts and tracks
 
-Different floor types: Stone, Mud, Void
-
 Add chunking for world to facilitate online multiplayer
 
 Add basic multiplayer
 
 # Past Tasks
+
+Improve tiles (add health, more variance, better worldgen), fix scoring:
+
+    * tiles have health, explosion resistance, hardness, etc
+    
+    * worldgen: differentiate between overworld and underground, different walkable floortypes, veins of ore 
+
+Add sounds for mining, walking, ambience, explosions
+
+add more entities and improve physics engine to deal with them: entity class that player, monsters, etc inherit from
 
 fix logic for line-of-sight
 

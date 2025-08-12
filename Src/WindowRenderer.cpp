@@ -116,7 +116,8 @@ WindowRenderer::~WindowRenderer()
 void WindowRenderer::Update(Uint64 tickCount)
 {
     TickCount = tickCount;
-    RadialDiscover();
+    if (TickCount % 5 == 0)
+        RadialDiscover();
     ClearFrame();
     RenderFrame();
 }

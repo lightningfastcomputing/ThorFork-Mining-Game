@@ -2,7 +2,7 @@
 
 using namespace std;
 
-World::World(int width, int height)
+World::World(int width, int height, SoundManager &soundManager) : _SoundManager(soundManager)
 {
     TileStates[AIR] = {TileType::AIR, 0, true, true};
     TileStates[STONE_FLOOR] = {TileType::STONE_FLOOR, 0, true, true};

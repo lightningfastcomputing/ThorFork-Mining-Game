@@ -17,7 +17,7 @@ class WindowRenderer
 private:
     Uint64 TickCount;
 
-    static constexpr int CIRCLE_SEGMENTS = 30;
+    static constexpr int CIRCLE_SEGMENTS = 300;
     
     SDL_Window *Window = nullptr;
     SDL_Renderer *Renderer = nullptr;

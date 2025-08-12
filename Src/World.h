@@ -10,6 +10,7 @@
 #include "TileState.h"
 #include "Entity/Player.h"
 #include "ValueNoise2D.h"
+#include "SoundManager.h"
 
 struct WorldAction
 {
@@ -29,9 +30,9 @@ private:
     std::priority_queue<WorldAction, std::vector<WorldAction>, std::greater<WorldAction>> WorldActionQueue;
     Uint64 TickCount = 0;
 
-    void GenerateVein(int x, int y, int count, TileType tileType);
+    SoundManager &_SoundManager;
 
-    //set an impassable border around the world
+    void GenerateVein(int x, int y, int count, TileType tileType);
     void SetBorder();
 
 public:
@@ -39,7 +40,7 @@ public:
     int Width;
     int Height;
 
-    World(int width, int height);
+    World(int width, int height, SoundManager &soundManager);
 
     ~World();
 

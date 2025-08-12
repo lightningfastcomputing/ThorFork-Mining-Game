@@ -1,6 +1,6 @@
 #include "EntityManager.h"
 
-EntityManager::EntityManager(World &world, std::vector<Entity *> &entities) : _World(world), _Entities(entities)
+EntityManager::EntityManager(World &world, std::vector<Entity *> &entities, SoundManager &soundManager) : _World(world), _Entities(entities), _SoundManager(soundManager)
 {
     for (Entity *p : _Entities)
     {
@@ -60,6 +60,11 @@ void EntityManager::UpdatePlayerPosition()
         {
             p->Velocity.Normalize();
             p->Velocity = p->Velocity * p->MaxVelocity;
+        }
+
+        if (p->Velocity.Magnitude() == 0)
+        {
+            continue;
         }
 
         int &xStart = p->xStart, &xEnd = p->xEnd, &yStart = p->yStart, &yEnd = p->yEnd;
@@ -186,7 +191,7 @@ void EntityManager::UpdatePlayerPosition()
 
 Explosive *EntityManager::SpawnExplosive(float x, float y)
 {
-    Explosive *e = new Explosive(x, y, 1.7f, 10.0f);
+    Explosive *e = new Explosive(x, y, 1.1f, 3.f);
     _Entities.emplace_back(e);
     return e;
 }
@@ -199,10 +204,8 @@ void EntityManager::KillEntity(Entity *entity)
     {
         Explosive *e = static_cast<Explosive *>(entity);
         _World.Explosion(e->Position, e->ExplosionRadius);
+        _SoundManager.PlaySound(Sound::EXPLOSION);
         _Entities.erase(std::remove(_Entities.begin(), _Entities.end(), e), _Entities.end());
-
-        _World.Explosion(e->Center, e->ExplosionRadius);
-
         delete e;
     }
     break;

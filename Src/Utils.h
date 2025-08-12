@@ -15,6 +15,15 @@ struct Utils
     {
         return (value & 1) == 0;
     }
+
+    static inline int16_t clamp16(int sample)
+    {
+        if (sample > 32767)
+            return 32767;
+        if (sample < -32768)
+            return -32768;
+        return (int16_t)sample;
+    }
 };
 
 #endif
