@@ -19,7 +19,8 @@ public:
     EntityManager(World &world, std::vector<Entity *> &entities, SoundManager &SoundManager);
     ~EntityManager();
     void Update(Uint64 deltaTime);
-    void KillEntity(Entity* entity);
+    void KillEntity(Entity *entity);
     Explosive *SpawnExplosive(float x, float y);
+    Entity *FindEntity(Vec2F pos);
 };
 #endif

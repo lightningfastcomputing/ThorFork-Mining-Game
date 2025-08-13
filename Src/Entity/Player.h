@@ -19,8 +19,10 @@ public:
 
     float MiningRadius;
     float DiscoverRadius;
-
     Entity* SelectedEntity = nullptr;
+    Entity *EquippedEntity = nullptr;
+
+    bool InteractMode;
 
     Player(float width, float height, float speed);
     ~Player();

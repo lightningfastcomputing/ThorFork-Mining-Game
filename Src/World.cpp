@@ -1,7 +1,5 @@
 #include "World.h"
 
-using namespace std;
-
 World::World(int width, int height, SoundManager &soundManager) : _SoundManager(soundManager)
 {
     TileStates[AIR] = {TileType::AIR, 0, true, true};
@@ -89,7 +87,7 @@ void World::Update(Uint64 tickCount)
 
 void World::Explosion(Vec2F pos, float radius)
 {
-        int numRays = (int)(2 * PI * radius) + 1; // aproximation of how many rays are needed to get a clean discovery radius
+    int numRays = (int)(2 * PI * radius) + 1; // aproximation of how many rays are needed to get a clean discovery radius
     float dTheta = (2 * PI) / numRays;
     float theta = 0;
 

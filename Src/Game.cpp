@@ -6,12 +6,16 @@ Game::Game(Uint64 frameRate, Vec2 worldDimensions)
     _World = new World(worldDimensions.x, worldDimensions.y, *_SoundManager);
 
     Player *player = new Player(1.8f, 1.8f, 0.5f);
+
     std::vector<Entity *> *entities = new std::vector<Entity *>;
     entities->push_back(player);
 
+    Vec2 screenDim = {1280, 800};
+    Camera* camera = new Camera(player, screenDim);
+
     _EntityManager = new EntityManager(*_World, *entities, *_SoundManager);
-    _WindowRenderer = new WindowRenderer(*_World, player, *entities, 1280, 800);
-    _InputManager = new InputManager(*_World, player, *_WindowRenderer, *_SoundManager, *_EntityManager);
+    _WindowRenderer = new WindowRenderer(*_World, *camera, *entities, screenDim.x, screenDim.y);
+    _InputManager = new InputManager(*_World, player, *camera, *_WindowRenderer, *_SoundManager, *_EntityManager);
 
     FrameRate = frameRate;
 

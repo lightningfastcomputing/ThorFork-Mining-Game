@@ -49,9 +49,6 @@ void EntityManager::UpdatePlayerPosition()
 
     for (Entity *p : _Entities)
     {
-        // if the entity has a parent, skip it, it will be updated with the parent
-        if (p->HasParent())
-            continue;
 
         Vec2F &velocity = p->Velocity;
 
@@ -70,7 +67,6 @@ void EntityManager::UpdatePlayerPosition()
         int &xStart = p->xStart, &xEnd = p->xEnd, &yStart = p->yStart, &yEnd = p->yEnd;
         float &x = p->Position.x, &y = p->Position.y, w = p->Dimensions.x, h = p->Dimensions.y;
         Vec2F positionDelta = {x, y};
-        Entity *child = p->Child;
         float EPSILON = p->EPSILON;
 
         x += velocity.x;
@@ -163,17 +159,6 @@ void EntityManager::UpdatePlayerPosition()
         p->Center = p->Position + (p->Dimensions * 0.5f);
         p->Velocity = p->Velocity * p->DragCoefficient; // friction
 
-        if (child != nullptr)
-        {
-            child->Position = p->Center + child->ParentOffset - (child->Dimensions * 0.5f);
-            child->Center = child->Position + (child->Dimensions * 0.5f);
-
-            child->xStart = (int)SDL_floorf(child->Position.x);
-            child->yStart = (int)SDL_floorf(child->Position.y);
-            child->xEnd = (int)SDL_floorf(child->Position.x + child->Dimensions.x);
-            child->yEnd = (int)SDL_floorf(child->Position.y + child->Dimensions.y);
-        }
-
         if (p->Velocity.Magnitude() < 0.001f)
             p->Velocity = {0, 0};
 
@@ -191,7 +176,7 @@ void EntityManager::UpdatePlayerPosition()
 
 Explosive *EntityManager::SpawnExplosive(float x, float y)
 {
-    Explosive *e = new Explosive(x, y, 1.1f, 3.f);
+    Explosive *e = new Explosive(x, y, 1.1f, 3.4f);
     _Entities.emplace_back(e);
     return e;
 }
@@ -203,7 +188,7 @@ void EntityManager::KillEntity(Entity *entity)
     case EntityType::DYNAMITE:
     {
         Explosive *e = static_cast<Explosive *>(entity);
-        _World.Explosion(e->Position, e->ExplosionRadius);
+        _World.Explosion(e->Center, e->ExplosionRadius);
         _SoundManager.PlaySound(Sound::EXPLOSION);
         _Entities.erase(std::remove(_Entities.begin(), _Entities.end(), e), _Entities.end());
         delete e;
@@ -214,4 +199,18 @@ void EntityManager::KillEntity(Entity *entity)
     case EntityType::ENTITYTYPE_COUNT:
         return;
     }
+}
+
+Entity *EntityManager::FindEntity(Vec2F pos)
+{
+    for (Entity* e : _Entities)
+    {
+        SDL_FPoint point = {pos.x, pos.y};
+        SDL_FRect rect = e->ToFRect();
+        if (SDL_PointInFRect(&point, &rect))
+        {
+            return e;
+        }
+    }
+    return nullptr;
 }

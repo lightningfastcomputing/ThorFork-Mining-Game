@@ -2,10 +2,12 @@
 
 InputManager::InputManager(World &world,
                            Player *player,
+                           Camera &camera,
                            WindowRenderer &renderer,
                            SoundManager &soundManager,
                            EntityManager &entityManager) : _World(world),
                                                            _Player(player),
+                                                           _Camera(camera),
                                                            _Renderer(renderer),
                                                            _SoundManager(soundManager),
                                                            _EntityManager(entityManager)
@@ -42,7 +44,6 @@ InputManager::InputManager(World &world,
                           0,
                           [this]()
                           {
-                              // std::cout << "Exiting..." << std::endl;
                               this->Running = false;
                           }};
 
@@ -58,7 +59,8 @@ InputManager::InputManager(World &world,
                                         0,
                                         [this]()
                                         {
-                                            this->_Renderer.ToggleRelativeCursor();
+                                            this->_Player->InteractMode = !this->_Player->InteractMode;
+                                            _Renderer.ToggleCursorMode();
                                         }};
     ActionInputs[TOGGLE_VIEW] = {SDL_SCANCODE_F,
                                  500,
@@ -72,14 +74,18 @@ InputManager::InputManager(World &world,
                                   0,
                                   [this]()
                                   {
-                                      if (this->_Player->Child)
+                                      if (_Player->SelectedEntity && !_Player->EquippedEntity)
                                       {
-                                          this->_Player->ReleaseChild(_Player->Target);
-                                          if (_Player->SelectedEntity)
-                                              this->_Player->SetChild(_Player->SelectedEntity, {0, 0});
+                                          _Player->EquippedEntity = _Player->SelectedEntity;
+                                          _Player->EquippedEntity->MaxVelocity = _Player->MaxVelocity;
+                                          _Player->EquippedEntity->DragCoefficient = _Player->DragCoefficient;
                                       }
-                                      else
-                                          this->_Player->SetChild(_Player->SelectedEntity, {0, 0});
+                                      else if (_Player->EquippedEntity)
+                                      {
+                                          _Player->EquippedEntity->DragCoefficient = _Player->DragCoefficient * 4;
+                                          _Player->EquippedEntity->Acceleration = {0, 0};
+                                          _Player->EquippedEntity = nullptr;
+                                      }
                                   }};
 }
 
@@ -107,17 +113,29 @@ void InputManager::Update(Uint64 tickCount)
 
 void InputManager::HandleMouseInput()
 {
+
     int mouseState;
-    if (_Renderer.RelativeCursorMode)
+    if (_Player->InteractMode)
     {
-        mouseState = SDL_GetRelativeMouseState(&(_Renderer.MouseRelativeDeltas.x), &(_Renderer.MouseRelativeDeltas.y));
+        mouseState = SDL_GetRelativeMouseState(&_Camera.MouseDeltas.x, &_Camera.MouseDeltas.y);
     }
     else
     {
-        mouseState = SDL_GetMouseState(&(_Renderer.MouseScreen.x), &(_Renderer.MouseScreen.y));
+        mouseState = SDL_GetMouseState(&_Camera.MouseCoords.x, &_Camera.MouseCoords.y);
     }
 
-    int selectedX = (int)_Renderer.MouseWorld.x, selectedY = (int)_Renderer.MouseWorld.y;
+    _Player->Target += _Camera.MouseDeltas.ToVec2F() / _Camera.TileLength / 2;
+
+    Vec2F targetVector = _Player->Target - _Player->Center;
+    if (targetVector.Magnitude() > _Player->MiningRadius)
+    {
+        targetVector.Normalize();
+        _Player->Target = _Player->Center + targetVector * _Player->MiningRadius;
+    }
+
+    _Player->SelectedEntity = _EntityManager.FindEntity(_Player->Target);
+
+    Vec2 selected = _Player->Target.ToVec2();
     Uint64 now = SDL_GetTicks64();
 
     if (mouseState & SDL_BUTTON(1) && (now - MouseInputs.LeftLastTimePressed) > MouseInputs.LeftCooldown)
@@ -126,16 +144,16 @@ void InputManager::HandleMouseInput()
         {
             _EntityManager.KillEntity(_Player->SelectedEntity);
         }
-        else if (_Player->CanMine && _Renderer.IsDiscovered(selectedX, selectedY))
+        else if (_Player->CanMine && _Renderer.IsDiscovered(selected.x, selected.y))
         {
-            _World.MineTile(selectedX, selectedY, 1, _Player);
+            _World.MineTile(selected.x, selected.y, 1, _Player);
             _SoundManager.PlaySound(Sound::PICKAXE_STRIKE);
         }
         MouseInputs.LeftLastTimePressed = now;
     }
     else if (mouseState & SDL_BUTTON(3) && (now - MouseInputs.RightLastTimePressed) > MouseInputs.RightCooldown)
     {
-        if (_Player->CanMine && _Renderer.IsDiscovered(selectedX, selectedY) && _World.tiles[selectedX][selectedY].Passable)
+        if (_Player->CanMine && _Renderer.IsDiscovered(selected.x, selected.y) && _World.tiles[selected.x][selected.y].Passable)
         {
             _EntityManager.SpawnExplosive(_Player->Target.x, _Player->Target.y);
             //_World.ChangeTile(selectedX, selectedY, TileType::EXPLOSIVE);
@@ -186,36 +204,16 @@ inline void InputManager::PollAndUpdate(int actionIndex)
 void InputManager::ValidatePlayerState()
 {
     ValidateCanMine();
-    if (_Player->Child)
-        UpdateChild();
+    if (_Player->EquippedEntity)
+    {
+        UpdateEquippedAcceleration();
+    }
 }
 
-void InputManager::UpdateChild()
+void InputManager::UpdateEquippedAcceleration()
 {
-    Entity *child = _Player->Child;
-    float radius = _Player->Dimensions.x * 0.5f;
-
-    switch (_Player->Direction)
-    {
-    case WEST:
-        child->ParentOffset = {-radius, 0};
-        break;
-    case EAST:
-        child->ParentOffset = {radius, 0};
-        break;
-    case NORTH:
-    case NORTHEAST:
-    case NORTHWEST:
-        child->ParentOffset = {0, -radius};
-        break;
-    case SOUTH:
-    case SOUTHWEST:
-    case SOUTHEAST:
-        child->ParentOffset = {0, radius};
-        break;
-    case NONE:
-        break;
-    }
+    Vec2F targetVector = _Player->Target - _Player->EquippedEntity->Center;
+    _Player->EquippedEntity->Acceleration = targetVector;
 }
 
 void InputManager::ValidateCanMine()

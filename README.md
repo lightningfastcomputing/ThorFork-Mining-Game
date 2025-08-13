@@ -7,9 +7,19 @@ https://www.youtube.com/@ottopfeff
 
 # TODO
 
-Fix Explosions: should reach further
+Fix jitter in renderer (not using float render functions probably)
+
+implement collision bitmasks
+
+unify world and entitymanager to facilitate interactions between
+
+implement rock chunks
 
 # Ideas
+
+FAULT LINES (my most genius idea) (insanely complicated probably)
+
+add complex entities using an array of bounding boxes 
 
 Tie view and tilesize to player size (keep tilesize a power of 2)
 
@@ -32,6 +42,8 @@ Add chunking for world to facilitate online multiplayer
 Add basic multiplayer
 
 # Past Tasks
+
+Fix Explosions: should reach further
 
 Improve tiles (add health, more variance, better worldgen), fix scoring:
 

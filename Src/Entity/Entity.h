@@ -28,19 +28,11 @@ public:
     int xStart, xEnd;
     int yStart, yEnd;
 
-    Entity *Parent = nullptr;
-    Entity *Child = nullptr;
-
-    Vec2F ParentOffset = {0, 0};
-
     Entity(float x, float y, float w, float h);
     ~Entity();
 
     SDL_FRect ToFRect() const { return {Position.x, Position.y, Dimensions.x, Dimensions.y}; }
 
-    bool HasParent() { return Parent != nullptr; }
-    bool SetChild(Entity *child, Vec2F offset);
-    void ReleaseChild(Vec2F offset);
 };
 
 #endif

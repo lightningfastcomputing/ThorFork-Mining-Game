@@ -21,6 +21,7 @@ Player::Player(float width, float height, float speed) : Entity(100, 100, width,
     yEnd = -1;
 
     type = PLAYER;
+    InteractMode = false;
 
 }
 

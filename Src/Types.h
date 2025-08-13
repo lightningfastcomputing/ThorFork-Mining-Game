@@ -35,6 +35,7 @@ enum EntityType
 {
     PLAYER,
     DYNAMITE,
+    CHUNK,
     ENTITYTYPE_COUNT
 };
 

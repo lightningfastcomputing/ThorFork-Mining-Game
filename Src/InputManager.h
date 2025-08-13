@@ -5,6 +5,7 @@
 #include "EntityManager.h"
 #include "WindowRenderer.h"
 #include "SoundManager.h"
+#include "Camera.h"
 #include "Utils.h"
 #include <SDL2/SDL.h>
 #include <functional>
@@ -60,6 +61,7 @@ class InputManager
 private:
     World &_World;
     Player *_Player;
+    Camera &_Camera;
     WindowRenderer &_Renderer;
     SoundManager &_SoundManager;
     EntityManager &_EntityManager;
@@ -67,16 +69,19 @@ private:
     Input MovementInputs[MOVEMENT_COUNT];
     Input ActionInputs[ACTIONS_COUNT];
     struct MouseInputs MouseInputs;
+
     const Uint8 *Keys;
+
     void HandleMouseInput();
     void HandleMovement();
     inline void PollAndUpdate(int actionIndex);
     void ValidatePlayerState();
     void ValidateCanMine();
-    void UpdateChild();
+    void UpdateEquippedAcceleration();
 
 public:
     InputManager(World &world, Player *player,
+                 Camera &camera,
                  WindowRenderer &renderer,
                  SoundManager &SoundManager,
                  EntityManager &entityManager);
