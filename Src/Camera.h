@@ -11,11 +11,11 @@ private:
 public:
     Player *_Player;
     Vec2F &Position;
-    Vec2 MinCoords;
-    Vec2 MaxCoords;
-    Vec2 TileCounts;
+    Vec2F MinCoord;
+    Vec2F MaxCoord;
+    Vec2F TileCounts;
     int TileLength;
-    Vec2 TileOffset;
+    //Vec2 TileOffset;
 
     Vec2 MouseCoords;
     Vec2 MouseDeltas;
@@ -26,9 +26,9 @@ public:
     {
         throw std::runtime_error("Unimplemented\n");
     }
-    Vec2 WorldToScreen(Vec2F worldCoords)
+    Vec2F WorldToScreen(Vec2F worldCoords)
     {
-        return ((worldCoords - MinCoords.ToVec2F()) * TileLength).ToVec2() - TileOffset;
+        return (worldCoords - MinCoord) * TileLength;
     }
     void Resize();
     void Update();

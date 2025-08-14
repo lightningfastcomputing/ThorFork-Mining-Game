@@ -52,6 +52,12 @@ Vec2 Vec2F::ToVec2() const
     return {(int)x, (int)y};
 }
 
+Vec2F Vec2F::Floor() const
+{
+    return {SDL_floorf(x), SDL_floorf(y)};
+}
+
+
 Vec2F Vec2F::operator+(const Vec2F &other) const
 {
     return {x + other.x, y + other.y};

@@ -111,7 +111,7 @@ void WindowRenderer::UpdateWindow()
 {
     SDL_GetWindowSize(Window, &WindowDimensions.x, &WindowDimensions.y);
 
-    _Camera.TileCounts = WindowDimensions / _Camera.TileLength;
+    _Camera.TileCounts = WindowDimensions.ToVec2F() / _Camera.TileLength;
 }
 
 void WindowRenderer::ToggleGlobalView() { GlobalView = !GlobalView; }
@@ -139,7 +139,7 @@ void WindowRenderer::ToggleFullScreen()
 
 void WindowRenderer::Outline(float x, float y, float w, float h)
 {
-    Vec2 rend = _Camera.WorldToScreen({x, y});
+    Vec2F rend = _Camera.WorldToScreen({x, y});
     w *= _Camera.TileLength;
     h *= _Camera.TileLength;
 
@@ -151,20 +151,20 @@ void WindowRenderer::Outline(float x, float y, float w, float h)
 
 void WindowRenderer::Encircle(Vec2F pos, float radius)
 {
-    Vec2 rend = _Camera.WorldToScreen(pos);
+    Vec2F rend = _Camera.WorldToScreen(pos);
 
     float dtheta = (2 * PI) / CIRCLE_SEGMENTS;
     float theta = 0;
 
-    Vec2 p0 = rend + (Vec2F(radius * SDL_cosf(theta), radius * SDL_sinf(theta)) * _Camera.TileLength).ToVec2();
+    Vec2F p0 = rend + (Vec2F(radius * SDL_cosf(theta), radius * SDL_sinf(theta)) * _Camera.TileLength);
 
     for (int i = 0; i < CIRCLE_SEGMENTS; i++)
     {
         theta += dtheta;
 
-        Vec2 p1 = rend + (Vec2F(radius * SDL_cosf(theta), radius * SDL_sinf(theta)) * _Camera.TileLength).ToVec2();
+        Vec2F p1 = rend + (Vec2F(radius * SDL_cosf(theta), radius * SDL_sinf(theta)) * _Camera.TileLength);
 
-        SDL_RenderDrawLine(Renderer, p0.x, p0.y, p1.x, p1.y);
+        SDL_RenderDrawLineF(Renderer, p0.x, p0.y, p1.x, p1.y);
 
         p0 = p1;
     }
@@ -260,25 +260,35 @@ void WindowRenderer::GlobalDrawWorld()
 
 void WindowRenderer::DrawWorld()
 {
-    SDL_Rect rect;
-    rect.x = -_Camera.TileOffset.x;
-    rect.y = -_Camera.TileOffset.y;
+    Vec2F minCoord = _Camera.MinCoord;
+    Vec2F maxCoord = _Camera.MaxCoord;
+
+    Vec2F minCoordAdjusted = minCoord - (minCoord - minCoord.Floor());
+    Vec2F min = _Camera.WorldToScreen(minCoordAdjusted);
+    SDL_FRect rect;
+    rect.x = min.x;
+    rect.y = min.y;
     rect.w = _Camera.TileLength;
     rect.h = _Camera.TileLength;
 
-    for (int i = _Camera.MinCoords.x; i <= _Camera.MaxCoords.x + 1; i++)
+    int minCoordX = minCoord.x < 0 ? 0 : minCoord.x;
+    int minCoordY = minCoord.y < 0 ? 0 : minCoord.y;
+    int maxCoordX = maxCoord.x >= _World.Width ? _World.Width - 1 : maxCoord.x;
+    int maxCoordY = maxCoord.y >= _World.Height ? _World.Height - 1 : maxCoord.y;
+
+    for (int i = minCoordX; i <= maxCoordX; i++)
     {
-        for (int j = _Camera.MinCoords.y; j <= _Camera.MaxCoords.y + 1; j++)
+        for (int j = minCoordY; j <= maxCoordY; j++)
         {
-            if (_World.IsInBounds(i, j) && Discovered[i][j])
+            if (Discovered[i][j])
             {
                 int textureIdx = _World.tiles[i][j].TileType;
-                SDL_RenderCopy(Renderer, TileTextures[textureIdx], nullptr, &rect);
+                SDL_RenderCopyF(Renderer, TileTextures[textureIdx], nullptr, &rect);
             }
             rect.y += _Camera.TileLength;
         }
         rect.x += _Camera.TileLength;
-        rect.y = -_Camera.TileOffset.y;
+        rect.y = min.y;
     }
 }
 
@@ -288,15 +298,15 @@ void WindowRenderer::DrawEntities()
 
     for (Entity *p : _Entities)
     {
-        Vec2 rend = _Camera.WorldToScreen(p->Center) - (p->Dimensions * (_Camera.TileLength / 2)).ToVec2();
+        Vec2F rend = _Camera.WorldToScreen(p->Position);
 
-        SDL_Rect displayRect;
+        SDL_FRect displayRect;
         displayRect.x = rend.x;
         displayRect.y = rend.y;
         displayRect.w = p->Dimensions.x * _Camera.TileLength;
         displayRect.h = p->Dimensions.y * _Camera.TileLength;
 
-        SDL_RenderCopy(Renderer, EntityTextures[p->type], nullptr, &displayRect);
+        SDL_RenderCopyF(Renderer, EntityTextures[p->type], nullptr, &displayRect);
     }
 }
 
@@ -306,7 +316,7 @@ void WindowRenderer::DebugInfo()
     DrawPlayerVector();
     DrawPlayerBoundingBox();
 
-    SDL_Rect textRect = {(int)(WindowDimensions.x * 0.01f), (int)(WindowDimensions.y * 0.01f), 0, 0};
+    SDL_FRect textRect = {WindowDimensions.x * 0.01f, WindowDimensions.y * 0.01f, 0, 0};
 
     Player *player = _Camera._Player;
     int targetX = (int)player->Target.x;
@@ -320,10 +330,9 @@ void WindowRenderer::DebugInfo()
         "MouseScreen: ({},{})\n"
         "   Tile Health: {}\n"
         "PlayerTarget: ({:.2f},{:.2f})\n"
-        "MinimumCoordinates: X={},Y={}\n"
-        "MaximumCoordinates: X={},Y={}\n"
-        "TileCounts: X={}, Y={}\n"
-        "Offsets: X={}, Y={}\n",
+        "MinCoord: ({:.2f},{:.2f})\n"
+        "MaxCoord: ({:.2f},{:.2f})\n"
+        "TileCounts: X={:.2f}, Y={:.2f}\n",
         WindowDimensions.x, WindowDimensions.y,
         player->Position.x, player->Position.y,
         player->Velocity.x, player->Velocity.y,
@@ -333,11 +342,10 @@ void WindowRenderer::DebugInfo()
             ? _World.tiles[targetX][targetY].Health
             : -1,
         player->Target.x, player->Target.y,
-        _Camera.MinCoords.x, _Camera.MinCoords.y,
-        _Camera.MaxCoords.x, _Camera.MaxCoords.y,
-        _Camera.TileCounts.x, _Camera.TileCounts.y,
-        _Camera.TileOffset.x, _Camera.TileOffset.y);
-        
+        _Camera.MinCoord.x, _Camera.MinCoord.y,
+        _Camera.MaxCoord.x, _Camera.MaxCoord.y,
+        _Camera.TileCounts.x, _Camera.TileCounts.y);
+
     debugInfo += std::format("Entities: {}\n", _Entities.size()) +
                  std::format("TickCount: {}\n", TickCount);
 
@@ -352,7 +360,7 @@ void WindowRenderer::DebugInfo()
     textRect.w = textSurface->w;
     textRect.h = textSurface->h;
 
-    SDL_RenderCopy(Renderer, textTexture, NULL, &textRect);
+    SDL_RenderCopyF(Renderer, textTexture, NULL, &textRect);
 
     SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(textTexture);
@@ -396,17 +404,17 @@ void WindowRenderer::DrawPlayerReach()
 void WindowRenderer::DrawCursor()
 {
     int tileLength = _Camera.TileLength;
-    Vec2 pos = _Camera.WorldToScreen(_Camera._Player->Target);
+    Vec2F pos = _Camera.WorldToScreen(_Camera._Player->Target);
     pos.x -= tileLength / 8;
     pos.y -= tileLength / 8;
 
-    SDL_Rect rect;
+    SDL_FRect rect;
     rect.x = pos.x;
     rect.y = pos.y;
     rect.w = tileLength / 4;
     rect.h = tileLength / 4;
 
-    SDL_RenderCopy(Renderer, TileTextures[DENSE_STONE], nullptr, &rect);
+    SDL_RenderCopyF(Renderer, TileTextures[DENSE_STONE], nullptr, &rect);
 }
 
 void WindowRenderer::RadialDiscover()
@@ -478,8 +486,8 @@ void WindowRenderer::DrawPlayerCollisionBox()
 
 void WindowRenderer::DrawPlayerVector()
 {
-    Vec2 rend0 = _Camera.WorldToScreen(_Camera.Position);
-    Vec2 rend1 = _Camera.WorldToScreen(_Camera._Player->Target);
+    Vec2F rend0 = _Camera.WorldToScreen(_Camera.Position);
+    Vec2F rend1 = _Camera.WorldToScreen(_Camera._Player->Target);
 
-    SDL_RenderDrawLine(Renderer, rend0.x, rend0.y, rend1.x, rend1.y);
+    SDL_RenderDrawLineF(Renderer, rend0.x, rend0.y, rend1.x, rend1.y);
 }
