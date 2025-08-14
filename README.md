@@ -7,10 +7,6 @@ https://www.youtube.com/@ottopfeff
 
 # TODO
 
-Fix jitter in renderer (not using float render functions probably)
-
-implement collision bitmasks
-
 unify world and entitymanager to facilitate interactions between
 
 implement rock chunks
@@ -42,6 +38,10 @@ Add chunking for world to facilitate online multiplayer
 Add basic multiplayer
 
 # Past Tasks
+
+Fix jitter in renderer (not using float render functions probably)
+
+implement collision bitmasks
 
 Fix Explosions: should reach further
 

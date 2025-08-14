@@ -3,8 +3,10 @@
 Explosive::Explosive(float x, float y, float size, float explRadius) : Entity(x, y, size, size)
 {
     ExplosionRadius = explRadius;
-    Corporeal = true;
-    type = DYNAMITE;
+
+    Type = DYNAMITE;
+    CollisionType = 1 << DYNAMITE;
+    Collides = 1 << DYNAMITE | 1 << CHUNK;
 }
 
 Explosive::~Explosive()

@@ -3,11 +3,8 @@
 #include "../Types.h"
 #include <SDL2/SDL.h>
 
-class Entity
+struct Entity
 {
-private:
-    /* data */
-public:
     static constexpr float EPSILON = 0.0001f;
 
     Vec2F Position;
@@ -21,9 +18,10 @@ public:
     float DragCoefficient;
 
     bool Elastic = false;
-    bool Corporeal;
 
-    EntityType type;
+    EntityType Type;
+    Uint8 CollisionType;
+    Uint8 Collides;
 
     int xStart, xEnd;
     int yStart, yEnd;
@@ -31,8 +29,12 @@ public:
     Entity(float x, float y, float w, float h);
     ~Entity();
 
-    SDL_FRect ToFRect() const { return {Position.x, Position.y, Dimensions.x, Dimensions.y}; }
+    bool CanCollide(Entity *e)
+    {
+        return (CollisionType & e->Collides) && (e->CollisionType & Collides);
+    }
 
+    SDL_FRect ToFRect() const { return {Position.x, Position.y, Dimensions.x, Dimensions.y}; }
 };
 
 #endif

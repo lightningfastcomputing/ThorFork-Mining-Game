@@ -306,7 +306,7 @@ void WindowRenderer::DrawEntities()
         displayRect.w = p->Dimensions.x * _Camera.TileLength;
         displayRect.h = p->Dimensions.y * _Camera.TileLength;
 
-        SDL_RenderCopyF(Renderer, EntityTextures[p->type], nullptr, &displayRect);
+        SDL_RenderCopyF(Renderer, EntityTextures[p->Type], nullptr, &displayRect);
     }
 }
 
@@ -378,7 +378,7 @@ void WindowRenderer::HighlightTarget()
     {
         lengths = e->Dimensions;
         coords = e->Position;
-        if (e->type == EntityType::DYNAMITE)
+        if (e->Type == EntityType::DYNAMITE)
         {
             Explosive *expl = static_cast<Explosive *>(e);
             SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);

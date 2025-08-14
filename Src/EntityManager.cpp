@@ -14,9 +14,9 @@ EntityManager::EntityManager(World &world, std::vector<Entity *> &entities, Soun
             position = {static_cast<float>(rand() % (_World.Width - 1) + 1), static_cast<float>(rand() % (_World.Height - 1) + 1)};
 
             xStart = (int)SDL_floorf(position.x);
-            xEnd = (int)SDL_floorf(position.x + dimensions.x);
+            xEnd = (int)SDL_floorf(position.x + dimensions.x/2);
             yStart = (int)SDL_floorf(position.y);
-            yEnd = (int)SDL_floorf(position.y + dimensions.y);
+            yEnd = (int)SDL_floorf(position.y + dimensions.y/2);
 
         } while (!_World.IsInBounds(p->xStart, p->yStart) || !_World.IsInBounds(p->xEnd, p->yEnd));
 
@@ -91,22 +91,20 @@ void EntityManager::UpdatePlayerPosition()
                     velocity.x = collisionVelocity;
                 }
             }
-            if (p->Corporeal)
+
+            for (Entity *other : _Entities)
             {
-                for (Entity *other : _Entities)
+                if (!p->CanCollide(other) || other == p)
+                    continue;
+
+                float xSnap = velocity.x < 0 ? other->Position.x + other->Dimensions.x + EPSILON
+                                             : other->Position.x - w - EPSILON;
+
+                SDL_FRect entityRect = p->ToFRect(), otherRect = other->ToFRect();
+                if (SDL_HasIntersectionF(&entityRect, &otherRect))
                 {
-                    if (!other->Corporeal || other == p)
-                        continue;
-
-                    float xSnap = velocity.x < 0 ? other->Position.x + other->Dimensions.x + EPSILON
-                                                 : other->Position.x - w - EPSILON;
-
-                    SDL_FRect entityRect = p->ToFRect(), otherRect = other->ToFRect();
-                    if (SDL_HasIntersectionF(&entityRect, &otherRect))
-                    {
-                        x = xSnap;
-                        velocity.x = collisionVelocity;
-                    }
+                    x = xSnap;
+                    velocity.x = collisionVelocity;
                 }
             }
         }
@@ -132,21 +130,18 @@ void EntityManager::UpdatePlayerPosition()
                     velocity.y = collisionVelocity;
                 }
             }
-            if (p->Corporeal)
+            for (Entity *other : _Entities)
             {
-                for (Entity *other : _Entities)
+                if (!p->CanCollide(other) || other == p)
+                    continue;
+
+                float ySnap = velocity.y < 0 ? other->Position.y + other->Dimensions.y + EPSILON : other->Position.y - h - EPSILON;
+
+                SDL_FRect entityRect = p->ToFRect(), otherRect = other->ToFRect();
+                if (SDL_HasIntersectionF(&entityRect, &otherRect))
                 {
-                    if (!other->Corporeal || other == p)
-                        continue;
-
-                    float ySnap = velocity.y < 0 ? other->Position.y + other->Dimensions.y + EPSILON : other->Position.y - h - EPSILON;
-
-                    SDL_FRect entityRect = p->ToFRect(), otherRect = other->ToFRect();
-                    if (SDL_HasIntersectionF(&entityRect, &otherRect))
-                    {
-                        y = ySnap;
-                        velocity.y = collisionVelocity;
-                    }
+                    y = ySnap;
+                    velocity.y = collisionVelocity;
                 }
             }
         }
@@ -165,7 +160,7 @@ void EntityManager::UpdatePlayerPosition()
         positionDelta.x = x - positionDelta.x;
         positionDelta.y = y - positionDelta.y;
 
-        if (p->type == EntityType::PLAYER)
+        if (p->Type == PLAYER)
         {
             Player *player = static_cast<Player *>(p);
             player->Target.x += positionDelta.x;
@@ -183,29 +178,31 @@ Explosive *EntityManager::SpawnExplosive(float x, float y)
 
 void EntityManager::KillEntity(Entity *entity)
 {
-    switch (entity->type)
+    switch (entity->Type)
     {
-    case EntityType::DYNAMITE:
+    case DYNAMITE:
     {
         Explosive *e = static_cast<Explosive *>(entity);
         _World.Explosion(e->Center, e->ExplosionRadius);
         _SoundManager.PlaySound(Sound::EXPLOSION);
-        _Entities.erase(std::remove(_Entities.begin(), _Entities.end(), e), _Entities.end());
-        delete e;
+        break;
     }
-    break;
 
-    case EntityType::PLAYER:
-    case EntityType::ENTITYTYPE_COUNT:
+    case PLAYER:
+    case CHUNK:
+    case ENTITYTYPE_COUNT:
         return;
     }
+
+    _Entities.erase(std::remove(_Entities.begin(), _Entities.end(), entity), _Entities.end());
+    delete entity;
 }
 
 Entity *EntityManager::FindEntity(Vec2F pos)
 {
-    for (Entity* e : _Entities)
+    SDL_FPoint point = {pos.x, pos.y};
+    for (Entity *e : _Entities)
     {
-        SDL_FPoint point = {pos.x, pos.y};
         SDL_FRect rect = e->ToFRect();
         if (SDL_PointInFRect(&point, &rect))
         {

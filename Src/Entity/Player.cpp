@@ -13,14 +13,16 @@ Player::Player(float width, float height, float speed) : Entity(100, 100, width,
     DragCoefficient = 0.15f;
 
     Elastic = false;
-    Corporeal = true;
 
     xStart = -1;
     yStart = -1;
     xEnd = -1;
     yEnd = -1;
 
-    type = PLAYER;
+    Type = PLAYER;
+    CollisionType = 1 << Type;
+    Collides = 1 << PLAYER | 1 << CHUNK;
+
     InteractMode = false;
 
 }
