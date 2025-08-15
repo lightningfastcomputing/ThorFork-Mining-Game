@@ -13,6 +13,7 @@
 #include "ValueNoise2D.h"
 #include "SoundManager.h"
 #include "Entity/Explosive.h"
+#include "Entity/Chunk.h"
 #include "Utils.h"
 #include "Types.h"
 #include <memory>
@@ -41,7 +42,9 @@ private:
     void SetBorder();
     void UpdateEntities();
 
-    void Explosion(Explosive* e);
+    void Explosion(Explosive *e);
+    std::vector<Vec2> GetTiles(Vec2F pos, float radius);
+    std::vector<Entity*> GetEntities(Vec2F pos, float radius);
 
     void ChangeTile(int x, int y, TileType TileType);
 
@@ -58,6 +61,7 @@ public:
     }
     void AddPlayer(Player *player);
     Explosive *SpawnExplosive(float x, float y);
+    Chunk *SpawnChunk(Vec2F pos, Vec2F dim, TileType type);
     void KillEntity(Entity *entity);
     Entity *FindEntity(Vec2F pos);
 

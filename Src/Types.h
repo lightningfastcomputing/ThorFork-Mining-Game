@@ -52,6 +52,10 @@ struct Vec2
     Vec2 operator*(int scalar) const;
     Vec2 operator/(int scalar) const;
     void operator+=(const Vec2 &other);
+    bool operator==(const Vec2 &other)
+    {
+        return (x == other.x) && (y == other.y);
+    }
 };
 
 struct Vec2F

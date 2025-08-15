@@ -7,11 +7,15 @@ https://www.youtube.com/@ottopfeff
 
 # TODO
 
-unify world and entitymanager to facilitate interactions between
+Make a minecart entity that can hold chunks/tnt/players, and rails for it to move on
 
-implement rock chunks
+add pushing of entities
+
+add health/mass to entities and more realistic "blowing up" of stuff
 
 # Ideas
+
+
 
 FAULT LINES (my most genius idea) (insanely complicated probably)
 
@@ -25,8 +29,6 @@ Investigate rendering with RenderDoc
 
 Improve line-of-sight mining with two rays
 
-Breaking stone/gold releases a bunch of chunks that have to be picked up for transport
-
 Cave generation
 
 Caveins
@@ -38,6 +40,10 @@ Add chunking for world to facilitate online multiplayer
 Add basic multiplayer
 
 # Past Tasks
+
+implement rock chunks
+
+unify world and entitymanager to facilitate interactions between
 
 Fix jitter in renderer (not using float render functions probably)
 

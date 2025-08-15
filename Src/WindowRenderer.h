@@ -7,6 +7,7 @@
 #include "World.h"
 #include "Entity/Player.h"
 #include "Entity/Explosive.h"
+#include "Entity/Chunk.h"
 #include "Camera.h"
 #include "Utils.h"
 #include <SDL2/SDL.h>

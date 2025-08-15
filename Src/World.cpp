@@ -85,7 +85,24 @@ void World::Explosion(Explosive *e)
 {
     Vec2F pos = e->Center;
     float radius = e->ExplosionRadius;
+    std::vector<Vec2> tiles = GetTiles(pos, radius);
+    std::vector<Entity*> entities = GetEntities(pos, radius);
 
+    for (Entity* e : entities)
+    {
+        KillEntity(e);
+    }
+    for (Vec2 v : tiles)
+    {
+        MineTile(v.x, v.y, 50, nullptr);
+    }
+
+    _SoundManager.PlaySound(EXPLOSION);
+}
+
+std::vector<Vec2> World::GetTiles(Vec2F pos, float radius)
+{
+    std::vector<Vec2> tiles;
     int numRays = (int)(2 * PI * radius) + 1; // aproximation of how many rays are needed to get a clean discovery radius
     float dTheta = (2 * PI) / numRays;
     float theta = 0;
@@ -118,7 +135,9 @@ void World::Explosion(Explosive *e)
 
         while (x != endX || y != endY)
         {
-            MineTile(x, y, 50, nullptr);
+            Vec2 tile = {x,y};
+            if (Tiles[x][y].TileType != AIR && std::find(tiles.begin(), tiles.end(), tile) == tiles.end())
+                tiles.push_back(tile);
             if ((Tiles[x][y].TileType == TileType::BARRIER))
                 break;
 
@@ -135,7 +154,19 @@ void World::Explosion(Explosive *e)
         }
         theta += dTheta;
     }
-    _SoundManager.PlaySound(EXPLOSION);
+    return tiles;
+}
+
+std::vector<Entity*> World::GetEntities(Vec2F pos, float radius)
+{
+    std::vector<Entity*> entities;
+
+    for (Entity* e : _Entities)
+    {
+        if (Utils::Distance(pos, e->Center) <= radius)
+        entities.push_back(e);
+    }
+    return entities;
 }
 
 void World::ChangeTile(int x, int y, TileType TileType)
@@ -161,9 +192,17 @@ void World::MineTile(int x, int y, int strength, Player *player)
                 break;
             case TileType::STONE:
             case TileType::DENSE_STONE:
-                WorldActionQueue.push({[this, x, y]()
-                                       { this->ChangeTile(x, y, STONE_FLOOR); }, TickCount});
+            {
+                unsigned int type = tileState.TileType;
+                WorldActionQueue.push({[this, x, y, type]()
+                                       {
+                                        this->ChangeTile(x, y, STONE_FLOOR);
+                                        Vec2F pos = {x + 0.5f,y + 0.5f};
+                                        Vec2F dim = {0.3f + (0.1f * (rand()%8)), 0.3f + (0.1f * (rand()%8))};
+                                        if (rand()%2 == 0)
+                                            this->SpawnChunk(pos, dim, (TileType)type); }, TickCount});
                 break;
+            }
             case TileType::GOLD:
                 WorldActionQueue.push({[this, x, y, player]()
                                        {if (player)
@@ -318,29 +357,38 @@ void World::AddPlayer(Player *player)
 
 Explosive *World::SpawnExplosive(float x, float y)
 {
-    Explosive *e = new Explosive(x, y, 1.1f, 3.4f);
+    Explosive *e = new Explosive(x, y, 1.1f, 4.0f);
     _Entities.emplace_back(e);
     return e;
 }
 
+Chunk *World::SpawnChunk(Vec2F pos, Vec2F dim, TileType type)
+{
+    Chunk *c = new Chunk(pos.x, pos.y, dim.x, dim.y, type);
+    _Entities.emplace_back(c);
+    return c;
+}
+
 void World::KillEntity(Entity *entity)
 {
+    if (entity->Type != PLAYER)
+        _Entities.erase(std::remove(_Entities.begin(), _Entities.end(), entity), _Entities.end());
+        
     switch (entity->Type)
     {
     case DYNAMITE:
     {
         Explosive *e = static_cast<Explosive *>(entity);
         Explosion(e);
-        break;
-    }
-
-    case PLAYER:
-    case CHUNK:
-    case ENTITYTYPE_COUNT:
         return;
     }
 
-    _Entities.erase(std::remove(_Entities.begin(), _Entities.end(), entity), _Entities.end());
+    case PLAYER:
+        return;
+    default:
+        break;
+    }
+
     delete entity;
 }
 

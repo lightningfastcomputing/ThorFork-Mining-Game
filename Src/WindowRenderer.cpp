@@ -292,17 +292,29 @@ void WindowRenderer::DrawEntities()
 {
     // todo: if player is not within view, dont draw
 
-    for (Entity *p : _World._Entities)
+    for (Entity *e : _World._Entities)
     {
-        Vec2F rend = _Camera.WorldToScreen(p->Position);
+        Vec2F rend = _Camera.WorldToScreen(e->Position);
 
         SDL_FRect displayRect;
         displayRect.x = rend.x;
         displayRect.y = rend.y;
-        displayRect.w = p->Dimensions.x * _Camera.TileLength;
-        displayRect.h = p->Dimensions.y * _Camera.TileLength;
+        displayRect.w = e->Dimensions.x * _Camera.TileLength;
+        displayRect.h = e->Dimensions.y * _Camera.TileLength;
 
-        SDL_RenderCopyF(Renderer, EntityTextures[p->Type], nullptr, &displayRect);
+        //placeholder for now
+        SDL_Texture *texture;
+        if (e->Type == CHUNK)
+        {
+            Chunk* c = static_cast<Chunk*>(e);
+            texture = TileTextures[c->Material];
+        }
+        else
+        {
+            texture = EntityTextures[e->Type];
+        }
+
+        SDL_RenderCopyF(Renderer, texture, nullptr, &displayRect);
     }
 }
 
