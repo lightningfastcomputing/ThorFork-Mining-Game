@@ -34,6 +34,7 @@ class SoundManager
 private:
     WAVData *WAVs[SOUNDS_COUNT] = {nullptr};
     UserData UserData;
+    SDL_mutex* Mutex = nullptr;
 
     WAVData *LoadAndConvertWAVFromFile(const char *file);
     SDL_AudioSpec DeviceSpec;

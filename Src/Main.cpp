@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Could not initialise SDL: %s\n", SDL_GetError());
             return 1;
         }
-        Vec2 worldDim = {400, 300};
+        Vec2 worldDim = {100, 300};
         Uint64 frameRate = 1000 / 60;
 
         game = new Game(frameRate, worldDim);

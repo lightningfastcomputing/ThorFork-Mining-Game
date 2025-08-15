@@ -3,7 +3,6 @@
 
 #include "WindowRenderer.h"
 #include "InputManager.h"
-#include "EntityManager.h"
 #include "SoundManager.h"
 #include <SDL2/SDL.h>
 
@@ -12,11 +11,10 @@ class Game
 private:
     Uint64 FrameRate;
     SDL_Event Event;
-    World* _World;
-    EntityManager* _EntityManager;
-    InputManager* _InputManager;
-    WindowRenderer* _WindowRenderer;
-    SoundManager* _SoundManager;
+    World *_World;
+    WindowRenderer *_WindowRenderer;
+    SoundManager *_SoundManager;
+    InputManager *_InputManager;
 
     bool Running;
     Uint64 TickCount = 0;

@@ -63,6 +63,7 @@ struct Vec2F
     void Normalize();
     Vec2 ToVec2() const;
     Vec2F Floor() const;
+    Vec2F Trunc() const;
     Vec2F operator+(const Vec2F &other) const;
     Vec2F operator-(const Vec2F &other) const;
     Vec2F operator*(float scalar) const;

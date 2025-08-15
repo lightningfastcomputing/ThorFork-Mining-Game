@@ -3,20 +3,17 @@
 Game::Game(Uint64 frameRate, Vec2 worldDimensions)
 {
     _SoundManager = new SoundManager();
+
     _World = new World(worldDimensions.x, worldDimensions.y, *_SoundManager);
 
     Player *player = new Player(1.8f, 1.8f, 0.5f);
-
-    std::vector<Entity *> *entities = new std::vector<Entity *>;
-    entities->push_back(player);
+    _World->AddPlayer(player);
 
     Vec2 screenDim = {1280, 800};
     Camera* camera = new Camera(player, screenDim);
 
-    _EntityManager = new EntityManager(*_World, *entities, *_SoundManager);
-    _WindowRenderer = new WindowRenderer(*_World, *camera, *entities, screenDim.x, screenDim.y);
-    _InputManager = new InputManager(*_World, player, *camera, *_WindowRenderer, *_SoundManager, *_EntityManager);
-
+    _WindowRenderer = new WindowRenderer(*_World, *camera, screenDim.x, screenDim.y);
+    _InputManager = new InputManager(*_World, player, *camera, *_WindowRenderer, *_SoundManager);
     FrameRate = frameRate;
 
     Running = true;
@@ -56,11 +53,13 @@ void Game::Update()
             }
         }
     }
-    _WindowRenderer->Update(TickCount);
+    
     _InputManager->Update(TickCount);
     _World->Update(TickCount);
-    _EntityManager->Update(TickCount);
+    _WindowRenderer->Update(TickCount);
+
     Running = this->Running && _InputManager->Running && _WindowRenderer->Running && _SoundManager->Running;
+    
 
     Uint64 frameTime = SDL_GetTicks64() - frameStart;
     if (frameTime < FrameRate)

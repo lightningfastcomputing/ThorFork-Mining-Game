@@ -57,6 +57,11 @@ Vec2F Vec2F::Floor() const
     return {SDL_floorf(x), SDL_floorf(y)};
 }
 
+Vec2F Vec2F::Trunc() const
+{
+    return {SDL_truncf(x), SDL_truncf(y)};
+}
+
 
 Vec2F Vec2F::operator+(const Vec2F &other) const
 {

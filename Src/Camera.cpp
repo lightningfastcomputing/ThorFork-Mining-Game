@@ -3,6 +3,7 @@ Camera::Camera(Player *player, Vec2 windowDim) : _Player(player), Position(_Play
 {
     TileLength = 32;
     TileCounts = windowDim.ToVec2F() / TileLength;
+    WindowDim = windowDim;
     MouseCoords = {-1, -1};
     MouseDeltas = {0, 0};
 }

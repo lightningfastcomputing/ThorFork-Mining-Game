@@ -1,7 +1,7 @@
 #include "WindowRenderer.h"
 
-WindowRenderer::WindowRenderer(const World &world, Camera &camera, std::vector<Entity *> &entities, int width, int height)
-    : _Camera(camera), _World(world), _Entities(entities)
+WindowRenderer::WindowRenderer(const World &world, Camera &camera, int width, int height)
+    : _Camera(camera), _World(world)
 {
     WindowDimensions = {width, height};
 
@@ -112,6 +112,7 @@ void WindowRenderer::UpdateWindow()
     SDL_GetWindowSize(Window, &WindowDimensions.x, &WindowDimensions.y);
 
     _Camera.TileCounts = WindowDimensions.ToVec2F() / _Camera.TileLength;
+    _Camera.WindowDim = WindowDimensions;
 }
 
 void WindowRenderer::ToggleGlobalView() { GlobalView = !GlobalView; }
@@ -180,7 +181,7 @@ void WindowRenderer::Reveal()
 
 bool WindowRenderer::IsDiscovered(int x, int y)
 {
-    return _World.IsInBounds(x, y) && Discovered[x][y];
+    return _World.InBounds({x, y}) && Discovered[x][y];
 }
 
 void WindowRenderer::RenderFrame()
@@ -234,7 +235,7 @@ void WindowRenderer::GlobalDrawWorld()
         {
             if (Discovered[i][j])
             {
-                int textureIdx = _World.tiles[i][j].TileType;
+                int textureIdx = _World.Tiles[i][j].TileType;
                 if (SDL_RenderCopy(Renderer, TileTextures[textureIdx], nullptr, &rect) < 0)
                 {
                     printf("SDL_RenderCopy Failed: %s", SDL_GetError());
@@ -248,7 +249,7 @@ void WindowRenderer::GlobalDrawWorld()
 
     // draw little squares for the tiles the players are inhabiting
     SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
-    for (Entity *p : _Entities)
+    for (Entity *p : _World._Entities)
     {
         rect.x = p->xStart * globalTileLength;
         rect.y = p->yStart * globalTileLength;
@@ -263,7 +264,7 @@ void WindowRenderer::DrawWorld()
     Vec2F minCoord = _Camera.MinCoord;
     Vec2F maxCoord = _Camera.MaxCoord;
 
-    Vec2F minCoordAdjusted = minCoord - (minCoord - minCoord.Floor());
+    Vec2F minCoordAdjusted = minCoord - (minCoord - minCoord.Trunc());
     Vec2F min = _Camera.WorldToScreen(minCoordAdjusted);
     SDL_FRect rect;
     rect.x = min.x;
@@ -271,18 +272,13 @@ void WindowRenderer::DrawWorld()
     rect.w = _Camera.TileLength;
     rect.h = _Camera.TileLength;
 
-    int minCoordX = minCoord.x < 0 ? 0 : minCoord.x;
-    int minCoordY = minCoord.y < 0 ? 0 : minCoord.y;
-    int maxCoordX = maxCoord.x >= _World.Width ? _World.Width - 1 : maxCoord.x;
-    int maxCoordY = maxCoord.y >= _World.Height ? _World.Height - 1 : maxCoord.y;
-
-    for (int i = minCoordX; i <= maxCoordX; i++)
+    for (int i = minCoord.x; i <= maxCoord.x; i++)
     {
-        for (int j = minCoordY; j <= maxCoordY; j++)
+        for (int j = minCoord.y; j <= maxCoord.y; j++)
         {
-            if (Discovered[i][j])
+            if (_World.InBounds({i, j}) && Discovered[i][j])
             {
-                int textureIdx = _World.tiles[i][j].TileType;
+                int textureIdx = _World.Tiles[i][j].TileType;
                 SDL_RenderCopyF(Renderer, TileTextures[textureIdx], nullptr, &rect);
             }
             rect.y += _Camera.TileLength;
@@ -296,7 +292,7 @@ void WindowRenderer::DrawEntities()
 {
     // todo: if player is not within view, dont draw
 
-    for (Entity *p : _Entities)
+    for (Entity *p : _World._Entities)
     {
         Vec2F rend = _Camera.WorldToScreen(p->Position);
 
@@ -338,15 +334,15 @@ void WindowRenderer::DebugInfo()
         player->Velocity.x, player->Velocity.y,
         player->Score,
         _Camera.MouseCoords.x, _Camera.MouseCoords.y,
-        (_World.IsInBounds(0, 0) && Discovered[targetX][targetY])
-            ? _World.tiles[targetX][targetY].Health
+        (_World.InBounds({0, 0}) && Discovered[targetX][targetY])
+            ? _World.Tiles[targetX][targetY].Health
             : -1,
         player->Target.x, player->Target.y,
         _Camera.MinCoord.x, _Camera.MinCoord.y,
         _Camera.MaxCoord.x, _Camera.MaxCoord.y,
         _Camera.TileCounts.x, _Camera.TileCounts.y);
 
-    debugInfo += std::format("Entities: {}\n", _Entities.size()) +
+    debugInfo += std::format("Entities: {}\n", _World._Entities.size()) +
                  std::format("TickCount: {}\n", TickCount);
 
     SDL_Surface *textSurface = TTF_RenderText_Solid_Wrapped(TextFont, debugInfo.c_str(), {255, 255, 255, 255}, 0);
@@ -389,7 +385,7 @@ void WindowRenderer::HighlightTarget()
     player->CanMine ? SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255) : SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
 
     Vec2 target = player->Target.ToVec2();
-    if (_World.IsInBounds(target) && IsDiscovered(target.x, target.y))
+    if (_World.InBounds(target) && IsDiscovered(target.x, target.y))
     {
         Outline(coords.x, coords.y, lengths.x, lengths.y);
     }
@@ -453,7 +449,7 @@ void WindowRenderer::RadialDiscover()
         while (x != endX || y != endY)
         {
             Discovered[x][y] = true;
-            if (!_World.tiles[x][y].Passable)
+            if (!_World.Tiles[x][y].Passable)
                 break;
 
             if (tMaxX < tMaxY)

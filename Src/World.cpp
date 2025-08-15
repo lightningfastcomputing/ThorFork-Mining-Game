@@ -1,6 +1,12 @@
 #include "World.h"
 
-World::World(int width, int height, SoundManager &soundManager) : _SoundManager(soundManager)
+World::World(int width, int height, SoundManager &soundManager) : _SoundManager(soundManager), Width(width), Height(height)
+{
+    InitTiles();
+    InitEntities();
+}
+
+void World::InitTiles()
 {
     TileStates[AIR] = {TileType::AIR, 0, true, true};
     TileStates[STONE_FLOOR] = {TileType::STONE_FLOOR, 0, true, true};
@@ -10,18 +16,14 @@ World::World(int width, int height, SoundManager &soundManager) : _SoundManager(
     TileStates[EXPLOSIVE] = {TileType::EXPLOSIVE, 1, true, false};
     TileStates[BARRIER] = {TileType::BARRIER, 1, false, true};
 
-    this->Width = width;
-    this->Height = height;
-    this->tiles = new TileState *[Width];
-
     ValueNoise2D noiseGen(time(NULL));
-
     float yStrength = 1.1f;
     int yThreshold = Height / 3;
 
+    Tiles = new TileState *[Width];
     for (int i = 0; i < Width; i++)
     {
-        this->tiles[i] = new TileState[Height];
+        Tiles[i] = new TileState[Height];
         for (int j = 0; j < Height; j++)
         {
             float noise = noiseGen.noise(i * 0.125f, j * 0.125f);
@@ -42,22 +44,29 @@ World::World(int width, int height, SoundManager &soundManager) : _SoundManager(
                 idx = STONE;
             else
                 idx = AIR;
-            this->tiles[i][j] = TileStates[idx];
+            Tiles[i][j] = TileStates[idx];
         }
     }
     SetBorder();
 }
+
+void World::InitEntities()
+{
+    _Entities.reserve(100);
+}
+
 World::~World()
 {
     for (int i = 0; i < Width; i++)
     {
-        delete[] tiles[i];
+        delete[] Tiles[i];
     }
-    delete[] tiles;
-}
+    delete[] Tiles;
 
-void World::GenerateVein(int x, int y, int count, TileType tileType)
-{
+    for (Entity *e : _Entities)
+    {
+        delete e;
+    }
 }
 
 void World::SetBorder()
@@ -67,26 +76,16 @@ void World::SetBorder()
         for (int j = 0; j < Height; j++)
         {
             if (i == 0 || i == Width - 1 || j == 0 || j == Height - 1)
-                tiles[i][j] = TileStates[BARRIER];
+                Tiles[i][j] = TileStates[BARRIER];
         }
     }
 }
 
-void World::Update(Uint64 tickCount)
+void World::Explosion(Explosive *e)
 {
-    this->TickCount = tickCount;
-    while (!WorldActionQueue.empty() && WorldActionQueue.top().TickExecuted <= TickCount)
-    {
-        WorldAction worldAction = WorldActionQueue.top();
-        WorldActionQueue.pop();
+    Vec2F pos = e->Center;
+    float radius = e->ExplosionRadius;
 
-        worldAction.Action();
-    }
-    // TickCount++;
-}
-
-void World::Explosion(Vec2F pos, float radius)
-{
     int numRays = (int)(2 * PI * radius) + 1; // aproximation of how many rays are needed to get a clean discovery radius
     float dTheta = (2 * PI) / numRays;
     float theta = 0;
@@ -120,7 +119,7 @@ void World::Explosion(Vec2F pos, float radius)
         while (x != endX || y != endY)
         {
             MineTile(x, y, 50, nullptr);
-            if ((tiles[x][y].TileType == TileType::BARRIER))
+            if ((Tiles[x][y].TileType == TileType::BARRIER))
                 break;
 
             if (tMaxX < tMaxY)
@@ -136,18 +135,19 @@ void World::Explosion(Vec2F pos, float radius)
         }
         theta += dTheta;
     }
+    _SoundManager.PlaySound(EXPLOSION);
 }
 
 void World::ChangeTile(int x, int y, TileType TileType)
 {
-    this->tiles[x][y] = TileStates[TileType];
+    Tiles[x][y] = TileStates[TileType];
 }
 
 void World::MineTile(int x, int y, int strength, Player *player)
 {
-    if (IsInBounds(x, y))
+    if (InBounds({x, y}))
     {
-        TileState &tileState = tiles[x][y];
+        TileState &tileState = Tiles[x][y];
 
         tileState.Health -= strength;
         if (tileState.Health <= 0)
@@ -170,31 +170,203 @@ void World::MineTile(int x, int y, int strength, Player *player)
                                             player->Score++; 
                                         this->ChangeTile(x, y, STONE_FLOOR); }, TickCount});
                 break;
-            case TileType::EXPLOSIVE:
-                Vec2 adjacents[4];
-                adjacents[0] = {x - 1, y};
-                adjacents[1] = {x + 1, y};
-                adjacents[2] = {x, y - 1};
-                adjacents[3] = {x, y + 1};
-
-                WorldActionQueue.push({[this, x, y]()
-                                       { this->ChangeTile(x, y, AIR); }, TickCount});
-                for (int i = 0; i < 4; i++)
-                {
-                    Vec2 point = adjacents[i];
-                    int x = point.x, y = point.y;
-
-                    if (IsInBounds(x, y) && tiles[x][y].TileType != AIR)
-                    {
-                        WorldActionQueue.push({[this, x, y, player]()
-                                               { this->MineTile(x, y, 10, player); }, TickCount + 5});
-                    }
-                }
-                break;
             default:
                 throw std::runtime_error("Invalid tile\n");
                 break;
             }
         }
+    }
+}
+
+void World::UpdateEntities()
+{
+
+    for (Entity *p : _Entities)
+    {
+
+        Vec2F &velocity = p->Velocity;
+
+        p->Velocity += p->Acceleration;
+        if (p->Velocity.Magnitude() > p->MaxVelocity)
+        {
+            p->Velocity.Normalize();
+            p->Velocity = p->Velocity * p->MaxVelocity;
+        }
+
+        if (p->Velocity.Magnitude() == 0)
+        {
+            continue;
+        }
+
+        int &xStart = p->xStart, &xEnd = p->xEnd, &yStart = p->yStart, &yEnd = p->yEnd;
+        float &x = p->Position.x, &y = p->Position.y, w = p->Dimensions.x, h = p->Dimensions.y;
+        Vec2F positionDelta = {x, y};
+        float EPSILON = p->EPSILON;
+
+        x += velocity.x;
+
+        xStart = (int)SDL_floorf(x);
+        yStart = (int)SDL_floorf(y);
+        xEnd = (int)SDL_floorf(x + w);
+        yEnd = (int)SDL_floorf(y + h);
+
+        if (velocity.x != 0)
+        {
+            float collisionVelocity = !p->Elastic ? 0 : -velocity.x * 0.5f;
+            int xIdx = velocity.x < 0 ? xStart : xEnd;
+            float xSnap = velocity.x < 0 ? (float)xStart + 1 + EPSILON : (float)xEnd - w - EPSILON;
+
+            for (int i = yStart; i <= yEnd; i++)
+            {
+
+                if (!Tiles[xIdx][i].Passable)
+                {
+                    x = xSnap;
+                    velocity.x = collisionVelocity;
+                }
+            }
+
+            for (Entity *other : _Entities)
+            {
+                if (!p->CanCollide(other) || other == p)
+                    continue;
+
+                float xSnap = velocity.x < 0 ? other->Position.x + other->Dimensions.x + EPSILON
+                                             : other->Position.x - w - EPSILON;
+
+                SDL_FRect entityRect = p->ToFRect(), otherRect = other->ToFRect();
+                if (SDL_HasIntersectionF(&entityRect, &otherRect))
+                {
+                    x = xSnap;
+                    velocity.x = collisionVelocity;
+                }
+            }
+        }
+
+        y += velocity.y;
+
+        xStart = (int)SDL_floorf(x);
+        yStart = (int)SDL_floorf(y);
+        xEnd = (int)SDL_floorf(x + w);
+        yEnd = (int)SDL_floorf(y + h);
+
+        if (velocity.y != 0)
+        {
+            float collisionVelocity = !p->Elastic ? 0 : -velocity.y * 0.5f;
+            int yIdx = velocity.y < 0 ? yStart : yEnd;
+            float ySnap = velocity.y < 0 ? (float)yStart + 1 + EPSILON : (float)yEnd - h - EPSILON;
+
+            for (int i = xStart; i <= xEnd; i++)
+            {
+                if (!Tiles[i][yIdx].Passable)
+                {
+                    y = ySnap;
+                    velocity.y = collisionVelocity;
+                }
+            }
+            for (Entity *other : _Entities)
+            {
+                if (!p->CanCollide(other) || other == p)
+                    continue;
+
+                float ySnap = velocity.y < 0 ? other->Position.y + other->Dimensions.y + EPSILON : other->Position.y - h - EPSILON;
+
+                SDL_FRect entityRect = p->ToFRect(), otherRect = other->ToFRect();
+                if (SDL_HasIntersectionF(&entityRect, &otherRect))
+                {
+                    y = ySnap;
+                    velocity.y = collisionVelocity;
+                }
+            }
+        }
+
+        xStart = (int)SDL_floorf(x);
+        yStart = (int)SDL_floorf(y);
+        xEnd = (int)SDL_floorf(x + w);
+        yEnd = (int)SDL_floorf(y + h);
+
+        p->Center = p->Position + (p->Dimensions * 0.5f);
+        p->Velocity = p->Velocity * p->DragCoefficient; // friction
+
+        if (p->Velocity.Magnitude() < 0.001f)
+            p->Velocity = {0, 0};
+
+        positionDelta.x = x - positionDelta.x;
+        positionDelta.y = y - positionDelta.y;
+
+        if (p->Type == PLAYER)
+        {
+            Player *player = static_cast<Player *>(p);
+            player->Target.x += positionDelta.x;
+            player->Target.y += positionDelta.y;
+        }
+    }
+}
+
+void World::AddPlayer(Player *player)
+{
+    _Entities.push_back(player);
+    player->Position = {(float)Width / 2, (float)Height / 2};
+    player->UpdateTileBounds();
+
+    for (int i = player->xStart; i < player->xEnd + 1; i++)
+    {
+        for (int j = player->yStart; j < player->yEnd + 1; j++)
+            Tiles[i][j] = TileStates[AIR];
+    }
+}
+
+Explosive *World::SpawnExplosive(float x, float y)
+{
+    Explosive *e = new Explosive(x, y, 1.1f, 3.4f);
+    _Entities.emplace_back(e);
+    return e;
+}
+
+void World::KillEntity(Entity *entity)
+{
+    switch (entity->Type)
+    {
+    case DYNAMITE:
+    {
+        Explosive *e = static_cast<Explosive *>(entity);
+        Explosion(e);
+        break;
+    }
+
+    case PLAYER:
+    case CHUNK:
+    case ENTITYTYPE_COUNT:
+        return;
+    }
+
+    _Entities.erase(std::remove(_Entities.begin(), _Entities.end(), entity), _Entities.end());
+    delete entity;
+}
+
+Entity *World::FindEntity(Vec2F pos)
+{
+    SDL_FPoint point = {pos.x, pos.y};
+    for (Entity *e : _Entities)
+    {
+        SDL_FRect rect = e->ToFRect();
+        if (SDL_PointInFRect(&point, &rect))
+        {
+            return e;
+        }
+    }
+    return nullptr;
+}
+
+void World::Update(Uint64 tickCount)
+{
+    this->TickCount = tickCount;
+    UpdateEntities();
+    while (!WorldActionQueue.empty() && WorldActionQueue.top().TickExecuted <= TickCount)
+    {
+        WorldAction worldAction = WorldActionQueue.top();
+        WorldActionQueue.pop();
+
+        worldAction.Action();
     }
 }

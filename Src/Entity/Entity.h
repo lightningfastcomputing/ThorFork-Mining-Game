@@ -35,6 +35,14 @@ struct Entity
     }
 
     SDL_FRect ToFRect() const { return {Position.x, Position.y, Dimensions.x, Dimensions.y}; }
+    void UpdateTileBounds()
+    {
+        xStart = (int)SDL_floorf(Position.x);
+        yStart = (int)SDL_floorf(Position.y);
+        xEnd = (int)SDL_floorf(Position.x + Dimensions.x);
+        yEnd = (int)SDL_floorf(Position.y + Dimensions.y);
+        Center = Position + Dimensions/2;
+    }
 };
 
 #endif

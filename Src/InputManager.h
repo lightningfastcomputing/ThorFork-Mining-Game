@@ -2,7 +2,6 @@
 #define INPUTMANAGER_H
 #include "World.h"
 #include "Entity/Player.h"
-#include "EntityManager.h"
 #include "WindowRenderer.h"
 #include "SoundManager.h"
 #include "Camera.h"
@@ -64,7 +63,6 @@ private:
     Camera &_Camera;
     WindowRenderer &_Renderer;
     SoundManager &_SoundManager;
-    EntityManager &_EntityManager;
 
     Input MovementInputs[MOVEMENT_COUNT];
     Input ActionInputs[ACTIONS_COUNT];
@@ -83,8 +81,7 @@ public:
     InputManager(World &world, Player *player,
                  Camera &camera,
                  WindowRenderer &renderer,
-                 SoundManager &SoundManager,
-                 EntityManager &entityManager);
+                 SoundManager &soundManager);
     ~InputManager();
     void Update(Uint64 tickCount);
     bool Running;

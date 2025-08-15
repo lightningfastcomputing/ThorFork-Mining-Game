@@ -30,7 +30,6 @@ private:
     const World &_World;
 
     bool **Discovered;
-    std::vector<Entity *> &_Entities;
 
     bool Debug, Fullscreen, GlobalView;
 
@@ -55,7 +54,7 @@ private:
 public:
     bool Running;
 
-    WindowRenderer(const World &world, Camera &camera, std::vector<Entity *> &entities, int width, int height);
+    WindowRenderer(const World &world, Camera &camera, int width, int height);
     ~WindowRenderer();
     void UpdateWindow();
     void ToggleGlobalView();

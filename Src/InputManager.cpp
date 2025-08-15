@@ -4,13 +4,12 @@ InputManager::InputManager(World &world,
                            Player *player,
                            Camera &camera,
                            WindowRenderer &renderer,
-                           SoundManager &soundManager,
-                           EntityManager &entityManager) : _World(world),
-                                                           _Player(player),
-                                                           _Camera(camera),
-                                                           _Renderer(renderer),
-                                                           _SoundManager(soundManager),
-                                                           _EntityManager(entityManager)
+                           SoundManager &SoundManager) : _World(world),
+                                                         _Player(player),
+                                                         _Camera(camera),
+                                                         _Renderer(renderer),
+                                                         _SoundManager(SoundManager)
+
 {
     Keys = SDL_GetKeyboardState(NULL);
     Running = true;
@@ -133,7 +132,7 @@ void InputManager::HandleMouseInput()
         _Player->Target = _Player->Center + targetVector * _Player->MiningRadius;
     }
 
-    _Player->SelectedEntity = _EntityManager.FindEntity(_Player->Target);
+    _Player->SelectedEntity = _World.FindEntity(_Player->Target);
 
     Vec2 selected = _Player->Target.ToVec2();
     Uint64 now = SDL_GetTicks64();
@@ -142,21 +141,19 @@ void InputManager::HandleMouseInput()
     {
         if (_Player->SelectedEntity)
         {
-            _EntityManager.KillEntity(_Player->SelectedEntity);
+            _World.KillEntity(_Player->SelectedEntity);
         }
         else if (_Player->CanMine && _Renderer.IsDiscovered(selected.x, selected.y))
         {
             _World.MineTile(selected.x, selected.y, 1, _Player);
-            _SoundManager.PlaySound(Sound::PICKAXE_STRIKE);
         }
         MouseInputs.LeftLastTimePressed = now;
     }
     else if (mouseState & SDL_BUTTON(3) && (now - MouseInputs.RightLastTimePressed) > MouseInputs.RightCooldown)
     {
-        if (_Player->CanMine && _Renderer.IsDiscovered(selected.x, selected.y) && _World.tiles[selected.x][selected.y].Passable)
+        if (_Player->CanMine && _Renderer.IsDiscovered(selected.x, selected.y) && _World.Tiles[selected.x][selected.y].Passable)
         {
-            _EntityManager.SpawnExplosive(_Player->Target.x, _Player->Target.y);
-            //_World.ChangeTile(selectedX, selectedY, TileType::EXPLOSIVE);
+            _World.SpawnExplosive(_Player->Target.x, _Player->Target.y);
             MouseInputs.RightLastTimePressed = now;
         }
     }
@@ -255,7 +252,7 @@ void InputManager::ValidateCanMine()
             _Player->CanMine = true;
             break;
         }
-        else if (!_World.tiles[x][y].Passable)
+        else if (!_World.Tiles[x][y].Passable)
         {
             _Player->CanMine = false;
             break;

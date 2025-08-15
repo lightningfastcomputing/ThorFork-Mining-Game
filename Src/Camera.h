@@ -15,16 +15,16 @@ public:
     Vec2F MaxCoord;
     Vec2F TileCounts;
     int TileLength;
-    //Vec2 TileOffset;
 
     Vec2 MouseCoords;
     Vec2 MouseDeltas;
+    Vec2 WindowDim;
 
     Camera(Player *player, Vec2 windowDim);
     ~Camera();
     Vec2F ScreenToWorld(Vec2 screenCoords)
     {
-        throw std::runtime_error("Unimplemented\n");
+        return screenCoords.ToVec2F()/TileLength + MinCoord;
     }
     Vec2F WorldToScreen(Vec2F worldCoords)
     {

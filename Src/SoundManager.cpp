@@ -30,6 +30,9 @@ void Callback(void *userdata, Uint8 *stream, int len)
 SoundManager::SoundManager()
 {
     Running = true;
+    Mutex = SDL_CreateMutex();
+    if (!Mutex)
+        goto error;
     if (SDL_GetAudioDeviceSpec(1, 0, &DeviceSpec) != 0)
         goto error;
 
@@ -114,7 +117,6 @@ fail:
 void SoundManager::PlaySound(Sound idx)
 {
     WAVData *data = WAVs[idx];
-
     for (int i = 0; i < CHANNELS; i++)
     {
         WAVData* emptyChannel = &UserData.Channels[i];
