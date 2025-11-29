@@ -6,7 +6,7 @@ Game::Game(Uint64 frameRate, Vec2 worldDimensions)
 
     _World = new World(worldDimensions.x, worldDimensions.y, *_SoundManager);
 
-    Player *player = new Player(1.8f, 1.8f, 0.5f);
+    Player *player = new Player(1.5f, 1.5f, 0.5f);
     _World->AddPlayer(player);
 
     Vec2 screenDim = {1280, 800};

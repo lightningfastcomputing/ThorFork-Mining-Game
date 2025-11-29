@@ -26,7 +26,12 @@ public:
 
     Player(float width, float height, float speed);
     ~Player();
+
+    void Interact();
     void UpdateAcceleration(direction dir);
+
+    std::string DebugInfo();
+    
 };
 
 #endif

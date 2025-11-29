@@ -1,4 +1,5 @@
 #define SDL_MAIN_HANDLED
+//#define WASM
 
 #ifdef WASM
 #include <emscripten.h>

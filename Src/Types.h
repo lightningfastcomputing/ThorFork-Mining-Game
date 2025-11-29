@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <SDL2/SDL.h>
+#include <cstring>
 #include <vector>
 
 #define PI 3.1415926f
@@ -26,16 +27,17 @@ enum TileType
     STONE,
     DENSE_STONE,
     GOLD,
-    EXPLOSIVE,
     BARRIER,
     TILETYPE_COUNT
 };
 
 enum EntityType
 {
+    MINECART_TRACK,
+    MINECART,
     PLAYER,
-    DYNAMITE,
     CHUNK,
+    DYNAMITE,
     ENTITYTYPE_COUNT
 };
 

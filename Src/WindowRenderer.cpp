@@ -57,12 +57,13 @@ void WindowRenderer::Init_Display(const char *windowTitle)
     TileTextures[TileType::STONE] = IMG_LoadTexture(Renderer, "Textures/stone.png");
     TileTextures[TileType::DENSE_STONE] = IMG_LoadTexture(Renderer, "Textures/dense_rock.png");
     TileTextures[TileType::GOLD] = IMG_LoadTexture(Renderer, "Textures/gold.png");
-    TileTextures[TileType::EXPLOSIVE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
     TileTextures[TileType::BARRIER] = IMG_LoadTexture(Renderer, "Textures/barrier.png");
 
     // set entityTextures
     EntityTextures[EntityType::PLAYER] = IMG_LoadTexture(Renderer, "Textures/barrier.png");
+    EntityTextures[EntityType::MINECART_TRACK] = IMG_LoadTexture(Renderer, "Textures/MinecartTrack.png");
     EntityTextures[EntityType::DYNAMITE] = IMG_LoadTexture(Renderer, "Textures/explosive.png");
+    EntityTextures[EntityType::MINECART] = IMG_LoadTexture(Renderer, "Textures/Minecart.png");
 
     for (int i = 0; i < TILETYPE_COUNT; i++)
     {
@@ -291,6 +292,7 @@ void WindowRenderer::DrawWorld()
 void WindowRenderer::DrawEntities()
 {
     // todo: if player is not within view, dont draw
+    SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
 
     for (Entity *e : _World._Entities)
     {
@@ -302,19 +304,20 @@ void WindowRenderer::DrawEntities()
         displayRect.w = e->Dimensions.x * _Camera.TileLength;
         displayRect.h = e->Dimensions.y * _Camera.TileLength;
 
-        //placeholder for now
+        // placeholder for now
         SDL_Texture *texture;
         if (e->Type == CHUNK)
         {
-            Chunk* c = static_cast<Chunk*>(e);
+            Chunk *c = static_cast<Chunk *>(e);
             texture = TileTextures[c->Material];
+            SDL_RenderCopyF(Renderer, texture, nullptr, &displayRect);
+            Outline(e->Position.x, e->Position.y, e->Dimensions.x, e->Dimensions.y);
         }
         else
         {
             texture = EntityTextures[e->Type];
+            SDL_RenderCopyF(Renderer, texture, nullptr, &displayRect);
         }
-
-        SDL_RenderCopyF(Renderer, texture, nullptr, &displayRect);
     }
 }
 
@@ -336,7 +339,6 @@ void WindowRenderer::DebugInfo()
         "Velocity: ({:.2f},{:.2f})\n"
         "Score: {}\n"
         "MouseScreen: ({},{})\n"
-        "   Tile Health: {}\n"
         "PlayerTarget: ({:.2f},{:.2f})\n"
         "MinCoord: ({:.2f},{:.2f})\n"
         "MaxCoord: ({:.2f},{:.2f})\n"
@@ -346,13 +348,16 @@ void WindowRenderer::DebugInfo()
         player->Velocity.x, player->Velocity.y,
         player->Score,
         _Camera.MouseCoords.x, _Camera.MouseCoords.y,
-        (_World.InBounds({0, 0}) && Discovered[targetX][targetY])
-            ? _World.Tiles[targetX][targetY].Health
-            : -1,
         player->Target.x, player->Target.y,
         _Camera.MinCoord.x, _Camera.MinCoord.y,
         _Camera.MaxCoord.x, _Camera.MaxCoord.y,
-        _Camera.TileCounts.x, _Camera.TileCounts.y);
+        _Camera.TileCounts.x, _Camera.TileCounts.y);  
+
+    if (player->SelectedEntity)
+    {
+        debugInfo += std::format("Selected Entity: {:p}\n", static_cast<void *>(player->SelectedEntity));
+        debugInfo += _Camera._Player->SelectedEntity->DebugInfo();
+    }
 
     debugInfo += std::format("Entities: {}\n", _World._Entities.size()) +
                  std::format("TickCount: {}\n", TickCount);
@@ -378,11 +383,25 @@ void WindowRenderer::HighlightTarget()
 {
     Player *player = _Camera._Player;
 
-    Vec2F lengths = {1, 1};
+    Vec2F lengths = {-1, -1};
     Vec2F coords = player->Target.ToVec2().ToVec2F();
 
-    Entity *e = _Camera._Player->SelectedEntity;
-    if (_Camera._Player->SelectedEntity)
+    bool renderTarget = true;
+    Entity *e = player->EquippedEntity; // equipped item gets highlighted, first priority
+    if (e)
+    {
+        Entity *mc = _World.FindEntity(player->Target, MINECART);
+        if (mc)
+        {
+            SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
+            Outline(mc->Position.x, mc->Position.y, mc->Dimensions.x, mc->Dimensions.y);
+        }
+    }
+    if (!e) // if not equipped, then the one that's pointed at with the cursor
+    {
+        e = player->SelectedEntity;
+    }
+    if (e)
     {
         lengths = e->Dimensions;
         coords = e->Position;
@@ -393,11 +412,23 @@ void WindowRenderer::HighlightTarget()
             Encircle(expl->Center, expl->ExplosionRadius);
         }
     }
+    else
+    {
+        Vec2 tileCoords = player->Target.ToVec2();
+        if (_World.InBounds(tileCoords) && IsDiscovered(tileCoords.x, tileCoords.y) && !_World.Tiles[tileCoords.x][tileCoords.y].Passable)
+        {
+            lengths = {1, 1};
+            coords = player->Target.Floor();
+        }
+        else
+        {
+            renderTarget = false;
+        }
+    }
 
     player->CanMine ? SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255) : SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
 
-    Vec2 target = player->Target.ToVec2();
-    if (_World.InBounds(target) && IsDiscovered(target.x, target.y))
+    if (renderTarget)
     {
         Outline(coords.x, coords.y, lengths.x, lengths.y);
     }
@@ -487,7 +518,10 @@ void WindowRenderer::DrawPlayerBoundingBox()
 
 void WindowRenderer::DrawPlayerCollisionBox()
 {
-    int xS = _Camera._Player->xStart, yS = _Camera._Player->yStart, xE = _Camera._Player->xEnd, yE = _Camera._Player->yEnd;
+    int xS = _Camera._Player->xStart,
+        yS = _Camera._Player->yStart,
+        xE = _Camera._Player->xEnd,
+        yE = _Camera._Player->yEnd;
     SDL_SetRenderDrawColor(Renderer, 255, 20, 255, 255);
     Outline(xS, yS, (xE - xS + 1), (yE - yS + 1));
 }

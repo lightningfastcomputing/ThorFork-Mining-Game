@@ -7,15 +7,30 @@ https://www.youtube.com/@ottopfeff
 
 # TODO
 
-Make a minecart entity that can hold chunks/tnt/players, and rails for it to move on
+add more sounds (dropping stuff into minecart, minecart rolling, mining sounds, error sound)
 
 add pushing of entities
 
 add health/mass to entities and more realistic "blowing up" of stuff
 
+make collision system iterative instead of snapping to closest thing
+
+
+# KNOWN BUGS
+
+game crashes when 4 or more dynamite are detonated next to each other (probably double free)
+(or when 2 dynamite try to blow up the same entity)
+
+random jittery snappings (primitive collision system)
+
 # Ideas
 
+better to remove entities from global vector when they're put as children of a parent?
+one-time cost to remove from global vector, and then iterations wont be needed to check if entity has parent
 
+rock (non-valuable) chunks can be pulverized for fractional amounts of minerals
+
+Minecart Goblin: places rocks in front of minecart tracks to screw with your assembly and steal gold
 
 FAULT LINES (my most genius idea) (insanely complicated probably)
 
@@ -35,11 +50,9 @@ Caveins
 
 Minecarts and tracks
 
-Add chunking for world to facilitate online multiplayer
-
-Add basic multiplayer
-
 # Past Tasks
+
+Make a minecart entity that can hold chunks/tnt/players, and rails for it to move on
 
 implement rock chunks
 

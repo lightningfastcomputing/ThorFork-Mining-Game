@@ -13,7 +13,6 @@ void World::InitTiles()
     TileStates[STONE] = {TileType::STONE, 10, false, false};
     TileStates[DENSE_STONE] = {TileType::DENSE_STONE, 20, false, false};
     TileStates[GOLD] = {TileType::GOLD, 5, false, false};
-    TileStates[EXPLOSIVE] = {TileType::EXPLOSIVE, 1, true, false};
     TileStates[BARRIER] = {TileType::BARRIER, 1, false, true};
 
     ValueNoise2D noiseGen(time(NULL));
@@ -86,15 +85,15 @@ void World::Explosion(Explosive *e)
     Vec2F pos = e->Center;
     float radius = e->ExplosionRadius;
     std::vector<Vec2> tiles = GetTiles(pos, radius);
-    std::vector<Entity*> entities = GetEntities(pos, radius);
+    std::vector<Entity *> entities = GetEntities(pos, radius);
 
-    for (Entity* e : entities)
+    for (Entity *e : entities)
     {
         KillEntity(e);
     }
     for (Vec2 v : tiles)
     {
-        MineTile(v.x, v.y, 50, nullptr);
+        MineTile(v.x, v.y, 50, false);
     }
 
     _SoundManager.PlaySound(EXPLOSION);
@@ -135,7 +134,7 @@ std::vector<Vec2> World::GetTiles(Vec2F pos, float radius)
 
         while (x != endX || y != endY)
         {
-            Vec2 tile = {x,y};
+            Vec2 tile = {x, y};
             if (Tiles[x][y].TileType != AIR && std::find(tiles.begin(), tiles.end(), tile) == tiles.end())
                 tiles.push_back(tile);
             if ((Tiles[x][y].TileType == TileType::BARRIER))
@@ -157,14 +156,14 @@ std::vector<Vec2> World::GetTiles(Vec2F pos, float radius)
     return tiles;
 }
 
-std::vector<Entity*> World::GetEntities(Vec2F pos, float radius)
+std::vector<Entity *> World::GetEntities(Vec2F pos, float radius)
 {
-    std::vector<Entity*> entities;
+    std::vector<Entity *> entities;
 
-    for (Entity* e : _Entities)
+    for (Entity *e : _Entities)
     {
         if (Utils::Distance(pos, e->Center) <= radius)
-        entities.push_back(e);
+            entities.push_back(e);
     }
     return entities;
 }
@@ -174,13 +173,20 @@ void World::ChangeTile(int x, int y, TileType TileType)
     Tiles[x][y] = TileStates[TileType];
 }
 
-void World::MineTile(int x, int y, int strength, Player *player)
+void World::MineTile(int x, int y, int strength, bool audible)
 {
+    float EPSILON = Entity::EPSILON;
     if (InBounds({x, y}))
     {
         TileState &tileState = Tiles[x][y];
-
+        if (tileState.Passable || tileState.Indestrucible)
+        {
+            return;
+        }
         tileState.Health -= strength;
+        if (audible)
+            _SoundManager.PlaySound(PICKAXE_STRIKE);
+
         if (tileState.Health <= 0)
         {
 
@@ -192,23 +198,20 @@ void World::MineTile(int x, int y, int strength, Player *player)
                 break;
             case TileType::STONE:
             case TileType::DENSE_STONE:
+            case TileType::GOLD:
             {
+
                 unsigned int type = tileState.TileType;
-                WorldActionQueue.push({[this, x, y, type]()
+                WorldActionQueue.push({[this, x, y, type, EPSILON]()
                                        {
                                         this->ChangeTile(x, y, STONE_FLOOR);
+                                        //this->_SoundManager.PlaySound(ROCK_CRUMBLE);
                                         Vec2F pos = {x + 0.5f,y + 0.5f};
-                                        Vec2F dim = {0.3f + (0.1f * (rand()%8)), 0.3f + (0.1f * (rand()%8))};
-                                        if (rand()%2 == 0)
+                                        Vec2F dim = Vec2F(0.6f, 0.6f) + Vec2F(0.1f * (rand()%4), 0.1f * (rand()%4)) - Vec2F(EPSILON, EPSILON); 
+                                        if (rand()%5 == 0)
                                             this->SpawnChunk(pos, dim, (TileType)type); }, TickCount});
                 break;
             }
-            case TileType::GOLD:
-                WorldActionQueue.push({[this, x, y, player]()
-                                       {if (player)
-                                            player->Score++; 
-                                        this->ChangeTile(x, y, STONE_FLOOR); }, TickCount});
-                break;
             default:
                 throw std::runtime_error("Invalid tile\n");
                 break;
@@ -222,10 +225,36 @@ void World::UpdateEntities()
 
     for (Entity *p : _Entities)
     {
+        // parent takes care of movement
+        if (p->Parent)
+        {
+            continue;
+        }
+
+        if (p->Type == MINECART)
+        {
+            Minecart *mc = static_cast<Minecart *>(p);
+            Entity *track = FindEntity(mc->Center, MINECART_TRACK);
+
+            if (track)
+            {
+                mc->DragCoefficient = 0.99f;
+                mc->MaxVelocity = 0.5f;
+                mc->OnTrack = true;
+                mc->Position.x = track->Position.x - (mc->Dimensions.x - track->Dimensions.x) / 2;
+                mc->UpdateTileBounds();
+                mc->Acceleration.x = 0;
+            }
+            else
+            {
+                mc->OnTrack = false;
+            }
+        }
 
         Vec2F &velocity = p->Velocity;
 
         p->Velocity += p->Acceleration;
+        p->Acceleration = {0, 0};
         if (p->Velocity.Magnitude() > p->MaxVelocity)
         {
             p->Velocity.Normalize();
@@ -333,74 +362,146 @@ void World::UpdateEntities()
         positionDelta.x = x - positionDelta.x;
         positionDelta.y = y - positionDelta.y;
 
-        if (p->Type == PLAYER)
+        if (p->Children.size() > 0)
         {
-            Player *player = static_cast<Player *>(p);
-            player->Target.x += positionDelta.x;
-            player->Target.y += positionDelta.y;
+            for (Entity *e : p->Children)
+            {
+                e->Position += positionDelta;
+                e->UpdateTileBounds();
+            }
         }
+
+        // if (p->Type == PLAYER)
+        // {
+        //     Player *player = static_cast<Player *>(p);
+        //     player->Target.x += positionDelta.x;
+        //     player->Target.y += positionDelta.y;
+        // }
     }
 }
 
 void World::AddPlayer(Player *player)
 {
-    _Entities.push_back(player);
     player->Position = {(float)Width / 2, (float)Height / 2};
     player->UpdateTileBounds();
 
-    for (int i = player->xStart; i < player->xEnd + 1; i++)
+    std::vector<Vec2> tiles = GetTiles(player->Center, player->MiningRadius);
+    for (Vec2 t : tiles)
     {
-        for (int j = player->yStart; j < player->yEnd + 1; j++)
-            Tiles[i][j] = TileStates[AIR];
+        ChangeTile(t.x, t.y, AIR);
     }
+    std::vector<Entity *>::iterator it = std::lower_bound(_Entities.begin(), _Entities.end(), player,
+                                                          [](Entity *a, Entity *b)
+                                                          { return a->Type < b->Type; });
+    _Entities.insert(it, player);
 }
 
 Explosive *World::SpawnExplosive(float x, float y)
 {
-    Explosive *e = new Explosive(x, y, 1.1f, 4.0f);
-    _Entities.emplace_back(e);
+    Explosive *e = new Explosive(x, y, 1.1f, 5.0f);
+
+    std::vector<Entity *>::iterator it = std::lower_bound(_Entities.begin(), _Entities.end(), e,
+                                                          [](Entity *a, Entity *b)
+                                                          { return a->Type < b->Type; });
+    _Entities.insert(it, e);
     return e;
 }
 
 Chunk *World::SpawnChunk(Vec2F pos, Vec2F dim, TileType type)
 {
     Chunk *c = new Chunk(pos.x, pos.y, dim.x, dim.y, type);
-    _Entities.emplace_back(c);
+    std::vector<Entity *>::iterator it = std::lower_bound(_Entities.begin(), _Entities.end(), c,
+                                                          [](Entity *a, Entity *b)
+                                                          { return a->Type < b->Type; });
+    _Entities.insert(it, c);
     return c;
 }
 
-void World::KillEntity(Entity *entity)
+Entity *World::SpawnEntity(Vec2F pos, EntityType type)
 {
-    if (entity->Type != PLAYER)
-        _Entities.erase(std::remove(_Entities.begin(), _Entities.end(), entity), _Entities.end());
-        
+    Entity *e = nullptr;
+    if (FindEntity(pos, type))
+        return e;
+
+    switch (type)
+    {
+    case MINECART:
+        e = new Minecart(pos.x, pos.y);
+        break;
+    case MINECART_TRACK:
+    {
+
+        Vec2F centerVec = pos.Floor() + Vec2F{0.5f, 0.5f};
+        e = new MinecartTrack(centerVec.x, centerVec.y);
+        break;
+    }
+    default:
+        break;
+    }
+
+    if (e)
+    {
+        std::vector<Entity *>::iterator it = std::lower_bound(_Entities.begin(), _Entities.end(), e,
+                                                              [](Entity *a, Entity *b)
+                                                              { return a->Type < b->Type; });
+        _Entities.insert(it, e);
+    }
+    return e;
+}
+
+void World::KillEntity(Entity *&entity)
+{
+    if (!entity || !entity->Killable || entity->Type == PLAYER)
+        return;
+
+    _Entities.erase(std::remove(_Entities.begin(), _Entities.end(), entity), _Entities.end());
+
     switch (entity->Type)
     {
     case DYNAMITE:
     {
         Explosive *e = static_cast<Explosive *>(entity);
         Explosion(e);
-        return;
+        break;
+    }
+    case CHUNK:
+    {
+        _SoundManager.PlaySound(ROCK_CRUMBLE);
+        break;
     }
 
-    case PLAYER:
-        return;
     default:
         break;
     }
 
     delete entity;
+    entity = nullptr;
 }
 
-Entity *World::FindEntity(Vec2F pos)
+// use type = -1 if you just want to find the first one regardless of type
+Entity *World::FindEntity(Vec2F pos, int type) const
 {
     SDL_FPoint point = {pos.x, pos.y};
-    for (Entity *e : _Entities)
+    if (type < 0 || type >= ENTITYTYPE_COUNT)
     {
-        SDL_FRect rect = e->ToFRect();
-        if (SDL_PointInFRect(&point, &rect))
+        for (Entity *e : std::ranges::reverse_view(_Entities))
         {
-            return e;
+            SDL_FRect rect = e->ToFRect();
+            if (SDL_PointInFRect(&point, &rect))
+            {
+                return e;
+            }
+        }
+    }
+    else
+    {
+        for (Entity *e : std::ranges::reverse_view(_Entities))
+        {
+            SDL_FRect rect = e->ToFRect();
+            if (SDL_PointInFRect(&point, &rect) && e->Type == type)
+            {
+                return e;
+            }
         }
     }
     return nullptr;

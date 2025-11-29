@@ -8,6 +8,8 @@ struct Chunk : public Entity
     TileType Material;
     Chunk(float x, float y, float w, float h, TileType mat);
     ~Chunk();
+
+    std::string DebugInfo();
 };
 
 #endif

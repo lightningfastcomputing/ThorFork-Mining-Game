@@ -19,7 +19,7 @@ InputManager::InputManager(World &world,
     MovementInputs[LEFT] = {SDL_SCANCODE_A, 0, 0, nullptr};
     MovementInputs[RIGHT] = {SDL_SCANCODE_D, 0, 0, nullptr};
 
-    MouseInputs.LeftCooldown = 1000;
+    MouseInputs.LeftCooldown = 500;
     MouseInputs.RightCooldown = 1000;
 
     ActionInputs[REVEAL] = {SDL_SCANCODE_F2, 500, 0, [this]()
@@ -68,24 +68,47 @@ InputManager::InputManager(World &world,
                                  {
                                      this->_Renderer.ToggleGlobalView();
                                  }};
-    ActionInputs[GRAB_RELEASE] = {SDL_SCANCODE_E,
-                                  500,
-                                  0,
-                                  [this]()
-                                  {
-                                      if (_Player->SelectedEntity && !_Player->EquippedEntity)
-                                      {
-                                          _Player->EquippedEntity = _Player->SelectedEntity;
-                                          _Player->EquippedEntity->MaxVelocity = _Player->MaxVelocity;
-                                          _Player->EquippedEntity->DragCoefficient = _Player->DragCoefficient;
-                                      }
-                                      else if (_Player->EquippedEntity)
-                                      {
-                                          _Player->EquippedEntity->DragCoefficient = _Player->DragCoefficient * 4;
-                                          _Player->EquippedEntity->Acceleration = {0, 0};
-                                          _Player->EquippedEntity = nullptr;
-                                      }
-                                  }};
+    ActionInputs[INTERACT] = {SDL_SCANCODE_E,
+                              500,
+                              0,
+                              [this]()
+                              {
+                                  this->PlayerInteract();
+                              }};
+    ActionInputs[SPAWN_MINECART] = {SDL_SCANCODE_C,
+                                    500,
+                                    0,
+                                    [this]()
+                                    {
+                                        this->_World.SpawnEntity(_Player->Target, MINECART);
+                                    }};
+    ActionInputs[SPAWN_TRACK] = {SDL_SCANCODE_T,
+                                 50,
+                                 0,
+                                 [this]()
+                                 {
+                                     this->_World.SpawnEntity(_Player->Target, MINECART_TRACK);
+                                 }};
+    ActionInputs[MOUNT] = {SDL_SCANCODE_SPACE,
+                           1000,
+                           0,
+                           [this]()
+                           {
+                               if (!_Player->Parent)
+                               {
+                                   Entity *e = this->_World.FindEntity(_Player->Target, MINECART);
+                                   if (e)
+                                   {
+                                       Minecart *mc = static_cast<Minecart *>(e);
+                                       mc->AddEntity(_Player);
+                                   }
+                               }
+                               else
+                               {
+                                   Minecart *mc = static_cast<Minecart *>(_Player->Parent);
+                                   mc->RemoveEntity(_Player);
+                               }
+                           }};
 }
 
 InputManager::~InputManager()
@@ -96,9 +119,9 @@ void InputManager::Update(Uint64 tickCount)
 {
     SDL_PumpEvents();
     ValidatePlayerState();
-    HandleMouseInput();
 
     HandleMovement();
+    HandleMouseInput();
 
     PollAndUpdate(REVEAL);
     PollAndUpdate(TOGGLE_DEBUG);
@@ -107,7 +130,10 @@ void InputManager::Update(Uint64 tickCount)
     PollAndUpdate(SWITCH_PLAYER_0);
     PollAndUpdate(TOGGLE_CURSOR_MODE);
     PollAndUpdate(TOGGLE_VIEW);
-    PollAndUpdate(GRAB_RELEASE);
+    PollAndUpdate(INTERACT);
+    PollAndUpdate(SPAWN_MINECART);
+    PollAndUpdate(SPAWN_TRACK);
+    PollAndUpdate(MOUNT);
 }
 
 void InputManager::HandleMouseInput()
@@ -123,16 +149,20 @@ void InputManager::HandleMouseInput()
         mouseState = SDL_GetMouseState(&_Camera.MouseCoords.x, &_Camera.MouseCoords.y);
     }
 
-    _Player->Target += _Camera.MouseDeltas.ToVec2F() / _Camera.TileLength / 2;
+    _Camera.MouseCoords += _Camera.MouseDeltas/2;
+    _Player->Target = _Camera.ScreenToWorld(_Camera.MouseCoords);
+    //_Player->Target += _Camera.MouseDeltas.ToVec2F() / _Camera.TileLength / 2;
+
 
     Vec2F targetVector = _Player->Target - _Player->Center;
     if (targetVector.Magnitude() > _Player->MiningRadius)
     {
         targetVector.Normalize();
         _Player->Target = _Player->Center + targetVector * _Player->MiningRadius;
+        _Camera.MouseCoords = _Camera.WorldToScreen(_Player->Target).ToVec2();
     }
 
-    _Player->SelectedEntity = _World.FindEntity(_Player->Target);
+    _Player->SelectedEntity = _World.FindEntity(_Player->Target, -1);
 
     Vec2 selected = _Player->Target.ToVec2();
     Uint64 now = SDL_GetTicks64();
@@ -145,7 +175,7 @@ void InputManager::HandleMouseInput()
         }
         else if (_Player->CanMine && _Renderer.IsDiscovered(selected.x, selected.y))
         {
-            _World.MineTile(selected.x, selected.y, 1, _Player);
+            _World.MineTile(selected.x, selected.y, 5, true);
         }
         MouseInputs.LeftLastTimePressed = now;
     }
@@ -204,6 +234,47 @@ void InputManager::ValidatePlayerState()
     if (_Player->EquippedEntity)
     {
         UpdateEquippedAcceleration();
+    }
+}
+
+void InputManager::PlayerInteract()
+{
+
+    if (_Player->SelectedEntity && _Player->EquippedEntity != this->_Player && !_Player->EquippedEntity)
+    {
+
+        _Player->EquippedEntity = _Player->SelectedEntity;
+        Minecart *mc = static_cast<Minecart *>(_World.FindEntity(_Player->Target, MINECART));
+        if (mc && _Player->SelectedEntity != mc)
+        {
+            mc->RemoveEntity(_Player->EquippedEntity);
+        }
+        _Player->EquippedEntity->Killable = false;
+
+        if (_Player->EquippedEntity->Type != MINECART)
+        {
+            _Player->EquippedEntity->RemoveCollision(MINECART);
+            _Player->EquippedEntity->RemoveCollision(PLAYER);
+        }
+        lastDragCoeff = _Player->EquippedEntity->DragCoefficient;
+        _Player->EquippedEntity->DragCoefficient = 0;
+    }
+    else if (_Player->EquippedEntity)
+    {
+        _Player->EquippedEntity->Killable = true;
+        if (_Player->EquippedEntity->Type != MINECART)
+        {
+            _Player->EquippedEntity->AddCollision(MINECART);
+            _Player->EquippedEntity->AddCollision(PLAYER);
+        }
+
+        Minecart *mc = static_cast<Minecart *>(_World.FindEntity(_Player->Target, MINECART));
+        if (mc && _Player->EquippedEntity != mc)
+        {
+            mc->AddEntity(_Player->EquippedEntity);
+        }
+        _Player->EquippedEntity->DragCoefficient = lastDragCoeff;
+        _Player->EquippedEntity = nullptr;
     }
 }
 

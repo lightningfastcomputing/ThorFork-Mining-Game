@@ -1,11 +1,13 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 #include "../Types.h"
+#include "../Utils.h"
+#include <format>
 #include <SDL2/SDL.h>
 
 struct Entity
 {
-    static constexpr float EPSILON = 0.0001f;
+    static constexpr float EPSILON = 0.001f;
 
     Vec2F Position;
     Vec2F Dimensions;
@@ -18,16 +20,21 @@ struct Entity
     float DragCoefficient;
 
     bool Elastic = false;
+    bool Killable;
+    bool Static = false;
 
     EntityType Type;
     Uint8 CollisionType;
     Uint8 Collides;
 
+    Entity *Parent;
+    std::vector<Entity *> Children;
+
     int xStart, xEnd;
     int yStart, yEnd;
 
     Entity(float x, float y, float w, float h);
-    ~Entity();
+    virtual ~Entity();
 
     bool CanCollide(Entity *e)
     {
@@ -41,8 +48,19 @@ struct Entity
         yStart = (int)SDL_floorf(Position.y);
         xEnd = (int)SDL_floorf(Position.x + Dimensions.x);
         yEnd = (int)SDL_floorf(Position.y + Dimensions.y);
-        Center = Position + Dimensions/2;
+        Center = Position + Dimensions / 2;
     }
+
+    void AddCollision(EntityType type)
+    {
+        Collides |= (1 << type);
+    }
+    void RemoveCollision(EntityType type)
+    {
+        Collides &= ~(1 << type);
+    }
+
+    virtual std::string DebugInfo() = 0;
 };
 
 #endif

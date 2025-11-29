@@ -1,9 +1,10 @@
 #include "Camera.h"
 Camera::Camera(Player *player, Vec2 windowDim) : _Player(player), Position(_Player->Center)
 {
-    TileLength = 32;
+    TileLength = 48;
     TileCounts = windowDim.ToVec2F() / TileLength;
     WindowDim = windowDim;
+    MouseCoords = WorldToScreen(player->Center).ToVec2();
     MouseCoords = {-1, -1};
     MouseDeltas = {0, 0};
 }

@@ -7,12 +7,13 @@ Player::Player(float width, float height, float speed) : Entity(100, 100, width,
     Score = 0;
     CanMine = false;
     Target = Center;
-    MiningRadius = 3.0f;
+    MiningRadius = 5.0f;
     DiscoverRadius = 50.0f;
     MaxVelocity = 0.15f;
     DragCoefficient = 0.15f;
 
     Elastic = false;
+    Killable = false;
 
     xStart = -1;
     yStart = -1;
@@ -21,46 +22,56 @@ Player::Player(float width, float height, float speed) : Entity(100, 100, width,
 
     Type = PLAYER;
     CollisionType = 1 << Type;
-    Collides = 1 << PLAYER | 1 << CHUNK;
+    // Collides = 1 << PLAYER | 1 << CHUNK | 1 << MINECART | 1 << DYNAMITE;
 
     InteractMode = false;
-
 }
 
 Player::~Player()
 {
 }
 
+void Player::Interact()
+{
+
+}
+
 void Player::UpdateAcceleration(direction dir)
 {
+    Vec2F &a = Parent ? Parent->Acceleration : Acceleration; 
     Direction = dir;
     switch (dir)
     {
     case WEST:
-        Acceleration = {-Speed, 0};
+        a = {-Speed, 0};
         break;
     case EAST:
-        Acceleration = {Speed, 0};
+        a = {Speed, 0};
         break;
     case NORTH:
-        Acceleration = {0, -Speed};
+        a = {0, -Speed};
         break;
     case SOUTH:
-        Acceleration = {0, Speed};
+        a = {0, Speed};
         break;
     case NORTHWEST:
-        Acceleration = {-Speed * 0.7071f, -Speed * 0.7071f};
+        a = {-Speed * 0.7071f, -Speed * 0.7071f};
         break;
     case NORTHEAST:
-        Acceleration = {Speed * 0.7071f, -Speed * 0.7071f};
+        a = {Speed * 0.7071f, -Speed * 0.7071f};
         break;
     case SOUTHWEST:
-        Acceleration = {-Speed * 0.7071f, Speed * 0.7071f};
+        a = {-Speed * 0.7071f, Speed * 0.7071f};
         break;
     case SOUTHEAST:
-        Acceleration = {Speed * 0.7071f, Speed * 0.7071f};
+        a = {Speed * 0.7071f, Speed * 0.7071f};
         break;
     case NONE:
-        Acceleration = {0, 0};
+        a = {0, 0};
     }
+}
+
+std::string Player::DebugInfo()
+{
+    return "PLAYER\n";
 }

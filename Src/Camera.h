@@ -7,8 +7,6 @@
 
 struct Camera
 {
-private:
-public:
     Player *_Player;
     Vec2F &Position;
     Vec2F MinCoord;

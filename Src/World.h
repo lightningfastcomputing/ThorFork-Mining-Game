@@ -12,11 +12,15 @@
 #include "Entity/Player.h"
 #include "ValueNoise2D.h"
 #include "SoundManager.h"
+#include "Entity/Player.h"
 #include "Entity/Explosive.h"
 #include "Entity/Chunk.h"
+#include "Entity/Minecart.h"
+#include "Entity/MinecartTrack.h"
 #include "Utils.h"
 #include "Types.h"
 #include <memory>
+#include <ranges>
 #include <SDL2/SDL.h>
 
 struct WorldAction
@@ -62,10 +66,13 @@ public:
     void AddPlayer(Player *player);
     Explosive *SpawnExplosive(float x, float y);
     Chunk *SpawnChunk(Vec2F pos, Vec2F dim, TileType type);
-    void KillEntity(Entity *entity);
-    Entity *FindEntity(Vec2F pos);
 
-    void MineTile(int x, int y, int strength, Player *player);
+    Entity* SpawnEntity(Vec2F pos, EntityType type);
+
+    void KillEntity(Entity *&entity);
+    Entity *FindEntity(Vec2F pos, int type) const;
+
+    void MineTile(int x, int y, int strength, bool audible);
 
     void Update(Uint64 tickCount);
 };

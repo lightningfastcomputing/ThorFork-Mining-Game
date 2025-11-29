@@ -26,7 +26,10 @@ enum Action
     SWITCH_PLAYER_8,
     TOGGLE_CURSOR_MODE,
     TOGGLE_VIEW,
-    GRAB_RELEASE,
+    INTERACT,
+    SPAWN_MINECART,
+    SPAWN_TRACK,
+    MOUNT,
     ACTIONS_COUNT
 };
 
@@ -70,11 +73,14 @@ private:
 
     const Uint8 *Keys;
 
+    float lastDragCoeff;
+
     void HandleMouseInput();
     void HandleMovement();
     inline void PollAndUpdate(int actionIndex);
     void ValidatePlayerState();
     void ValidateCanMine();
+    void PlayerInteract();
     void UpdateEquippedAcceleration();
 
 public:

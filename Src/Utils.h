@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 #include <SDL2/SDL.h>
+#include <random>
 #include "Types.h"
 
 struct Utils
@@ -22,6 +23,14 @@ struct Utils
         if (sample < -32768)
             return -32768;
         return (int16_t)sample;
+    }
+
+    static float RandFloat(float min, float max)
+    {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::uniform_real_distribution<float> dist(min, max);
+        return dist(gen);
     }
 };
 

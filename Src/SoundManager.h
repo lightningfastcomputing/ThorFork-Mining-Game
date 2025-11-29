@@ -6,13 +6,14 @@
 #include <SDL2/SDL.h>
 #include "Utils.h"
 
-#define CHANNELS 16
+#define CHANNELS 32
 
 enum Sound
 {
     PICKAXE_STRIKE,
     FOOTSTEP,
     EXPLOSION,
+    ROCK_CRUMBLE,
     SOUNDS_COUNT
 };
 

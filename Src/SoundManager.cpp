@@ -41,6 +41,7 @@ SoundManager::SoundManager()
     WAVs[FOOTSTEP] = LoadAndConvertWAVFromFile("Sounds/Footstep.wav");
     WAVs[PICKAXE_STRIKE] = LoadAndConvertWAVFromFile("Sounds/PickaxeStrike.wav");
     WAVs[EXPLOSION] = LoadAndConvertWAVFromFile("Sounds/Explosion.wav");
+    WAVs[ROCK_CRUMBLE] = LoadAndConvertWAVFromFile("Sounds/RockCrumble.wav");
 
     DeviceSpec.userdata = &UserData;
     DeviceSpec.callback = Callback;
