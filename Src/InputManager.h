@@ -56,6 +56,8 @@ struct MouseInputs
     Uint64 LeftLastTimePressed;
     Uint64 RightCooldown;
     Uint64 RightLastTimePressed;
+
+    bool LeftWasDown;
 };
 
 class InputManager

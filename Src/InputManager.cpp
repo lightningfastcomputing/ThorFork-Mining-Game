@@ -19,8 +19,9 @@ InputManager::InputManager(World &world,
     MovementInputs[LEFT] = {SDL_SCANCODE_A, 0, 0, nullptr};
     MovementInputs[RIGHT] = {SDL_SCANCODE_D, 0, 0, nullptr};
 
-    MouseInputs.LeftCooldown = 500;
+    MouseInputs.LeftCooldown = 150;
     MouseInputs.RightCooldown = 1000;
+    MouseInputs.LeftWasDown = false;
 
     ActionInputs[REVEAL] = {SDL_SCANCODE_F2, 500, 0, [this]()
                             {
@@ -167,7 +168,10 @@ void InputManager::HandleMouseInput()
     Vec2 selected = _Player->Target.ToVec2();
     Uint64 now = SDL_GetTicks64();
 
-    if (mouseState & SDL_BUTTON(1) && (now - MouseInputs.LeftLastTimePressed) > MouseInputs.LeftCooldown)
+    bool leftDown = (mouseState & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;
+    bool leftPressed = leftDown && !MouseInputs.LeftWasDown;
+
+    if (leftPressed)
     {
         if (_Player->SelectedEntity)
         {
@@ -177,16 +181,22 @@ void InputManager::HandleMouseInput()
         {
             _World.MineTile(selected.x, selected.y, 5, true);
         }
+
         MouseInputs.LeftLastTimePressed = now;
     }
-    else if (mouseState & SDL_BUTTON(3) && (now - MouseInputs.RightLastTimePressed) > MouseInputs.RightCooldown)
+    else if (mouseState & SDL_BUTTON(SDL_BUTTON_RIGHT) &&
+             (now - MouseInputs.RightLastTimePressed) > MouseInputs.RightCooldown)
     {
-        if (_Player->CanMine && _Renderer.IsDiscovered(selected.x, selected.y) && _World.Tiles[selected.x][selected.y].Passable)
+        if (_Player->CanMine &&
+            _Renderer.IsDiscovered(selected.x, selected.y) &&
+            _World.Tiles[selected.x][selected.y].Passable)
         {
             _World.SpawnExplosive(_Player->Target.x, _Player->Target.y);
             MouseInputs.RightLastTimePressed = now;
         }
     }
+
+    MouseInputs.LeftWasDown = leftDown;
 }
 
 void InputManager::HandleMovement()
