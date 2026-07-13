@@ -1,6 +1,6 @@
 # ThorFork Mining Game
 
-A Windows-tested fork and expansion of **Otto Pfefferkorn's Mining-Game**, a destructible-terrain mining sandbox written in C++ using SDL2.
+A Windows-tested fork and expansion of **Otto Pfeff's Mining-Game**, a destructible-terrain mining sandbox written in C++ using SDL2.
 
 > Original project and core engine by [ottopfeff](https://github.com/ottopfeff/Mining-Game)  
 > Windows stabilization and Deep Systems expansion by [lightningfastcomputing](https://github.com/lightningfastcomputing)
