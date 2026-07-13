@@ -38,6 +38,7 @@ enum EntityType
     PLAYER,
     CHUNK,
     DYNAMITE,
+    BLASTLING,
     ENTITYTYPE_COUNT
 };
 

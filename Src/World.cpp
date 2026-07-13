@@ -82,18 +82,22 @@ void World::SetBorder()
 
 void World::Explosion(Explosive *e)
 {
-    Vec2F pos = e->Center;
-    float radius = e->ExplosionRadius;
+    BlastAt(e->Center, e->ExplosionRadius);
+}
+
+void World::BlastAt(Vec2F pos, float radius)
+{
     std::vector<Vec2> tiles = GetTiles(pos, radius);
     std::vector<Entity *> entities = GetEntities(pos, radius);
 
-    for (Entity *e : entities)
+    for (Entity *entity : entities)
     {
-        KillEntity(e);
+        KillEntity(entity);
     }
-    for (Vec2 v : tiles)
+
+    for (Vec2 tile : tiles)
     {
-        MineTile(v.x, v.y, 50, false);
+        MineTile(tile.x, tile.y, 50, false);
     }
 
     _SoundManager.PlaySound(EXPLOSION);
@@ -222,9 +226,38 @@ void World::MineTile(int x, int y, int strength, bool audible)
 
 void World::UpdateEntities()
 {
+    std::vector<Blastling *> blastlingsToDetonate;
+
+    TrySpawnBlastlingAtDiscoveryEdge();
+
 
     for (Entity *p : _Entities)
     {
+        if (p->Type == PLAYER && _Player && _Player->Health <= 0)
+        {
+            p->Acceleration = {0, 0};
+            p->Velocity = {0, 0};
+            continue;
+        }
+
+        if (p->Type == BLASTLING && _Player && _Player->Health > 0)
+        {
+            Blastling *blastling = static_cast<Blastling *>(p);
+            Vec2F direction = _Player->Center - blastling->Center;
+            float distance = direction.Magnitude();
+
+            if (distance <= 1.35f)
+            {
+                blastlingsToDetonate.push_back(blastling);
+                continue;
+            }
+
+            if (distance > 0.001f)
+            {
+                direction.Normalize();
+                blastling->Acceleration = direction * 0.018f;
+            }
+        }
         // parent takes care of movement
         if (p->Parent)
         {
@@ -378,10 +411,91 @@ void World::UpdateEntities()
         //     player->Target.y += positionDelta.y;
         // }
     }
+
+    for (Blastling *blastling : blastlingsToDetonate)
+    {
+        Entity *entity = static_cast<Entity *>(blastling);
+
+        // It may already have been destroyed by another nearby blast.
+        if (std::find(_Entities.begin(), _Entities.end(), entity) ==
+            _Entities.end())
+        {
+            continue;
+        }
+
+        _Player->TakeDamage(1);
+        KillEntity(entity);
+    }
+}
+
+void World::TrySpawnBlastlingAtDiscoveryEdge()
+{
+    if (!_Player || _Player->Health <= 0)
+        return;
+
+    int activeBlastlings = 0;
+
+    for (Entity *entity : _Entities)
+    {
+        if (entity->Type == BLASTLING)
+            activeBlastlings++;
+    }
+
+    if (activeBlastlings >= MaxBlastlings)
+        return;
+
+    Uint64 now = SDL_GetTicks64();
+
+    if (now < NextBlastlingSpawn)
+        return;
+
+    // Random delay between five and nine seconds.
+    NextBlastlingSpawn = now + 5000 + (rand() % 4001);
+
+    const float minimumRadius = 12.0f;
+    const float edgeRadius =
+        std::max(minimumRadius, _Player->DiscoverRadius * 0.85f);
+
+    // Try several random points around the edge of the revealed region.
+    for (int attempt = 0; attempt < 32; attempt++)
+    {
+        float angle =
+            ((float)rand() / (float)RAND_MAX) * 2.0f * PI;
+
+        float radiusVariation =
+            ((float)(rand() % 9) - 4.0f);
+
+        float radius = edgeRadius + radiusVariation;
+
+        Vec2F candidate = {
+            _Player->Center.x + SDL_cosf(angle) * radius,
+            _Player->Center.y + SDL_sinf(angle) * radius
+        };
+
+        Vec2 tile = candidate.ToVec2();
+
+        if (!InBounds(tile))
+            continue;
+
+        if (!Tiles[tile.x][tile.y].Passable)
+            continue;
+
+        if (FindEntity(candidate, BLASTLING))
+            continue;
+
+        SpawnBlastling(
+            tile.x + 0.5f,
+            tile.y + 0.5f
+        );
+
+        return;
+    }
 }
 
 void World::AddPlayer(Player *player)
 {
+    _Player = player;
+
     player->Position = {(float)Width / 2, (float)Height / 2};
     player->UpdateTileBounds();
 
@@ -394,6 +508,26 @@ void World::AddPlayer(Player *player)
                                                           [](Entity *a, Entity *b)
                                                           { return a->Type < b->Type; });
     _Entities.insert(it, player);
+
+}
+
+Blastling *World::SpawnBlastling(float x, float y)
+{
+    Blastling *blastling = new Blastling(x, y);
+
+    std::vector<Entity *>::iterator it =
+        std::lower_bound(
+            _Entities.begin(),
+            _Entities.end(),
+            blastling,
+            [](Entity *a, Entity *b)
+            {
+                return a->Type < b->Type;
+            }
+        );
+
+    _Entities.insert(it, blastling);
+    return blastling;
 }
 
 Explosive *World::SpawnExplosive(float x, float y)
@@ -425,6 +559,10 @@ Entity *World::SpawnEntity(Vec2F pos, EntityType type)
 
     switch (type)
     {
+    case BLASTLING:
+        e = new Blastling(pos.x, pos.y);
+        break;
+
     case MINECART:
         e = new Minecart(pos.x, pos.y);
         break;
@@ -495,6 +633,13 @@ void World::KillEntity(Entity *&entity)
     {
         Explosive *explosive = static_cast<Explosive *>(victim);
         Explosion(explosive);
+        break;
+    }
+
+    case BLASTLING:
+    {
+        Blastling *blastling = static_cast<Blastling *>(victim);
+        BlastAt(blastling->Center, blastling->ExplosionRadius);
         break;
     }
 

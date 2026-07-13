@@ -14,6 +14,8 @@ public:
     direction Direction;
     
     int Score;
+    static constexpr int MaxHealth = 3;
+    int Health;
     Vec2F Target;
     bool CanMine;
 
@@ -28,6 +30,7 @@ public:
     ~Player();
 
     void Interact();
+    void TakeDamage(int amount);
     void UpdateAcceleration(direction dir);
 
     std::string DebugInfo();

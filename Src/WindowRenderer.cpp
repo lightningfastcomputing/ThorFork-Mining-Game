@@ -193,6 +193,7 @@ void WindowRenderer::RenderFrame()
 
         DrawWorld();
         DrawEntities();
+        DrawHealthBar();
         if (_Camera._Player->InteractMode)
         {
             DrawPlayerReach();
@@ -208,7 +209,10 @@ void WindowRenderer::RenderFrame()
     }
 
     SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255); // undiscovered tiles are just black
+    DrawGameOver();
+
     SDL_RenderPresent(Renderer);
+
 }
 
 void WindowRenderer::ClearFrame()
@@ -304,7 +308,16 @@ void WindowRenderer::DrawEntities()
         displayRect.w = e->Dimensions.x * _Camera.TileLength;
         displayRect.h = e->Dimensions.y * _Camera.TileLength;
 
-        // placeholder for now
+        if (e->Type == BLASTLING)
+        {
+            SDL_SetRenderDrawColor(Renderer, 40, 220, 70, 255);
+            SDL_RenderFillRectF(Renderer, &displayRect);
+
+            SDL_SetRenderDrawColor(Renderer, 10, 80, 20, 255);
+            SDL_RenderDrawRectF(Renderer, &displayRect);
+            continue;
+        }
+
         SDL_Texture *texture;
         if (e->Type == CHUNK)
         {
@@ -319,6 +332,159 @@ void WindowRenderer::DrawEntities()
             SDL_RenderCopyF(Renderer, texture, nullptr, &displayRect);
         }
     }
+}
+
+void WindowRenderer::DrawHealthBar()
+{
+    Player *player = _Camera._Player;
+
+    const float x = 20.0f;
+    const float y = 20.0f;
+    const float totalWidth = 240.0f;
+    const float height = 28.0f;
+    const float gap = 5.0f;
+
+    const float segmentWidth =
+        (totalWidth - gap * (Player::MaxHealth - 1)) /
+        Player::MaxHealth;
+
+    SDL_FRect background = {
+        x - 5.0f,
+        y - 5.0f,
+        totalWidth + 10.0f,
+        height + 10.0f
+    };
+
+    SDL_SetRenderDrawColor(Renderer, 15, 15, 15, 255);
+    SDL_RenderFillRectF(Renderer, &background);
+
+    for (int i = 0; i < Player::MaxHealth; i++)
+    {
+        SDL_FRect segment = {
+            x + i * (segmentWidth + gap),
+            y,
+            segmentWidth,
+            height
+        };
+
+        if (i < player->Health)
+        {
+            SDL_SetRenderDrawColor(Renderer, 220, 45, 45, 255);
+        }
+        else
+        {
+            SDL_SetRenderDrawColor(Renderer, 65, 65, 65, 255);
+        }
+
+        SDL_RenderFillRectF(Renderer, &segment);
+
+        SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
+        SDL_RenderDrawRectF(Renderer, &segment);
+    }
+}
+
+void WindowRenderer::DrawGameOver()
+{
+    Player *player = _Camera._Player;
+
+    if (player->Health > 0)
+        return;
+
+    // Darken the entire game view.
+    SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 210);
+
+    SDL_FRect overlay = {
+        0.0f,
+        0.0f,
+        static_cast<float>(WindowDimensions.x),
+        static_cast<float>(WindowDimensions.y)
+    };
+
+    SDL_RenderFillRectF(Renderer, &overlay);
+
+    const char *title = "GAME OVER";
+    SDL_Color titleColor = {220, 45, 45, 255};
+
+    SDL_Surface *titleSurface =
+        TTF_RenderText_Solid(TextFont, title, titleColor);
+
+    if (!titleSurface)
+        return;
+
+    SDL_Texture *titleTexture =
+        SDL_CreateTextureFromSurface(Renderer, titleSurface);
+
+    if (!titleTexture)
+    {
+        SDL_FreeSurface(titleSurface);
+        return;
+    }
+
+    const float titleScale = 2.5f;
+
+    SDL_FRect titleRect = {
+        (WindowDimensions.x -
+         titleSurface->w * titleScale) / 2.0f,
+
+        (WindowDimensions.y -
+         titleSurface->h * titleScale) / 2.0f,
+
+        titleSurface->w * titleScale,
+        titleSurface->h * titleScale
+    };
+
+    SDL_RenderCopyF(
+        Renderer,
+        titleTexture,
+        nullptr,
+        &titleRect
+    );
+
+    SDL_DestroyTexture(titleTexture);
+    SDL_FreeSurface(titleSurface);
+
+    const char *subtitle = "Three explosions took you out.";
+    SDL_Color subtitleColor = {255, 255, 255, 255};
+
+    SDL_Surface *subtitleSurface =
+        TTF_RenderText_Solid(
+            TextFont,
+            subtitle,
+            subtitleColor
+        );
+
+    if (!subtitleSurface)
+        return;
+
+    SDL_Texture *subtitleTexture =
+        SDL_CreateTextureFromSurface(
+            Renderer,
+            subtitleSurface
+        );
+
+    if (!subtitleTexture)
+    {
+        SDL_FreeSurface(subtitleSurface);
+        return;
+    }
+
+    SDL_FRect subtitleRect = {
+        (WindowDimensions.x - subtitleSurface->w) / 2.0f,
+        titleRect.y + titleRect.h + 25.0f,
+        static_cast<float>(subtitleSurface->w),
+        static_cast<float>(subtitleSurface->h)
+    };
+
+    SDL_RenderCopyF(
+        Renderer,
+        subtitleTexture,
+        nullptr,
+        &subtitleRect
+    );
+
+    SDL_DestroyTexture(subtitleTexture);
+    SDL_FreeSurface(subtitleSurface);
 }
 
 void WindowRenderer::DebugInfo()

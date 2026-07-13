@@ -40,6 +40,8 @@ private:
     void GlobalDrawWorld();
     inline void DrawWorld();
     inline void DrawEntities();
+    void DrawHealthBar();
+    void DrawGameOver();
     inline void DebugInfo();
     inline void HighlightTarget();
     inline void DrawPlayerBoundingBox();

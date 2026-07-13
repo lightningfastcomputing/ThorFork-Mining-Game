@@ -19,6 +19,7 @@
 #include "Entity/Chunk.h"
 #include "Entity/Minecart.h"
 #include "Entity/MinecartTrack.h"
+#include "Entity/Blastling.h"
 #include "Utils.h"
 #include "Types.h"
 #include <memory>
@@ -42,6 +43,9 @@ private:
     std::priority_queue<WorldAction, std::vector<WorldAction>, std::greater<WorldAction>> WorldActionQueue;
     SoundManager &_SoundManager;
     Uint64 TickCount = 0;
+    Player *_Player = nullptr;
+    Uint64 NextBlastlingSpawn = 0;
+    static constexpr int MaxBlastlings = 8;
 
     int KillDepth = 0;
     std::vector<Entity *> PendingDeletes;
@@ -53,8 +57,10 @@ private:
     void InitEntities();
     void SetBorder();
     void UpdateEntities();
+    void TrySpawnBlastlingAtDiscoveryEdge();
 
     void Explosion(Explosive *e);
+    void BlastAt(Vec2F pos, float radius);
     std::vector<Vec2> GetTiles(Vec2F pos, float radius);
     std::vector<Entity*> GetEntities(Vec2F pos, float radius);
 
@@ -73,6 +79,7 @@ public:
     }
     void AddPlayer(Player *player);
     Explosive *SpawnExplosive(float x, float y);
+    Blastling *SpawnBlastling(float x, float y);
     Chunk *SpawnChunk(Vec2F pos, Vec2F dim, TileType type);
 
     Entity* SpawnEntity(Vec2F pos, EntityType type);

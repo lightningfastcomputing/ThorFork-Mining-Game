@@ -5,6 +5,7 @@ Player::Player(float width, float height, float speed) : Entity(100, 100, width,
     Speed = speed; // tiles per tick, dont go too fast
     Direction = NONE;
     Score = 0;
+    Health = MaxHealth;
     CanMine = false;
     Target = Center;
     MiningRadius = 5.0f;
@@ -34,6 +35,14 @@ Player::~Player()
 void Player::Interact()
 {
 
+}
+
+void Player::TakeDamage(int amount)
+{
+    Health -= amount;
+
+    if (Health < 0)
+        Health = 0;
 }
 
 void Player::UpdateAcceleration(direction dir)
