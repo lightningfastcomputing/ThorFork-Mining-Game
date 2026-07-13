@@ -449,33 +449,68 @@ Entity *World::SpawnEntity(Vec2F pos, EntityType type)
     return e;
 }
 
+void World::FlushPendingDeletes()
+{
+    for (Entity *entity : PendingDeletes)
+    {
+        delete entity;
+    }
+
+    PendingDeletes.clear();
+    PendingDeleteSet.clear();
+}
+
 void World::KillEntity(Entity *&entity)
 {
-    if (!entity || !entity->Killable || entity->Type == PLAYER)
+    if (!entity)
         return;
 
-    _Entities.erase(std::remove(_Entities.begin(), _Entities.end(), entity), _Entities.end());
+    // Another explosion may still hold this pointer in an older snapshot.
+    // If it is already scheduled for deletion, do not touch it again.
+    if (PendingDeleteSet.contains(entity))
+    {
+        entity = nullptr;
+        return;
+    }
 
-    switch (entity->Type)
+    if (!entity->Killable || entity->Type == PLAYER)
+        return;
+
+    Entity *victim = entity;
+
+    PendingDeleteSet.insert(victim);
+    PendingDeletes.push_back(victim);
+
+    _Entities.erase(
+        std::remove(_Entities.begin(), _Entities.end(), victim),
+        _Entities.end()
+    );
+
+    entity = nullptr;
+    KillDepth++;
+
+    switch (victim->Type)
     {
     case DYNAMITE:
     {
-        Explosive *e = static_cast<Explosive *>(entity);
-        Explosion(e);
+        Explosive *explosive = static_cast<Explosive *>(victim);
+        Explosion(explosive);
         break;
     }
+
     case CHUNK:
-    {
         _SoundManager.PlaySound(ROCK_CRUMBLE);
         break;
-    }
 
     default:
         break;
     }
 
-    delete entity;
-    entity = nullptr;
+    KillDepth--;
+
+    // Delete only after the outermost chain reaction is complete.
+    if (KillDepth == 0)
+        FlushPendingDeletes();
 }
 
 // use type = -1 if you just want to find the first one regardless of type

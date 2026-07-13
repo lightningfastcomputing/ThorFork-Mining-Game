@@ -1,6 +1,8 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include <unordered_set>
+
 #include <cstring>
 #include <cstdlib>
 #include <queue>
@@ -40,6 +42,12 @@ private:
     std::priority_queue<WorldAction, std::vector<WorldAction>, std::greater<WorldAction>> WorldActionQueue;
     SoundManager &_SoundManager;
     Uint64 TickCount = 0;
+
+    int KillDepth = 0;
+    std::vector<Entity *> PendingDeletes;
+    std::unordered_set<Entity *> PendingDeleteSet;
+
+    void FlushPendingDeletes();
 
     void InitTiles();
     void InitEntities();
