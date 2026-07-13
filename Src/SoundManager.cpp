@@ -30,36 +30,47 @@ void Callback(void *userdata, Uint8 *stream, int len)
 SoundManager::SoundManager()
 {
     Running = true;
-    Mutex = SDL_CreateMutex();
-    if (!Mutex)
-        goto error;
-    if (SDL_GetAudioDeviceSpec(1, 0, &DeviceSpec) != 0)
-        goto error;
 
+    SDL_zero(UserData);
+
+    for (int i = 0; i < SOUNDS_COUNT; i++)
+        WAVs[i] = nullptr;
+
+    Mutex = SDL_CreateMutex();
+
+    if (!Mutex)
+    {
+        printf("Failed to create audio mutex: %s\n", SDL_GetError());
+        Running = false;
+        return;
+    }
+
+    SDL_zero(DeviceSpec);
+    DeviceSpec.freq = 44100;
+    DeviceSpec.format = AUDIO_S16SYS;
+    DeviceSpec.channels = 2;
     DeviceSpec.samples = 1024;
+    DeviceSpec.userdata = &UserData;
+    DeviceSpec.callback = Callback;
+
+    if (SDL_OpenAudio(&DeviceSpec, nullptr) < 0)
+    {
+        printf("Failed to open audio: %s\n", SDL_GetError());
+        Running = false;
+        return;
+    }
 
     WAVs[FOOTSTEP] = LoadAndConvertWAVFromFile("Sounds/Footstep.wav");
     WAVs[PICKAXE_STRIKE] = LoadAndConvertWAVFromFile("Sounds/PickaxeStrike.wav");
     WAVs[EXPLOSION] = LoadAndConvertWAVFromFile("Sounds/Explosion.wav");
     WAVs[ROCK_CRUMBLE] = LoadAndConvertWAVFromFile("Sounds/RockCrumble.wav");
 
-    DeviceSpec.userdata = &UserData;
-    DeviceSpec.callback = Callback;
-
-    if (SDL_OpenAudio(&DeviceSpec, nullptr) < 0)
-        goto error;
-    
-
     SDL_PauseAudio(0);
-
-    return;
-error:
-    Running = false;
 }
 
 SoundManager::~SoundManager()
 {
-    SDL_CloseAudioDevice(1);
+    SDL_CloseAudio();
     for (int i = 0; i < SOUNDS_COUNT; i++)
     {
         delete WAVs[i]->pos;
@@ -70,7 +81,7 @@ SoundManager::~SoundManager()
 WAVData *SoundManager::LoadAndConvertWAVFromFile(const char *file)
 {
     SDL_AudioSpec spec;
-    Uint8 *wavBuffer;
+    Uint8 *wavBuffer = nullptr;
     Uint32 wavLength;
 
     if (SDL_LoadWAV(file, &spec, &wavBuffer, &wavLength) == NULL)
@@ -82,7 +93,7 @@ WAVData *SoundManager::LoadAndConvertWAVFromFile(const char *file)
     {
         SDL_AudioCVT cvt;
         int result = SDL_BuildAudioCVT(&cvt, spec.format, spec.channels, spec.freq,
-                                       DeviceSpec.format, DeviceSpec.channels, DeviceSpec.freq) < 0;
+                                       DeviceSpec.format, DeviceSpec.channels, DeviceSpec.freq);
 
         if (result < 0)
         {
@@ -117,10 +128,20 @@ fail:
 
 void SoundManager::PlaySound(Sound idx)
 {
+    if (idx < 0 || idx >= SOUNDS_COUNT)
+        return;
+
     WAVData *data = WAVs[idx];
+
+    if (!data || !data->pos || data->len == 0)
+        return;
+
+    SDL_LockAudio();
+
     for (int i = 0; i < CHANNELS; i++)
     {
-        WAVData* emptyChannel = &UserData.Channels[i];
+        WAVData *emptyChannel = &UserData.Channels[i];
+
         if (emptyChannel->len <= 0)
         {
             emptyChannel->len = data->len;
@@ -128,4 +149,6 @@ void SoundManager::PlaySound(Sound idx)
             break;
         }
     }
+
+    SDL_UnlockAudio();
 }
