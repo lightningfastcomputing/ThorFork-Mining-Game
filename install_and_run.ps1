@@ -5,7 +5,6 @@ $Branch = "deep-systems-edition"
 $InstallDir = Join-Path $HOME "ThorFork-Mining-Game"
 $MsysRoot = "C:\msys64"
 $Bash = Join-Path $MsysRoot "usr\bin\bash.exe"
-$TempScript = Join-Path $env:TEMP "thorfork_install_and_run.sh"
 
 function Write-Step {
     param([string]$Message)
@@ -17,7 +16,7 @@ Write-Step "Checking for MSYS2"
 if (-not (Test-Path $Bash)) {
     $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
     if (-not $winget) {
-        throw "winget is unavailable. Install App Installer from Microsoft Store, then retry."
+        throw "winget is not available. Install App Installer from Microsoft Store, then run this command again."
     }
 
     Write-Step "Installing MSYS2"
@@ -31,15 +30,23 @@ if (-not (Test-Path $Bash)) {
 }
 
 if (-not (Test-Path $Bash)) {
-    throw "MSYS2 bash was not found at $Bash."
+    throw "MSYS2 bash was not found at $Bash after installation."
 }
 
-$bashScript = @'
-#!/usr/bin/env bash
-set -euo pipefail
+$env:MSYSTEM = "MINGW64"
+$env:CHERE_INVOKING = "1"
+$env:THOR_REPO_URL = $RepoUrl
+$env:THOR_BRANCH = $Branch
+$env:THOR_INSTALL_DIR = $InstallDir
 
-echo
-echo "==> Updating MSYS2 and installing dependencies"
+Write-Step "Updating MSYS2 package metadata"
+& $Bash -lc 'pacman -Syu --noconfirm'
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning "The first MSYS2 update pass returned exit code $LASTEXITCODE. Retrying in a fresh shell."
+}
+
+Write-Step "Installing compiler and SDL dependencies"
+& $Bash -lc @'
 pacman -Syu --noconfirm
 pacman -S --needed --noconfirm \
   git \
@@ -48,11 +55,18 @@ pacman -S --needed --noconfirm \
   mingw-w64-x86_64-SDL2 \
   mingw-w64-x86_64-SDL2_image \
   mingw-w64-x86_64-SDL2_ttf
+'@
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Dependency installation failed with exit code $LASTEXITCODE."
+}
+
+Write-Step "Cloning or updating ThorFork Mining Game"
+& $Bash -lc @'
+set -e
 
 repo="$(cygpath -u "$THOR_INSTALL_DIR")"
 
-echo
-echo "==> Cloning or updating ThorFork Mining Game"
 if [ -d "$repo/.git" ]; then
     git -C "$repo" fetch origin
     git -C "$repo" checkout "$THOR_BRANCH"
@@ -60,32 +74,34 @@ if [ -d "$repo/.git" ]; then
 else
     git clone --branch "$THOR_BRANCH" --single-branch "$THOR_REPO_URL" "$repo"
 fi
+'@
 
-echo
-echo "==> Building"
+if ($LASTEXITCODE -ne 0) {
+    throw "Repository setup failed with exit code $LASTEXITCODE."
+}
+
+Write-Step "Building the game"
+& $Bash -lc @'
+set -e
+
+repo="$(cygpath -u "$THOR_INSTALL_DIR")"
 cd "$repo"
+
 make clean-native
 make -j1
+'@
 
-echo
-echo "==> Launching"
+if ($LASTEXITCODE -ne 0) {
+    throw "Build failed with exit code $LASTEXITCODE."
+}
+
+Write-Step "Launching ThorFork Mining Game"
+& $Bash -lc @'
+set -e
+
+repo="$(cygpath -u "$THOR_INSTALL_DIR")"
+cd "$repo"
+
 export PATH="/mingw64/bin:$PATH"
 ./Main.exe
 '@
-
-Set-Content -Path $TempScript -Value $bashScript -Encoding utf8
-
-$env:MSYSTEM = "MINGW64"
-$env:CHERE_INVOKING = "1"
-$env:THOR_REPO_URL = $RepoUrl
-$env:THOR_BRANCH = $Branch
-$env:THOR_INSTALL_DIR = $InstallDir
-
-$TempScriptMsys = (& $Bash -lc "cygpath -u '$TempScript'").Trim()
-
-Write-Step "Running installer"
-& $Bash $TempScriptMsys
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Installer failed with exit code $LASTEXITCODE."
-}
