@@ -1,6 +1,6 @@
 # ThorFork Mining Game
 
-A Windows-tested fork and expansion of **Otto Pfeff's Mining-Game**, a destructible-terrain mining sandbox written in C++ using SDL2.
+A Windows-tested fork and expansion of **Otto Pfefferkorn's Mining-Game**, a destructible-terrain mining sandbox written in C++ using SDL2.
 
 > Original project and core engine by [ottopfeff](https://github.com/ottopfeff/Mining-Game)  
 > Windows stabilization and Deep Systems expansion by [lightningfastcomputing](https://github.com/lightningfastcomputing)
@@ -9,7 +9,7 @@ A Windows-tested fork and expansion of **Otto Pfeff's Mining-Game**, a destructi
 
 The `deep-systems-edition` branch contains the first stabilization pass.
 
-The game now builds and launches successfully on a current Windows 10/11 system using MSYS2 MinGW64.
+The game now builds and launches successfully on current Windows 10/11 systems using MSYS2 MinGW64.
 
 ### Confirmed Working
 
@@ -22,6 +22,47 @@ The game now builds and launches successfully on a current Windows 10/11 system 
 - WAV loading and conversion
 - Debug builds using GDB
 - Local Windows deployment
+
+## Quick Launch from PowerShell
+
+The following PowerShell one-liner opens the installed MSYS2 MinGW64 environment, clones or updates the `deep-systems-edition` branch, builds the project, and launches the game:
+
+```powershell
+$env:MSYSTEM="MINGW64"; $env:CHERE_INVOKING="1"; & "C:\msys64\usr\bin\bash.exe" -lc 'export PATH="/mingw64/bin:$PATH"; dir="$HOME/ThorFork-Mining-Game"; if [ -d "$dir/.git" ]; then git -C "$dir" fetch origin && git -C "$dir" checkout deep-systems-edition && git -C "$dir" pull --ff-only origin deep-systems-edition; else git clone --branch deep-systems-edition --single-branch https://github.com/lightningfastcomputing/ThorFork-Mining-Game.git "$dir"; fi && cd "$dir" && make clean-native && make -j1 && ./Main.exe'
+```
+
+### Important Requirements
+
+This one-liner **does not install MSYS2 or its development packages**.
+
+Before using it, install:
+
+- MSYS2 at the default location:
+  ```text
+  C:\msys64
+  ```
+- The MSYS2 MinGW64 compiler toolchain
+- GNU Make
+- Git
+- SDL2
+- SDL2_image
+- SDL2_ttf
+
+Open the **MSYS2 MinGW x64** terminal and install the required packages:
+
+```bash
+pacman -Syu
+pacman -S --needed \
+  git \
+  make \
+  mingw-w64-x86_64-gcc \
+  mingw-w64-x86_64-SDL2 \
+  mingw-w64-x86_64-SDL2_image \
+  mingw-w64-x86_64-SDL2_ttf \
+  mingw-w64-x86_64-gdb
+```
+
+The one-liner assumes MSYS2 is installed at `C:\msys64`. Change that path in the command if MSYS2 is installed elsewhere.
 
 ## Windows Startup Fixes
 
@@ -284,7 +325,7 @@ These are part of the planned stabilization work.
 
 This repository is a fork, not a rewrite.
 
-### Original work
+### Original Work
 
 - Core game engine
 - Terrain and mining systems
@@ -297,7 +338,7 @@ This repository is a fork, not a rewrite.
 
 Created by **Otto Pfefferkorn**.
 
-### Fork work
+### Fork Work
 
 - Windows deployment testing
 - GDB crash analysis
