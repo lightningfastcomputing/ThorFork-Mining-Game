@@ -1,4 +1,4 @@
-# ThorFork Mining Game
+# ThorFork - Otto Pfeff's Mining Game
 
 A Windows-tested fork and expansion of **Otto Pfefferkorn's Mining-Game**, a destructible-terrain mining sandbox written in C++ using SDL2.
 
@@ -22,6 +22,18 @@ The game now builds and launches successfully on current Windows 10/11 systems u
 - WAV loading and conversion
 - Debug builds using GDB
 - Local Windows deployment
+
+## One-Time Dependency Installation
+
+Run this once in **Windows PowerShell** to install MSYS2 and the required compiler, build tools, SDL libraries, and GDB:
+
+```powershell
+winget install --id MSYS2.MSYS2 -e --accept-package-agreements --accept-source-agreements; $env:MSYSTEM="MINGW64"; $env:CHERE_INVOKING="1"; & "C:\msys64\usr\bin\bash.exe" -lc 'pacman -Syu --noconfirm && pacman -S --needed --noconfirm git make mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-gdb'
+```
+
+If MSYS2 was already installed, this command simply updates it and installs any missing packages.
+
+If PowerShell reports that `C:\msys64\usr\bin\bash.exe` is not yet available immediately after installation, close PowerShell, reopen it, and rerun the command.
 
 ## Quick Launch from PowerShell
 
